@@ -12,10 +12,20 @@ public abstract class DeliveryOption {
         private final String name;
         private final int price;
         private final Location location;
+
+        public Deliver(String name, int price, Location location) {
+            this.name = name;
+            this.price = price;
+            this.location = location;
+        }
     }
 
     public final class ByNegotiation extends DeliveryOption {
         private final Location location;
+
+        public ByNegotiation(Location location) {
+            this.location = location;
+        }
     }
 
 }

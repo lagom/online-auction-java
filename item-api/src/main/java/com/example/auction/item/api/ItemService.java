@@ -28,9 +28,10 @@ public interface ItemService extends Service {
 
   ServiceCall<NotUsed, PSequence<Item>> getItemsForUser(UUID id, Optional<Integer> pageNo, Optional<Integer> pageSize);
 
-  TopicCall<ItemEvent> itemEvents();
+  // TopicCall<ItemEvent> itemEvents();
 
   @Override
   default Descriptor descriptor() {
+    return named("item");
   }
 }

@@ -22,6 +22,20 @@ public abstract class ItemEvent {
         private final String description;
         private final UUID categoryId;
         private final String currencyId;
+
+        public ItemUpdated(UUID itemId, UUID creator, String title, String description, UUID categoryId, String currencyId) {
+            this.itemId = itemId;
+            this.creator = creator;
+            this.title = title;
+            this.description = description;
+            this.categoryId = categoryId;
+            this.currencyId = currencyId;
+        }
+
+        @Override
+        public UUID getItemId() {
+            return itemId;
+        }
     }
 
     /**
@@ -33,6 +47,19 @@ public abstract class ItemEvent {
         private final int reservePrice;
         private final Instant startDate;
         private final Instant endDate;
+
+        public AuctionStarted(UUID itemId, UUID creator, int reservePrice, Instant startDate, Instant endDate) {
+            this.itemId = itemId;
+            this.creator = creator;
+            this.reservePrice = reservePrice;
+            this.startDate = startDate;
+            this.endDate = endDate;
+        }
+
+        @Override
+        public UUID getItemId() {
+            return itemId;
+        }
     }
 
     /**
@@ -45,12 +72,31 @@ public abstract class ItemEvent {
          * in an event.
          */
         private final Item item;
+
+        public AuctionFinished(UUID itemId, Item item) {
+            this.itemId = itemId;
+            this.item = item;
+        }
+
+        @Override
+        public UUID getItemId() {
+            return itemId;
+        }
     }
 
     /**
-     * Indidates an auction has been cancelled.
+     * Indicates an auction has been cancelled.
      */
     public static final class AuctionCancelled extends ItemEvent {
         private final UUID itemId;
+
+        public AuctionCancelled(UUID itemId) {
+            this.itemId = itemId;
+        }
+
+        @Override
+        public UUID getItemId() {
+            return itemId;
+        }
     }
 }

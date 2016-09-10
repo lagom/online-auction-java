@@ -35,7 +35,10 @@ lazy val biddingImpl = project("bidding-impl")
     libraryDependencies ++= Seq(
       lagomJavadslPersistence,
       lagomJavadslTestKit
-    )
+    ),
+    javacOptions += "-Xlint",
+    maxErrors := 10000
+
   )
 
 lazy val searchApi = project("search-api")
