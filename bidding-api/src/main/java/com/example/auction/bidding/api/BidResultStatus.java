@@ -13,10 +13,6 @@ public enum BidResultStatus {
      */
     ACCEPTED_OUTBID,
     /**
-     * The bid was accepted, but was not at least the auction increment above the maximum bid.
-     */
-    ACCEPTED_BELOW_INCREMENT,
-    /**
      * The bid was accepted, but is below the reserve.
      */
     ACCEPTED_BELOW_RESERVE,

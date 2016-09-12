@@ -124,10 +124,6 @@ public interface AuctionCommand extends Jsonable {
          */
         ACCEPTED_OUTBID(BidResultStatus.ACCEPTED_OUTBID),
         /**
-         * The bid was accepted, but was not at least the auction increment above the maximum bid.
-         */
-        ACCEPTED_BELOW_INCREMENT(BidResultStatus.ACCEPTED_BELOW_INCREMENT),
-        /**
          * The bid was accepted, but is below the reserve.
          */
         ACCEPTED_BELOW_RESERVE(BidResultStatus.ACCEPTED_BELOW_RESERVE),
@@ -158,8 +154,6 @@ public interface AuctionCommand extends Jsonable {
             switch (status) {
                 case ACCEPTED:
                     return ACCEPTED;
-                case ACCEPTED_BELOW_INCREMENT:
-                    return ACCEPTED_BELOW_INCREMENT;
                 case ACCEPTED_BELOW_RESERVE:
                     return ACCEPTED_BELOW_RESERVE;
                 case ACCEPTED_OUTBID:

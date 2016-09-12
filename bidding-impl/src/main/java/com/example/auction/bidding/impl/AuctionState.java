@@ -45,7 +45,13 @@ public final class AuctionState implements Jsonable {
     }
 
     public AuctionState bid(Bid bid) {
-        return new AuctionState(auction, status, biddingHistory.plus(bid));
+        if (lastBid().filter(b -> b.getBidder().equals(bid.getBidder())).isPresent()) {
+            // Current bidder has updated their bid
+            return new AuctionState(auction, status,
+                    biddingHistory.minus(biddingHistory.size() - 1).plus(bid));
+        } else {
+            return new AuctionState(auction, status, biddingHistory.plus(bid));
+        }
     }
 
     public Optional<Bid> lastBid() {

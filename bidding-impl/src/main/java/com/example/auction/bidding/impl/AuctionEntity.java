@@ -116,9 +116,6 @@ public class AuctionEntity extends PersistentEntity<AuctionCommand, AuctionEvent
         builder.setReadOnlyCommandHandler(PlaceBid.class, (bid, ctx) ->
                 ctx.reply(createResult(PlaceBidStatus.FINISHED))
         );
-        builder.setCommandHandler(CancelAuction.class, (cancel, ctx) ->
-                persistAndDone(ctx, new AuctionCancelled(entityUUID()))
-        );
         addGetAuctionHandler(builder);
 
         // Event handlers
@@ -176,6 +173,10 @@ public class AuctionEntity extends PersistentEntity<AuctionCommand, AuctionEvent
             return reply(ctx, createResult(PlaceBidStatus.FINISHED));
         }
 
+        if (auction.getCreator().equals(bid.getBidder())) {
+            throw new BidValidationException("An auctions creator cannot bid in their own auction.");
+        }
+
         Optional<Bid> currentBid = state().lastBid();
         int currentBidPrice;
         int currentBidMaximum;
@@ -187,9 +188,18 @@ public class AuctionEntity extends PersistentEntity<AuctionCommand, AuctionEvent
             currentBidMaximum = 0;
         }
 
+        boolean bidderIsCurrentBidder = currentBid.filter(b -> b.getBidder().equals(bid.getBidder())).isPresent();
+
+        if (bidderIsCurrentBidder && bid.getBidPrice() >= currentBidPrice) {
+            // Allow the current bidder to update their bid
+            return ctx.thenPersist(new BidPlaced(entityUUID(),
+                    new Bid(bid.getBidder(), now, currentBidPrice, bid.getBidPrice())), (e) ->
+                    ctx.reply(new PlaceBidResult(PlaceBidStatus.ACCEPTED, currentBidPrice, bid.getBidder()))
+            );
+        }
         if (bid.getBidPrice() < currentBidPrice + auction.getIncrement()) {
             return reply(ctx, createResult(PlaceBidStatus.TOO_LOW));
-        } else if (bid.getBidPrice() < currentBidMaximum) {
+        } else if (bid.getBidPrice() <= currentBidMaximum) {
             return handleAutomaticOutbid(bid, ctx, auction, now, currentBid, currentBidPrice, currentBidMaximum);
         } else {
             return handleNewWinningBidder(bid, ctx, auction, now, currentBidMaximum);
@@ -215,13 +225,7 @@ public class AuctionEntity extends PersistentEntity<AuctionCommand, AuctionEvent
                         new Bid(currentBid.get().getBidder(), now, newBidPrice, currentBidMaximum)
                 )
         ), () -> {
-            PlaceBidStatus status;
-            if (bid.getBidPrice() >= currentBidPrice) {
-                status = PlaceBidStatus.ACCEPTED_BELOW_INCREMENT;
-            } else {
-                status = PlaceBidStatus.ACCEPTED_OUTBID;
-            }
-            ctx.reply(new PlaceBidResult(status, newBidPrice, currentBid.get().getBidder()));
+            ctx.reply(new PlaceBidResult(PlaceBidStatus.ACCEPTED_OUTBID, newBidPrice, currentBid.get().getBidder()));
         });
     }
 
@@ -230,7 +234,7 @@ public class AuctionEntity extends PersistentEntity<AuctionCommand, AuctionEvent
      */
     private Persist<AuctionEvent> handleNewWinningBidder(PlaceBid bid, CommandContext<PlaceBidResult> ctx,
             Auction auction, Instant now, int currentBidMaximum) {
-        int nextIncrement = currentBidMaximum + auction.getIncrement();
+        int nextIncrement = Math.min(currentBidMaximum + auction.getIncrement(), bid.getBidPrice());
         int newBidPrice;
         if (nextIncrement < auction.getReservePrice()) {
             newBidPrice = Math.min(auction.getReservePrice(), bid.getBidPrice());
