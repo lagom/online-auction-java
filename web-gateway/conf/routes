@@ -1,0 +1,14 @@
+
+GET     /               controllers.Main.index
+
+# User management
+GET     /createuser     controllers.Main.createUserForm
+POST    /user     controllers.Main.createUser
+POST    /currentuser/:userId    controllers.Main.currentUser(userId)
+
+# Items
+GET     /createitem     controllers.ItemController.createItemForm
+POST    /item           controllers.ItemController.createItem
+GET     /item/:id       controllers.ItemController.getItem(id)
+
+GET     /assets/*file         controllers.Assets.at(path = "/public", file)

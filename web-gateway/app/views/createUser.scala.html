@@ -1,0 +1,11 @@
+@import helper._
+
+@(createUser: Form[CreateUserForm])(implicit nav: Nav)
+
+@main("Create user") {
+
+    @form(routes.Main.createUser()) {
+        @inputText(createUser("name"))
+        <input type="submit" value="Create user"/>
+    }
+}

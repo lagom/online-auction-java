@@ -29,8 +29,8 @@ public interface TransactionService extends Service {
 
     ServiceCall<NotUsed, Done> initiateRefund(UUID itemId);
 
-    TopicCall<PaymentEvent> paymentEvents();
+    //TopicCall<PaymentEvent> paymentEvents();
 
-    TopicCall<TransactionEvent> transactionEvents();
+    //TopicCall<TransactionEvent> transactionEvents();
 
 }

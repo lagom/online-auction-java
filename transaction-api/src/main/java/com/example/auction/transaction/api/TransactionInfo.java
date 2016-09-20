@@ -12,4 +12,12 @@ public final class TransactionInfo {
     private final int deliveryPrice;
     private final PaymentInfo paymentInfo;
 
+    public TransactionInfo(Item item, PSequence<TransactionMessage> messages, TransactionStatus status, DeliveryInfo deliveryInfo, int deliveryPrice, PaymentInfo paymentInfo) {
+        this.item = item;
+        this.messages = messages;
+        this.status = status;
+        this.deliveryInfo = deliveryInfo;
+        this.deliveryPrice = deliveryPrice;
+        this.paymentInfo = paymentInfo;
+    }
 }

@@ -20,7 +20,7 @@ public interface SearchService extends Service {
     ServiceCall<NotUsed, PSequence<SearchItem>> getUserAuctions();
 
     @Override
-    Descriptor descriptor() {
-
+    default Descriptor descriptor() {
+        return named("search");
     }
 }

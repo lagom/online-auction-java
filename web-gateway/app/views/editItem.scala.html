@@ -1,0 +1,26 @@
+@import helper._
+@import java.time.temporal.ChronoUnit
+@import controllers.{Currency => Currencies}
+
+@(itemForm: Form[ItemForm])(implicit nav: Nav)
+
+@main("Edit item") {
+
+    @form(routes.ItemController.createItem()) {
+        @inputText(itemForm("title"))
+        @textarea(itemForm("description"))
+        @select(
+            field = itemForm("currency"),
+            options = Currencies.values().toSeq.map(c => c.name() -> c.getDisplayName).sortBy(_._2)
+        )
+        @* todo set min and step according to the selected currency *@
+        @inputText(itemForm("increment"), 'type -> "number", 'min -> 0.5, 'step -> 0.5)
+        @inputText(itemForm("reserve"), 'type -> "number", 'min -> 0, 'step -> 0.5)
+        @inputText(itemForm("duration"), 'type -> "number", 'min -> 1, 'step -> 1)
+        @select(
+            field = itemForm("durationUnits"),
+            options = ChronoUnit.values().dropWhile(_ != ChronoUnit.SECONDS).takeWhile(_ != ChronoUnit.MONTHS).map(u => u.name() -> u.toString())
+        )
+        <input type="submit" value="Create item"/>
+    }
+}

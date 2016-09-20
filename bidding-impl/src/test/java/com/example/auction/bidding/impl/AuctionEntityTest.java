@@ -9,8 +9,6 @@ import com.example.auction.bidding.impl.AuctionEvent.*;
 import org.hamcrest.FeatureMatcher;
 import org.hamcrest.Matcher;
 import org.junit.*;
-import org.pcollections.TreePVector;
-import play.mvc.Results;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;

@@ -15,4 +15,16 @@ public final class SearchItem {
     private final Instant auctionStart;
     private final Instant auctionEnd;
 
+
+    public SearchItem(UUID id, UUID creator, String title, String description, UUID categoryId, String currencyId, int price, Instant auctionStart, Instant auctionEnd) {
+        this.id = id;
+        this.creator = creator;
+        this.title = title;
+        this.description = description;
+        this.categoryId = categoryId;
+        this.currencyId = currencyId;
+        this.price = price;
+        this.auctionStart = auctionStart;
+        this.auctionEnd = auctionEnd;
+    }
 }

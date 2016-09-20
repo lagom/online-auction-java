@@ -29,7 +29,7 @@ lazy val biddingApi = project("bidding-api")
 
 lazy val biddingImpl = project("bidding-impl")
   .settings(version := "1.0-SNAPSHOT")
-  .enablePlugins(LagomJava)
+  // .enablePlugins(LagomJava)
   .dependsOn(biddingApi, itemApi)
   .settings(
     libraryDependencies ++= Seq(
@@ -49,7 +49,7 @@ lazy val searchApi = project("search-api")
 
 lazy val searchImpl = project("search-impl")
   .settings(version := "1.0-SNAPSHOT")
-  .enablePlugins(LagomJava)
+  // .enablePlugins(LagomJava)
   .dependsOn(searchApi, itemApi, biddingApi)
   .settings(
     libraryDependencies ++= Seq(
@@ -67,7 +67,7 @@ lazy val transactionApi = project("transaction-api")
 
 lazy val transactionImpl = project("transaction-impl")
   .settings(version := "1.0-SNAPSHOT")
-  .enablePlugins(LagomJava)
+  // .enablePlugins(LagomJava)
   .dependsOn(transactionApi, biddingApi)
   .settings(
     libraryDependencies ++= Seq(
@@ -76,16 +76,31 @@ lazy val transactionImpl = project("transaction-impl")
     )
   )
 
+lazy val userApi = project("user-api")
+  .settings(version := "1.0-SNAPSHOT")
+  .settings(
+    libraryDependencies += lagomJavadslApi
+  )
+
+lazy val userImpl = project("user-impl")
+  .settings(version := "1.0-SNAPSHOT")
+  .enablePlugins(LagomJava)
+  .dependsOn(userApi)
+  .settings(
+    libraryDependencies += lagomJavadslPersistence
+  )
+
+lazy val webGateway = project("web-gateway")
+  .settings(version := "1.0-SNAPSHOT")
+  .enablePlugins(PlayJava && LagomPlay)
+  .dependsOn(transactionApi, biddingApi, itemApi, searchApi, userApi)
+  .settings(
+    libraryDependencies += lagomJavadslClient
+  )
+
 def project(id: String) = Project(id, base = file(id))
   .settings(eclipseSettings: _*)
-  .settings(javacOptions in compile ++= Seq("-encoding", "UTF-8", "-source", "1.8", "-target", "1.8", "-Xlint:unchecked", "-Xlint:deprecation"))
-  .settings(jacksonParameterNamesJavacSettings: _*) // applying it to every project even if not strictly needed.
-
-
-// See https://github.com/FasterXML/jackson-module-parameter-names
-lazy val jacksonParameterNamesJavacSettings = Seq(
-  javacOptions in compile += "-parameters"
-)
+  .settings(javacOptions ++= Seq("-encoding", "UTF-8", "-source", "1.8", "-target", "1.8", "-Xlint:unchecked", "-Xlint:deprecation", "-parameters"))
 
 // Configuration of sbteclipse
 // Needed for importing the project into Eclipse
@@ -100,3 +115,5 @@ lazy val eclipseSettings = Seq(
   unmanagedSourceDirectories in Compile := Seq((javaSource in Compile).value),
   unmanagedSourceDirectories in Test := Seq((javaSource in Test).value)
 )
+
+lagomCassandraCleanOnStart := false

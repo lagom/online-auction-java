@@ -1,0 +1,29 @@
+@(title: String)(content: Html)(implicit nav: Nav)
+
+<html>
+    <head>
+        <title>@title</title>
+        <script type="text/javascript" src="@routes.Assets.at("main.js")"></script>
+    </head>
+    <body>
+        <nav>
+            <ul>
+                <li><a href="@routes.Main.index()">Home</a></li>
+                <li><a href="@routes.Main.createUserForm()">Create user</a></li>
+                <li><a href="@routes.ItemController.createItemForm()">Create item</a></li>
+                <li>
+                    Logged in as:
+                    <select id="user-select">
+                        <option>- Select User -</option>
+                        @for(user <- nav.getUsers) {
+                            <option value="@user.getId"@if(nav.getUser.isPresent && nav.getUser.get == user){ selected="selected"}>@user.getName</option>
+                        }
+                    </select>
+                </li>
+            </ul>
+        </nav>
+        <article>
+            @content
+        </article>
+    </body>
+</html>

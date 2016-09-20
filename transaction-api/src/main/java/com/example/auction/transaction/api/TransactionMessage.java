@@ -9,4 +9,9 @@ public final class TransactionMessage {
     private final String message;
     private final Instant timeSent;
 
+    public TransactionMessage(UUID author, String message, Instant timeSent) {
+        this.author = author;
+        this.message = message;
+        this.timeSent = timeSent;
+    }
 }
