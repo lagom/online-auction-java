@@ -6,6 +6,7 @@ import com.lightbend.lagom.javadsl.persistence.PersistentEntity;
 import com.lightbend.lagom.serialization.Jsonable;
 
 import java.util.Optional;
+import java.util.UUID;
 
 public interface PItemCommand extends Jsonable {
 
@@ -42,7 +43,32 @@ public interface PItemCommand extends Jsonable {
         }
     }
 
-    enum StartAuction implements PItemCommand, PersistentEntity.ReplyType<Done> {
-        INSTANCE
+    final class StartAuction implements PItemCommand, PersistentEntity.ReplyType<Done> {
+        private final UUID userId;
+
+        @JsonCreator
+        public StartAuction(UUID userId) {
+            this.userId = userId;
+        }
+
+        public UUID getUserId() {
+            return userId;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            StartAuction that = (StartAuction) o;
+
+            return userId.equals(that.userId);
+
+        }
+
+        @Override
+        public int hashCode() {
+            return userId.hashCode();
+        }
     }
 }

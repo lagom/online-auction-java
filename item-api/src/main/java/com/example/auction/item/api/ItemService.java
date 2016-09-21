@@ -9,6 +9,7 @@ import static com.lightbend.lagom.javadsl.api.Service.restCall;
 
 import akka.Done;
 import akka.NotUsed;
+import com.example.auction.security.SecurityHeaderFilter;
 import com.lightbend.lagom.javadsl.api.Descriptor;
 import com.lightbend.lagom.javadsl.api.Service;
 import com.lightbend.lagom.javadsl.api.ServiceCall;
@@ -40,6 +41,7 @@ public interface ItemService extends Service {
             restCall(Method.POST, "/api/item/:id/start", this::startAuction),
             pathCall("/api/item/:id", this::getItem),
             pathCall("/api/item?userId&pageNo&pageSize", this::getItemsForUser)
-    ).withPathParamSerializer(UUID.class, PathParamSerializers.required("UUID", UUID::fromString, UUID::toString));
+    ).withPathParamSerializer(UUID.class, PathParamSerializers.required("UUID", UUID::fromString, UUID::toString))
+            .withHeaderFilter(SecurityHeaderFilter.INSTANCE);
   }
 }

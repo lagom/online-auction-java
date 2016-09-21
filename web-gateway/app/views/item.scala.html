@@ -1,0 +1,66 @@
+@import com.example.auction.item.api.Item
+@import com.example.auction.item.api.ItemStatus
+@import com.example.auction.user.api.User
+@import java.util._
+@import controllers.{Currency => Currencies}
+
+@(item: Item, currentUser: UUID, currency: Currencies, seller: User, winner: Optional[User])(implicit nav: Nav)
+
+@main("Item - " + item.getTitle) {
+
+    <h1>@item.getTitle</h1>
+
+    <p>
+        @item.getDescription
+    </p>
+
+    <dl>
+        <dt>Seller</dt>
+        <dd>@seller.getName</dd>
+
+        <dt>Currency</dt>
+        <dd>@currency.getDisplayName</dd>
+
+        <dt>Increment</dt>
+        <dd>@currency.format(item.getIncrement)</dd>
+
+    @if(currentUser == item.getCreator) {
+        <dt>Reserve</dt>
+        <dd>@currency.format(item.getReservePrice)</dd>
+    }
+
+        <dt>Auction Duration</dt>
+        <dd>@item.getAuctionDuration</dd>
+
+    @if(item.getStatus == ItemStatus.AUCTION || item.getStatus == ItemStatus.COMPLETED) {
+        <dt>Auction start</dt>
+        <dd>@item.getAuctionStart.get</dd>
+
+        <dt>Auction end</dt>
+        <dd>@item.getAuctionEnd.get</dd>
+    }
+
+    @if(item.getStatus == ItemStatus.AUCTION) {
+        <dt>Current price</dt>
+        <dd>@currency.format(item.getPrice)</dd>
+    }
+
+    @if(item.getStatus == ItemStatus.COMPLETED) {
+        <dt>Final Price</dt>
+        <dd>@currency.format(item.getPrice)</dd>
+
+        @if(winner.isPresent) {
+            <dt>Winner</dt>
+            <dd>@winner.get.getName</dd>
+        }
+        <dt></dt>
+    }
+
+    </dl>
+
+    @if(currentUser == item.getCreator && item.getStatus == ItemStatus.CREATED) {
+        <form action="@routes.ItemController.startAuction(item.getId.toString)" method="POST">
+            <input type="submit" value="Start Auction"/>
+        </form>
+    }
+}

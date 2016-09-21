@@ -1,6 +1,7 @@
 package com.example.auction.item.impl;
 
 import akka.Done;
+import com.lightbend.lagom.javadsl.api.transport.Forbidden;
 import com.lightbend.lagom.javadsl.persistence.PersistentEntity;
 
 import com.example.auction.item.impl.PItemCommand.*;
@@ -49,9 +50,14 @@ public class PItemEntity extends PersistentEntity<PItemCommand, PItemEvent, PIte
 
         builder.setReadOnlyCommandHandler(GetItem.class, this::getItem);
 
-        builder.setCommandHandler(StartAuction.class, (start, ctx) ->
-                ctx.thenPersist(new AuctionStarted(entityUuid()), evt -> ctx.reply(Done.getInstance()))
-        );
+        builder.setCommandHandler(StartAuction.class, (start, ctx) -> {
+            if (start.getUserId().equals(state().getItem().get().getCreator())) {
+                return ctx.thenPersist(new AuctionStarted(entityUuid()), evt -> ctx.reply(Done.getInstance()));
+            } else {
+                ctx.invalidCommand("User " + start.getUserId() + " is not allowed to start this auction");
+                return ctx.done();
+            }
+        });
         builder.setEventHandlerChangingBehavior(AuctionStarted.class, evt -> auction(state().start(Instant.now())));
 
         return builder.build();

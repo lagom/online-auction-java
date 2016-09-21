@@ -2,6 +2,8 @@ package controllers;
 
 import com.example.auction.item.api.Item;
 import com.example.auction.item.api.ItemService;
+import com.example.auction.item.api.ItemStatus;
+import com.example.auction.user.api.User;
 import com.example.auction.user.api.UserService;
 import play.data.Form;
 import play.data.FormFactory;
@@ -11,8 +13,11 @@ import play.mvc.Result;
 import javax.inject.Inject;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletionStage;
+
+import static com.example.auction.security.ClientSecurity.*;
 
 public class ItemController extends AbstractController {
 
@@ -50,7 +55,8 @@ public class ItemController extends AbstractController {
                 Currency currency = Currency.valueOf(itemForm.getCurrency());
                 Duration duration = Duration.of(itemForm.getDuration(), ChronoUnit.valueOf(itemForm.getDurationUnits()));
 
-                return itemService.createItem().invoke(new Item(user, itemForm.getTitle(), itemForm.getDescription(), itemForm.getCurrency(),
+                return itemService.createItem().handleRequestHeader(authenticate(user))
+                        .invoke(new Item(user, itemForm.getTitle(), itemForm.getDescription(), itemForm.getCurrency(),
                         currency.toPriceUnits(itemForm.getIncrement().doubleValue()),
                         currency.toPriceUnits(itemForm.getReserve().doubleValue()), duration)).thenApply(item -> {
 
@@ -62,12 +68,37 @@ public class ItemController extends AbstractController {
     }
 
     public CompletionStage<Result> getItem(String itemId) {
-        return requireUser(user -> {
+        return requireUser(user -> loadNav(user).thenCompose(nav -> {
+            return itemService.getItem(UUID.fromString(itemId)).handleRequestHeader(authenticate(user)).invoke().thenApply(item -> {
 
-            return itemService.getItem(UUID.fromString(itemId)).invoke().thenApply(item ->
-                    ok()
-            );
-        });
+                if (item.getStatus() == ItemStatus.CREATED && !item.getCreator().equals(user)) {
+                    return forbidden();
+                }
+
+                User seller = null;
+                Optional<User> winner = Optional.empty();
+                for(User u: nav.getUsers()) {
+                    if (item.getCreator().equals(u.getId())) {
+                        seller = u;
+                    }
+                    if (item.getAuctionWinner().isPresent() && item.getAuctionWinner().get().equals(u.getId())) {
+                        winner = Optional.of(u);
+                    }
+                }
+
+                Currency currency = Currency.valueOf(item.getCurrencyId());
+
+                return ok(views.html.item.render(item, user, currency, seller, winner, nav));
+            });
+        }));
+    }
+
+    public CompletionStage<Result> startAuction(String itemId) {
+        return requireUser(user ->
+                itemService.startAuction(UUID.fromString(itemId)).handleRequestHeader(authenticate(user)).invoke().thenApply(done ->
+                        redirect(routes.ItemController.getItem(itemId))
+                )
+        );
     }
 
 }

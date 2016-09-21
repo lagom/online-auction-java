@@ -2,6 +2,7 @@ package controllers;
 
 import com.example.auction.user.api.User;
 import com.example.auction.user.api.UserService;
+import com.lightbend.lagom.javadsl.api.transport.RequestHeader;
 import play.mvc.Controller;
 import play.mvc.Result;
 

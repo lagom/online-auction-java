@@ -10,5 +10,6 @@ POST    /currentuser/:userId    controllers.Main.currentUser(userId)
 GET     /createitem     controllers.ItemController.createItemForm
 POST    /item           controllers.ItemController.createItem
 GET     /item/:id       controllers.ItemController.getItem(id)
+POST     /item/:id/auction       controllers.ItemController.startAuction(id)
 
 GET     /assets/*file         controllers.Assets.at(path = "/public", file)

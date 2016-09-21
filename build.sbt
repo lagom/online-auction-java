@@ -1,106 +1,134 @@
+lazy val root = (project in file("."))
+  .aggregate(itemApi, itemImpl, biddingApi, biddingImpl, userApi, userImpl, webGateway)
+
 organization in ThisBuild := "com.example"
 
 // the Scala version that will be used for cross-compiled libraries
 scalaVersion in ThisBuild := "2.11.7"
 
-lazy val itemApi = project("item-api")
+lazy val security = (project in file("security"))
+  .settings(commonSettings: _*)
+  .settings(
+    version := "1.0-SNAPSHOT",
+    libraryDependencies ++= Seq(
+      lagomJavadslApi,
+      lagomJavadslServer % Optional
+    )
+  )
+
+lazy val itemApi = (project in file("item-api"))
+  .settings(commonSettings: _*)
   .settings(
     version := "1.0-SNAPSHOT",
     libraryDependencies += lagomJavadslApi
   )
+  .dependsOn(security)
 
-lazy val itemImpl = project("item-impl")
+lazy val itemImpl = (project in file("item-impl"))
+  .settings(commonSettings: _*)
   .enablePlugins(LagomJava)
   .settings(
     version := "1.0-SNAPSHOT",
     libraryDependencies ++= Seq(
-      lagomJavadslPersistence,
+      lagomJavadslPersistenceCassandra,
       lagomJavadslTestKit
     )
   )
   .settings(lagomForkedTestSettings: _*)
   .dependsOn(itemApi)
 
-lazy val biddingApi = project("bidding-api")
-  .settings(version := "1.0-SNAPSHOT")
+lazy val biddingApi = (project in file("bidding-api"))
+  .settings(commonSettings: _*)
   .settings(
+    version := "1.0-SNAPSHOT",
     libraryDependencies += lagomJavadslApi
   )
+  .dependsOn(security)
 
-lazy val biddingImpl = project("bidding-impl")
-  .settings(version := "1.0-SNAPSHOT")
+lazy val biddingImpl = (project in file("bidding-impl"))
+  .settings(commonSettings: _*)
   // .enablePlugins(LagomJava)
   .dependsOn(biddingApi, itemApi)
   .settings(
+    version := "1.0-SNAPSHOT",
     libraryDependencies ++= Seq(
-      lagomJavadslPersistence,
+      lagomJavadslPersistenceCassandra,
       lagomJavadslTestKit
     ),
-    javacOptions += "-Xlint",
     maxErrors := 10000
 
   )
 
-lazy val searchApi = project("search-api")
-  .settings(version := "1.0-SNAPSHOT")
+lazy val searchApi = (project in file("search-api"))
+  .settings(commonSettings: _*)
   .settings(
+    version := "1.0-SNAPSHOT",
     libraryDependencies += lagomJavadslApi
   )
+  .dependsOn(security)
 
-lazy val searchImpl = project("search-impl")
-  .settings(version := "1.0-SNAPSHOT")
+lazy val searchImpl = (project in file("search-impl"))
+  .settings(commonSettings: _*)
   // .enablePlugins(LagomJava)
   .dependsOn(searchApi, itemApi, biddingApi)
   .settings(
+    version := "1.0-SNAPSHOT",
     libraryDependencies ++= Seq(
-      lagomJavadslPersistence,
+      lagomJavadslPersistenceCassandra,
       lagomJavadslTestKit
     )
   )
 
-lazy val transactionApi = project("transaction-api")
-  .settings(version := "1.0-SNAPSHOT")
+lazy val transactionApi = (project in file("transaction-api"))
+  .settings(commonSettings: _*)
   .dependsOn(itemApi)
   .settings(
+    version := "1.0-SNAPSHOT",
     libraryDependencies += lagomJavadslApi
   )
+  .dependsOn(security)
 
-lazy val transactionImpl = project("transaction-impl")
-  .settings(version := "1.0-SNAPSHOT")
+lazy val transactionImpl = (project in file("transaction-impl"))
+  .settings(commonSettings: _*)
   // .enablePlugins(LagomJava)
   .dependsOn(transactionApi, biddingApi)
   .settings(
+    version := "1.0-SNAPSHOT",
     libraryDependencies ++= Seq(
-      lagomJavadslPersistence,
+      lagomJavadslPersistenceCassandra,
       lagomJavadslTestKit
     )
   )
 
-lazy val userApi = project("user-api")
-  .settings(version := "1.0-SNAPSHOT")
+lazy val userApi = (project in file("user-api"))
+  .settings(commonSettings: _*)
   .settings(
+    version := "1.0-SNAPSHOT",
     libraryDependencies += lagomJavadslApi
   )
+  .dependsOn(security)
 
-lazy val userImpl = project("user-impl")
-  .settings(version := "1.0-SNAPSHOT")
+lazy val userImpl = (project in file("user-impl"))
+  .settings(commonSettings: _*)
   .enablePlugins(LagomJava)
   .dependsOn(userApi)
   .settings(
-    libraryDependencies += lagomJavadslPersistence
+    version := "1.0-SNAPSHOT",
+    libraryDependencies += lagomJavadslPersistenceCassandra
   )
 
-lazy val webGateway = project("web-gateway")
-  .settings(version := "1.0-SNAPSHOT")
+lazy val webGateway = (project in file("web-gateway"))
+  .settings(commonSettings: _*)
   .enablePlugins(PlayJava && LagomPlay)
   .dependsOn(transactionApi, biddingApi, itemApi, searchApi, userApi)
   .settings(
+    version := "1.0-SNAPSHOT",
     libraryDependencies += lagomJavadslClient
   )
 
-def project(id: String) = Project(id, base = file(id))
-  .settings(eclipseSettings: _*)
-  .settings(javacOptions ++= Seq("-encoding", "UTF-8", "-source", "1.8", "-target", "1.8", "-Xlint:unchecked", "-Xlint:deprecation", "-parameters"))
+def commonSettings: Seq[Setting[_]] = eclipseSettings ++ Seq(
+    javacOptions ++= Seq("-encoding", "UTF-8", "-source", "1.8", "-target", "1.8", "-Xlint:unchecked", "-Xlint:deprecation", "-parameters")
+)
 
 // Configuration of sbteclipse
 // Needed for importing the project into Eclipse
@@ -116,4 +144,4 @@ lazy val eclipseSettings = Seq(
   unmanagedSourceDirectories in Test := Seq((javaSource in Test).value)
 )
 
-lagomCassandraCleanOnStart := false
+lagomCassandraCleanOnStart in ThisBuild := false
