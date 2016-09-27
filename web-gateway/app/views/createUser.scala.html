@@ -2,10 +2,16 @@
 
 @(createUser: Form[CreateUserForm])(implicit nav: Nav)
 
-@main("Create user") {
+@main(message("createUser")) {
 
-    @form(routes.Main.createUser()) {
-        @inputText(createUser("name"))
-        <input type="submit" value="Create user"/>
+    <h2>@message("createUser")</h2>
+
+    @foundationForm(createUser, routes.Main.createUser()) {
+        <div class="row">
+            <div class="medium-6 columns">
+                @inputText(createUser("name"))
+            </div>
+        </div>
+        <input class="button" type="submit" value="@message("createUser")"/>
     }
 }

@@ -5,12 +5,15 @@ package com.example.auction.bidding.api;
 
 import static com.lightbend.lagom.javadsl.api.Service.named;
 import static com.lightbend.lagom.javadsl.api.Service.pathCall;
+import static com.lightbend.lagom.javadsl.api.Service.topic;
 
-import akka.Done;
 import akka.NotUsed;
+import com.example.auction.security.SecurityHeaderFilter;
 import com.lightbend.lagom.javadsl.api.Descriptor;
 import com.lightbend.lagom.javadsl.api.Service;
 import com.lightbend.lagom.javadsl.api.ServiceCall;
+import com.lightbend.lagom.javadsl.api.broker.Topic;
+import com.lightbend.lagom.javadsl.api.deser.PathParamSerializers;
 import org.pcollections.PSequence;
 
 import java.util.UUID;
@@ -31,7 +34,7 @@ public interface BiddingService extends Service {
    *
    * @param itemId The item to bid on.
    */
-  ServiceCall<Bid, BidResult> placeBid(UUID itemId);
+  ServiceCall<PlaceBid, BidResult> placeBid(UUID itemId);
 
   /**
    * Get the bids for an item.
@@ -40,10 +43,19 @@ public interface BiddingService extends Service {
    */
   ServiceCall<NotUsed, PSequence<Bid>> getBids(UUID itemId);
 
-  // TopicCall<BidEvent> bidEvents();
+  /**
+   * The bid events topic.
+   */
+  Topic<BidEvent> bidEvents();
 
   @Override
   default Descriptor descriptor() {
-    return named("bidding");
+    return named("bidding").withCalls(
+            pathCall("/api/item/:id/bids", this::placeBid),
+            pathCall("/api/item/:id/bids", this::getBids)
+    ).publishing(
+            topic("bidding-BidEvent", this::bidEvents)
+    ).withPathParamSerializer(UUID.class, PathParamSerializers.required("UUID", UUID::fromString, UUID::toString))
+            .withHeaderFilter(SecurityHeaderFilter.INSTANCE);
   }
 }

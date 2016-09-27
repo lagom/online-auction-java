@@ -1,6 +1,7 @@
 package com.example.auction.bidding.api;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 
@@ -12,6 +13,10 @@ import java.util.UUID;
  * A bid event.
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
+@JsonSubTypes({
+                @JsonSubTypes.Type(BidEvent.BidPlaced.class),
+                @JsonSubTypes.Type(BidEvent.BiddingFinished.class)
+})
 public interface BidEvent {
 
     /**

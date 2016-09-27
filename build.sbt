@@ -31,11 +31,12 @@ lazy val itemImpl = (project in file("item-impl"))
     version := "1.0-SNAPSHOT",
     libraryDependencies ++= Seq(
       lagomJavadslPersistenceCassandra,
-      lagomJavadslTestKit
+      lagomJavadslTestKit,
+      lagomJavadslKafkaBroker
     )
   )
   .settings(lagomForkedTestSettings: _*)
-  .dependsOn(itemApi)
+  .dependsOn(itemApi, biddingApi)
 
 lazy val biddingApi = (project in file("bidding-api"))
   .settings(commonSettings: _*)
@@ -47,13 +48,14 @@ lazy val biddingApi = (project in file("bidding-api"))
 
 lazy val biddingImpl = (project in file("bidding-impl"))
   .settings(commonSettings: _*)
-  // .enablePlugins(LagomJava)
+  .enablePlugins(LagomJava)
   .dependsOn(biddingApi, itemApi)
   .settings(
     version := "1.0-SNAPSHOT",
     libraryDependencies ++= Seq(
       lagomJavadslPersistenceCassandra,
-      lagomJavadslTestKit
+      lagomJavadslTestKit,
+      lagomJavadslKafkaBroker
     ),
     maxErrors := 10000
 
@@ -123,7 +125,14 @@ lazy val webGateway = (project in file("web-gateway"))
   .dependsOn(transactionApi, biddingApi, itemApi, searchApi, userApi)
   .settings(
     version := "1.0-SNAPSHOT",
-    libraryDependencies += lagomJavadslClient
+    libraryDependencies ++= Seq(
+      lagomJavadslClient,
+
+      "org.ocpsoft.prettytime" % "prettytime" % "3.2.7.Final",
+
+      "org.webjars" % "foundation" % "6.2.3",
+      "org.webjars" % "foundation-icon-fonts" % "d596a3cfb3"
+    )
   )
 
 def commonSettings: Seq[Setting[_]] = eclipseSettings ++ Seq(

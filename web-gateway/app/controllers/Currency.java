@@ -1,5 +1,7 @@
 package controllers;
 
+import java.math.BigDecimal;
+import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.Locale;
 
@@ -36,6 +38,14 @@ public enum Currency {
             return ((double) value) / Math.pow(10, currency.getDefaultFractionDigits());
         } else {
             return value;
+        }
+    }
+
+    public String formatDecimal(int value) {
+        if (currency.getDefaultFractionDigits() > 0) {
+            return String.format("%." + currency.getDefaultFractionDigits() + "f", toDecimal(value));
+        } else {
+            return Integer.toString(value);
         }
     }
 

@@ -132,4 +132,117 @@ public final class Item {
     public Optional<UUID> getAuctionWinner() {
         return auctionWinner;
     }
+
+
+    public static final class Builder {
+        private UUID id;
+        private UUID creator;
+        private String title;
+        private String description;
+        private String currencyId;
+        private int increment;
+        private int reservePrice;
+        private int price;
+        private ItemStatus status;
+        private Duration auctionDuration;
+        private Optional<Instant> auctionStart;
+        private Optional<Instant> auctionEnd;
+        private Optional<UUID> auctionWinner;
+
+        private Builder() {
+        }
+
+        public static Builder from(Item item) {
+            Builder builder = new Builder();
+            builder.id = item.id;
+            builder.creator = item.creator;
+            builder.title = item.title;
+            builder.description = item.description;
+            builder.currencyId = item.currencyId;
+            builder.increment = item.increment;
+            builder.reservePrice = item.reservePrice;
+            builder.price = item.price;
+            builder.status = item.status;
+            builder.auctionDuration = item.auctionDuration;
+            builder.auctionStart = item.auctionStart;
+            builder.auctionEnd = item.auctionEnd;
+            builder.auctionWinner = item.auctionWinner;
+            return builder;
+        }
+
+        public static Builder anItem() {
+            return new Builder();
+        }
+
+        public Builder withId(UUID id) {
+            this.id = id;
+            return this;
+        }
+
+        public Builder withCreator(UUID creator) {
+            this.creator = creator;
+            return this;
+        }
+
+        public Builder withTitle(String title) {
+            this.title = title;
+            return this;
+        }
+
+        public Builder withDescription(String description) {
+            this.description = description;
+            return this;
+        }
+
+        public Builder withCurrencyId(String currencyId) {
+            this.currencyId = currencyId;
+            return this;
+        }
+
+        public Builder withIncrement(int increment) {
+            this.increment = increment;
+            return this;
+        }
+
+        public Builder withReservePrice(int reservePrice) {
+            this.reservePrice = reservePrice;
+            return this;
+        }
+
+        public Builder withPrice(int price) {
+            this.price = price;
+            return this;
+        }
+
+        public Builder withStatus(ItemStatus status) {
+            this.status = status;
+            return this;
+        }
+
+        public Builder withAuctionDuration(Duration auctionDuration) {
+            this.auctionDuration = auctionDuration;
+            return this;
+        }
+
+        public Builder withAuctionStart(Optional<Instant> auctionStart) {
+            this.auctionStart = auctionStart;
+            return this;
+        }
+
+        public Builder withAuctionEnd(Optional<Instant> auctionEnd) {
+            this.auctionEnd = auctionEnd;
+            return this;
+        }
+
+        public Builder withAuctionWinner(Optional<UUID> auctionWinner) {
+            this.auctionWinner = auctionWinner;
+            return this;
+        }
+
+        public Item build() {
+            Item item = new Item(id, creator, title, description, currencyId, increment, reservePrice, price, status,
+                    auctionDuration, auctionStart, auctionEnd, auctionWinner);
+            return item;
+        }
+    }
 }

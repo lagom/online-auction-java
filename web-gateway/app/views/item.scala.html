@@ -1,66 +1,145 @@
 @import com.example.auction.item.api.Item
 @import com.example.auction.item.api.ItemStatus
 @import com.example.auction.user.api.User
+@import com.example.auction.bidding.api.BidResult
+@import com.example.auction.bidding.api.BidResultStatus._
 @import java.util._
 @import controllers.{Currency => Currencies}
 
-@(item: Item, currentUser: UUID, currency: Currencies, seller: User, winner: Optional[User])(implicit nav: Nav)
+@(item: Item, bidForm: Form[BidForm], biddingHistory: List[AnonymousBid], currentUser: UUID, currency: Currencies,
+        seller: User, winner: Optional[User], currentMaximumBid: Optional[Integer], bidResult: Optional[BidResult])(implicit nav: Nav)
 
-@main("Item - " + item.getTitle) {
+@renderBidResult(icon: String, callout: String, bidMessage: String) = {
+    <div class="@callout callout">
+        <i class="fi-@icon"></i> @message(bidMessage, currency.format(bidResult.get().getCurrentPrice))
+    </div>
+}
+
+@main(item.getTitle) {
 
     <h1>@item.getTitle</h1>
+
+    @if(bidResult.isPresent) {
+
+        @bidResult.get().getStatus match {
+            case ACCEPTED => {
+                @renderBidResult("like", "success", "bidAcceptedMessage")
+            }
+            case ACCEPTED_OUTBID => {
+                @renderBidResult("dislike", "warning", "bidAcceptedOutbidMessage")
+            }
+            case ACCEPTED_BELOW_RESERVE => {
+                @renderBidResult("dislike", "warning", "bidAcceptedBelowReserveMessage")
+            }
+            case TOO_LOW => {
+                @renderBidResult("alert", "alert", "bidTooLowMessage")
+            }
+            case NOT_STARTED => {
+                @renderBidResult("alert", "alert", "bidNotStartedMessage")
+            }
+            case FINISHED => {
+                @renderBidResult("alert", "alert", "bidFinishedMessage")
+            }
+            case CANCELLED => {
+                @renderBidResult("alert", "alert", "bidCancelledMessage")
+            }
+        }
+    }
 
     <p>
         @item.getDescription
     </p>
 
     <dl>
-        <dt>Seller</dt>
+        <dt>@message("seller")</dt>
         <dd>@seller.getName</dd>
 
-        <dt>Currency</dt>
+        <dt>@message("currency")</dt>
         <dd>@currency.getDisplayName</dd>
 
-        <dt>Increment</dt>
+        <dt>@message("increment")</dt>
         <dd>@currency.format(item.getIncrement)</dd>
 
     @if(currentUser == item.getCreator) {
-        <dt>Reserve</dt>
+        <dt>@message("reserve")</dt>
         <dd>@currency.format(item.getReservePrice)</dd>
     }
 
-        <dt>Auction Duration</dt>
-        <dd>@item.getAuctionDuration</dd>
+        <dt>@message("duration")</dt>
+        <dd>@nav.formatDuration(item.getAuctionDuration)</dd>
 
     @if(item.getStatus == ItemStatus.AUCTION || item.getStatus == ItemStatus.COMPLETED) {
-        <dt>Auction start</dt>
-        <dd>@item.getAuctionStart.get</dd>
+        <dt>@message("auctionStart")</dt>
+        <dd>@nav.formatInstant(item.getAuctionStart.get)</dd>
 
-        <dt>Auction end</dt>
-        <dd>@item.getAuctionEnd.get</dd>
+        <dt>@message("auctionEnd")</dt>
+        <dd>@nav.formatInstant(item.getAuctionEnd.get)</dd>
     }
 
     @if(item.getStatus == ItemStatus.AUCTION) {
-        <dt>Current price</dt>
+        <dt>@message("currentPrice")</dt>
         <dd>@currency.format(item.getPrice)</dd>
     }
 
     @if(item.getStatus == ItemStatus.COMPLETED) {
-        <dt>Final Price</dt>
+        <dt>@message("finalPrice")</dt>
         <dd>@currency.format(item.getPrice)</dd>
 
-        @if(winner.isPresent) {
-            <dt>Winner</dt>
+        @if(winner.isPresent && (currentUser == item.getCreator || currentUser == winner.get.getId)) {
+            <dt>@message("auctionWinner")</dt>
             <dd>@winner.get.getName</dd>
         }
-        <dt></dt>
     }
-
     </dl>
 
     @if(currentUser == item.getCreator && item.getStatus == ItemStatus.CREATED) {
         <form action="@routes.ItemController.startAuction(item.getId.toString)" method="POST">
-            <input type="submit" value="Start Auction"/>
+            <input class="button success" type="submit" value="@message("startAuction")"/>
         </form>
+    }
+    @if(currentUser != item.getCreator && item.getStatus == ItemStatus.AUCTION) {
+        <h3>@message("placeBid")</h3>
+        @if(currentMaximumBid.isPresent) {
+            <div class="success callout">
+                @message("currentWinningBidderMessage", currency.format(currentMaximumBid.get()))
+            </div>
+        }
+        @foundationForm(bidForm, routes.ItemController.placeBid(item.getId.toString)) {
+            @helper.inputText(bidForm("bid"), 'type -> "number", 'step -> currency.formatDecimal(item.getIncrement),
+                'min -> currency.formatDecimal(item.getPrice + item.getIncrement))
+            <input type="hidden" name="currency" value="@item.getCurrencyId"/>
+            <input class="button success" type="submit" value="@message("placeBid")"/>
+        }
+    }
+
+    @if(item.getStatus == ItemStatus.AUCTION || item.getStatus == ItemStatus.COMPLETED) {
+        <h3>@message("biddingHistory")</h3>
+        @if(biddingHistory.isEmpty) {
+            <em>@message("noBidsPlaced")</em>
+        } else {
+            <table>
+                <thead>
+                    <tr>
+                        <th>@message("bidTime")</th>
+                        <th>@message("bidder")</th>
+                        <th>@message("bid")</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @for(bid <- biddingHistory) {
+                    <tr>
+                        <td>@nav.formatInstant(bid.getBidTime)</td>
+                        <td>@if(bid.isYou) {
+                            <strong>@message("youBidder")</strong>
+                        } else {
+                            @message("anonymousBidder", bid.getBidder)
+                        }</td>
+                        <td>@currency.format(bid.getBidPrice)</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+
+        }
     }
 }

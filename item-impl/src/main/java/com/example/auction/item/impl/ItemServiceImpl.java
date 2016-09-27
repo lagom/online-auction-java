@@ -2,12 +2,21 @@ package com.example.auction.item.impl;
 
 import akka.Done;
 import akka.NotUsed;
+import akka.japi.Pair;
+import akka.stream.javadsl.Flow;
+import com.example.auction.bidding.api.Bid;
+import com.example.auction.bidding.api.BidEvent;
+import com.example.auction.bidding.api.BiddingService;
 import com.example.auction.item.api.Item;
+import com.example.auction.item.api.ItemEvent;
 import com.example.auction.item.api.ItemService;
 import com.example.auction.item.api.ItemStatus;
 import com.lightbend.lagom.javadsl.api.ServiceCall;
+import com.lightbend.lagom.javadsl.api.broker.Topic;
 import com.lightbend.lagom.javadsl.api.transport.Forbidden;
 import com.lightbend.lagom.javadsl.api.transport.NotFound;
+import com.lightbend.lagom.javadsl.broker.TopicProducer;
+import com.lightbend.lagom.javadsl.persistence.Offset;
 import com.lightbend.lagom.javadsl.persistence.PersistentEntityRef;
 import com.lightbend.lagom.javadsl.persistence.PersistentEntityRegistry;
 import org.pcollections.PSequence;
@@ -16,6 +25,8 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 
 import static com.example.auction.security.ServerSecurity.*;
 
@@ -25,12 +36,30 @@ public class ItemServiceImpl implements ItemService {
     private final PersistentEntityRegistry registry;
 
     @Inject
-    public ItemServiceImpl(PersistentEntityRegistry registry) {
+    public ItemServiceImpl(PersistentEntityRegistry registry, BiddingService biddingService) {
         this.registry = registry;
 
         registry.register(PItemEntity.class);
+
+        biddingService.bidEvents().subscribe().atLeastOnce(Flow.<BidEvent>create().mapAsync(1, event -> {
+            if (event instanceof BidEvent.BidPlaced) {
+                BidEvent.BidPlaced bidPlaced = (BidEvent.BidPlaced) event;
+                return entityRef(bidPlaced.getItemId())
+                        .ask(new PItemCommand.UpdatePrice(bidPlaced.getBid().getPrice()));
+            } else if (event instanceof BidEvent.BiddingFinished) {
+                BidEvent.BiddingFinished biddingFinished = (BidEvent.BiddingFinished) event;
+                PItemCommand.FinishAuction finishAuction = new PItemCommand.FinishAuction(
+                        biddingFinished.getWinningBid().map(Bid::getBidder),
+                        biddingFinished.getWinningBid().map(Bid::getPrice).orElse(0));
+                return entityRef(biddingFinished.getItemId()).ask(finishAuction);
+            } else {
+                // Ignore.
+                return CompletableFuture.completedFuture(Done.getInstance());
+            }
+        }));
     }
 
+    
     @Override
     public ServiceCall<Item, Item> createItem() {
         return authenticated(userId -> item -> {
@@ -100,6 +129,35 @@ public class ItemServiceImpl implements ItemService {
             // todo implement
             return null;
         };
+    }
+
+    @Override
+    public Topic<ItemEvent> itemEvents() {
+        return TopicProducer.taggedStreamWithOffset(PItemEvent.TAGS, (tag, offset) -> {
+            return registry.eventStream(tag, offset)
+                    .filter(this::filterEvent)
+                    .mapAsync(1, eventAndOffset ->
+                            convertEvent(eventAndOffset.first()).thenApply(event ->
+                                    Pair.create(event, eventAndOffset.second())));
+        });
+    }
+
+    private boolean filterEvent(Pair<PItemEvent, Offset> event) {
+        return event.first() instanceof PItemEvent.AuctionStarted;
+    }
+
+    private CompletionStage<ItemEvent> convertEvent(PItemEvent event) {
+        if (event instanceof PItemEvent.AuctionStarted) {
+            return entityRef(((PItemEvent.AuctionStarted) event).getItemId())
+                    .ask(PItemCommand.GetItem.INSTANCE)
+                    .thenApply(maybeItem -> {
+                        PItem item = maybeItem.get();
+                        return new ItemEvent.AuctionStarted(item.getId(), item.getCreator(), item.getReservePrice(),
+                                item.getIncrement(), item.getAuctionStart().get(), item.getAuctionEnd().get());
+                    });
+        } else {
+            throw new IllegalArgumentException("Converting non public event");
+        }
     }
 
     private PersistentEntityRef<PItemCommand> entityRef(UUID itemId) {

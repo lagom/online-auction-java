@@ -69,7 +69,7 @@ public class PItem implements Jsonable {
     public PItem end(Optional<UUID> winner, int price) {
         assert status == PItemStatus.AUCTION;
         return new PItem(id, creator, title, description, currencyId, increment, reservePrice, price, PItemStatus.COMPLETED, auctionDuration,
-                auctionStart, auctionEnd, auctionWinner);
+                auctionStart, auctionEnd, winner);
     }
 
     public PItem updatePrice(int price) {

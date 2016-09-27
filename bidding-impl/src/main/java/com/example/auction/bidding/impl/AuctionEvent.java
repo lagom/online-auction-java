@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.lightbend.lagom.javadsl.persistence.AggregateEvent;
 import com.lightbend.lagom.javadsl.persistence.AggregateEventTag;
 import com.lightbend.lagom.serialization.Jsonable;
+import org.pcollections.PSequence;
 
 import java.util.UUID;
 
@@ -12,7 +13,8 @@ import java.util.UUID;
  */
 public interface AuctionEvent extends Jsonable, AggregateEvent<AuctionEvent> {
 
-    int NUM_SHARDS = 20;
+    int NUM_SHARDS = 4;
+    PSequence<AggregateEventTag<AuctionEvent>> TAGS = AggregateEventTag.shards(AuctionEvent.class, NUM_SHARDS);
 
     /**
      * The auction started.
@@ -43,7 +45,7 @@ public interface AuctionEvent extends Jsonable, AggregateEvent<AuctionEvent> {
 
         @Override
         public AggregateEventTag<AuctionEvent> aggregateTag() {
-            return AggregateEventTag.of(AuctionEvent.class);
+            return AggregateEventTag.shard(AuctionEvent.class, NUM_SHARDS, itemId.toString());
         }
 
         @Override
@@ -103,7 +105,7 @@ public interface AuctionEvent extends Jsonable, AggregateEvent<AuctionEvent> {
 
         @Override
         public AggregateEventTag<AuctionEvent> aggregateTag() {
-            return AggregateEventTag.of(AuctionEvent.class);
+            return AggregateEventTag.shard(AuctionEvent.class, NUM_SHARDS, itemId.toString());
         }
 
         @Override
@@ -154,7 +156,7 @@ public interface AuctionEvent extends Jsonable, AggregateEvent<AuctionEvent> {
 
         @Override
         public AggregateEventTag<AuctionEvent> aggregateTag() {
-            return AggregateEventTag.of(AuctionEvent.class);
+            return AggregateEventTag.shard(AuctionEvent.class, NUM_SHARDS, itemId.toString());
         }
 
         @Override
@@ -201,7 +203,7 @@ public interface AuctionEvent extends Jsonable, AggregateEvent<AuctionEvent> {
 
         @Override
         public AggregateEventTag<AuctionEvent> aggregateTag() {
-            return AggregateEventTag.of(AuctionEvent.class);
+            return AggregateEventTag.shard(AuctionEvent.class, NUM_SHARDS, itemId.toString());
         }
 
         @Override

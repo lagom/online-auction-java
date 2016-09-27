@@ -3,22 +3,21 @@
  */
 package com.example.auction.item.api;
 
-import static com.lightbend.lagom.javadsl.api.Service.named;
-import static com.lightbend.lagom.javadsl.api.Service.pathCall;
-import static com.lightbend.lagom.javadsl.api.Service.restCall;
-
 import akka.Done;
 import akka.NotUsed;
 import com.example.auction.security.SecurityHeaderFilter;
 import com.lightbend.lagom.javadsl.api.Descriptor;
 import com.lightbend.lagom.javadsl.api.Service;
 import com.lightbend.lagom.javadsl.api.ServiceCall;
+import com.lightbend.lagom.javadsl.api.broker.Topic;
 import com.lightbend.lagom.javadsl.api.deser.PathParamSerializers;
 import com.lightbend.lagom.javadsl.api.transport.Method;
 import org.pcollections.PSequence;
 
 import java.util.Optional;
 import java.util.UUID;
+
+import static com.lightbend.lagom.javadsl.api.Service.*;
 
 public interface ItemService extends Service {
 
@@ -32,7 +31,7 @@ public interface ItemService extends Service {
 
   ServiceCall<NotUsed, PSequence<Item>> getItemsForUser(UUID id, Optional<Integer> pageNo, Optional<Integer> pageSize);
 
-  // TopicCall<ItemEvent> itemEvents();
+  Topic<ItemEvent> itemEvents();
 
   @Override
   default Descriptor descriptor() {
@@ -41,6 +40,8 @@ public interface ItemService extends Service {
             restCall(Method.POST, "/api/item/:id/start", this::startAuction),
             pathCall("/api/item/:id", this::getItem),
             pathCall("/api/item?userId&pageNo&pageSize", this::getItemsForUser)
+    ).publishing(
+            topic("item-ItemEvent", this::itemEvents)
     ).withPathParamSerializer(UUID.class, PathParamSerializers.required("UUID", UUID::fromString, UUID::toString))
             .withHeaderFilter(SecurityHeaderFilter.INSTANCE);
   }

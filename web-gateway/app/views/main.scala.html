@@ -3,27 +3,46 @@
 <html>
     <head>
         <title>@title</title>
-        <script type="text/javascript" src="@routes.Assets.at("main.js")"></script>
+        <link rel="stylesheet" type="text/css" href="@routes.Assets.at("lib/foundation/dist/foundation.min.css")"/>
+        <link rel="stylesheet" type="text/css" href="@routes.Assets.at("lib/foundation-icon-fonts/foundation-icons.css")"/>
+        <link rel="stylesheet" type="text/css" href="@routes.Assets.at("main.css")"/>
     </head>
     <body>
-        <nav>
-            <ul>
-                <li><a href="@routes.Main.index()">Home</a></li>
-                <li><a href="@routes.Main.createUserForm()">Create user</a></li>
-                <li><a href="@routes.ItemController.createItemForm()">Create item</a></li>
-                <li>
-                    Logged in as:
-                    <select id="user-select">
-                        <option>- Select User -</option>
+        <nav class="top-bar">
+            <div class="top-bar-left">
+                <ul class="menu">
+                    <li><a href="@routes.Main.index()">@message("lagomAuction")</a></li>
+                    <li><a href="@routes.Main.createUserForm()">@message("createUser")</a></li>
+                    <li><a href="@routes.ItemController.createItemForm()">@message("createItem")</a></li>
+                </ul>
+            </div>
+            <div class="top-bar-right">
+                <ul class="menu dropdown" data-dropdown-menu>
+                    <li>
+                        <a href="#">@if(nav.getUser.isPresent) {
+                            @nav.getUser.get.getName
+                        } else {
+                            @message("logInAs")
+                        }</a>
+                        <ul class="menu vertical">
                         @for(user <- nav.getUsers) {
-                            <option value="@user.getId"@if(nav.getUser.isPresent && nav.getUser.get == user){ selected="selected"}>@user.getName</option>
+                            <li><a href="#" data-user-id="@user.getId" class="log-in-as">@user.getName</a></li>
                         }
-                    </select>
-                </li>
-            </ul>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
         </nav>
-        <article>
+        <article class="row">
+            <div class="small-12">
             @content
+            </div>
         </article>
+        <script type="text/javascript" src="@routes.Assets.at("lib/jquery/jquery.min.js")"></script>
+        <script type="text/javascript" src="@routes.Assets.at("lib/foundation/dist/foundation.min.js")"></script>
+        <script type="text/javascript" src="@routes.Assets.at("main.js")"></script>
+        <script>
+                $(document).foundation();
+        </script>
     </body>
 </html>

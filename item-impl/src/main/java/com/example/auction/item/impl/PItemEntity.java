@@ -1,7 +1,6 @@
 package com.example.auction.item.impl;
 
 import akka.Done;
-import com.lightbend.lagom.javadsl.api.transport.Forbidden;
 import com.lightbend.lagom.javadsl.persistence.PersistentEntity;
 
 import com.example.auction.item.impl.PItemCommand.*;
@@ -52,13 +51,14 @@ public class PItemEntity extends PersistentEntity<PItemCommand, PItemEvent, PIte
 
         builder.setCommandHandler(StartAuction.class, (start, ctx) -> {
             if (start.getUserId().equals(state().getItem().get().getCreator())) {
-                return ctx.thenPersist(new AuctionStarted(entityUuid()), evt -> ctx.reply(Done.getInstance()));
+                return ctx.thenPersist(new AuctionStarted(entityUuid(), Instant.now()), evt -> ctx.reply(Done.getInstance()));
             } else {
                 ctx.invalidCommand("User " + start.getUserId() + " is not allowed to start this auction");
                 return ctx.done();
             }
         });
-        builder.setEventHandlerChangingBehavior(AuctionStarted.class, evt -> auction(state().start(Instant.now())));
+        builder.setEventHandlerChangingBehavior(AuctionStarted.class,
+                evt -> auction(state().start(evt.getStartTime())));
 
         return builder.build();
     }
@@ -68,6 +68,18 @@ public class PItemEntity extends PersistentEntity<PItemCommand, PItemEvent, PIte
 
         builder.setReadOnlyCommandHandler(GetItem.class, this::getItem);
 
+        builder.setCommandHandler(UpdatePrice.class, (cmd, ctx) ->
+                ctx.thenPersist(new PriceUpdated(entityUuid(), cmd.getPrice()),
+                        (evt) -> ctx.reply(Done.getInstance())));
+        builder.setEventHandler(PriceUpdated.class, evt -> state().updatePrice(evt.getPrice()));
+
+        builder.setCommandHandler(FinishAuction.class, (cmd, ctx) ->
+                ctx.thenPersist(new AuctionFinished(entityUuid(), cmd.getWinner(), cmd.getPrice()),
+                        (evt) -> ctx.reply(Done.getInstance()))
+        );
+        builder.setEventHandlerChangingBehavior(AuctionFinished.class,
+                evt -> completed(state().end(evt.getWinner(), evt.getPrice())));
+
         return builder.build();
     }
 
@@ -76,6 +88,12 @@ public class PItemEntity extends PersistentEntity<PItemCommand, PItemEvent, PIte
 
         builder.setReadOnlyCommandHandler(GetItem.class, this::getItem);
 
+        // Ignore these commands, they may come due to at least once messaging
+        builder.setReadOnlyCommandHandler(UpdatePrice.class,
+                (cmd, ctx) -> ctx.reply(Done.getInstance()));
+        builder.setReadOnlyCommandHandler(FinishAuction.class,
+                (cmd, ctx) -> ctx.reply(Done.getInstance()));
+
         return builder.build();
     }
 
@@ -83,6 +101,12 @@ public class PItemEntity extends PersistentEntity<PItemCommand, PItemEvent, PIte
         BehaviorBuilder builder = newBehaviorBuilder(state);
 
         builder.setReadOnlyCommandHandler(GetItem.class, this::getItem);
+
+        // Ignore these commands, they may come due to at least once messaging
+        builder.setReadOnlyCommandHandler(UpdatePrice.class,
+                (cmd, ctx) -> ctx.reply(Done.getInstance()));
+        builder.setReadOnlyCommandHandler(FinishAuction.class,
+                (cmd, ctx) -> ctx.reply(Done.getInstance()));
 
         return builder.build();
     }

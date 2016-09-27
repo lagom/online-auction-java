@@ -1,6 +1,7 @@
 package com.example.auction.bidding.api;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -21,12 +22,19 @@ public final class Bid {
      * The bid price.
      */
     private final int price;
+    /**
+     * The maximum bid price;
+     */
+    private final int maximumPrice;
 
     @JsonCreator
-    public Bid(UUID bidder, Instant bidTime, int price) {
+    // parameter annotations needed until https://github.com/lagom/lagom/issues/172 is fixed.
+    public Bid(@JsonProperty("bidder") UUID bidder, @JsonProperty("bidTime") Instant bidTime,
+            @JsonProperty("price") int price, @JsonProperty("maximumPrice") int maximumPrice) {
         this.bidder = bidder;
         this.bidTime = bidTime;
         this.price = price;
+        this.maximumPrice = maximumPrice;
     }
 
     public UUID getBidder() {
@@ -41,6 +49,10 @@ public final class Bid {
         return price;
     }
 
+    public int getMaximumPrice() {
+        return maximumPrice;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -49,16 +61,18 @@ public final class Bid {
         Bid bid = (Bid) o;
 
         if (price != bid.price) return false;
+        if (maximumPrice != bid.maximumPrice) return false;
         if (!bidder.equals(bid.bidder)) return false;
-        return bidTime != null ? bidTime.equals(bid.bidTime) : bid.bidTime == null;
+        return bidTime.equals(bid.bidTime);
 
     }
 
     @Override
     public int hashCode() {
         int result = bidder.hashCode();
-        result = 31 * result + (bidTime != null ? bidTime.hashCode() : 0);
+        result = 31 * result + bidTime.hashCode();
         result = 31 * result + price;
+        result = 31 * result + maximumPrice;
         return result;
     }
 
@@ -68,6 +82,7 @@ public final class Bid {
                 "bidder=" + bidder +
                 ", bidTime=" + bidTime +
                 ", price=" + price +
+                ", maximumPrice=" + maximumPrice +
                 '}';
     }
 }

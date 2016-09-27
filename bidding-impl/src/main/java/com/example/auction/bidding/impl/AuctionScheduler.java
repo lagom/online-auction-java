@@ -15,11 +15,14 @@ import com.lightbend.lagom.javadsl.persistence.cassandra.CassandraSession;
 import org.pcollections.PSequence;
 import com.example.auction.bidding.impl.AuctionEvent.*;
 import com.example.auction.bidding.impl.AuctionCommand.FinishBidding;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import scala.concurrent.duration.Duration;
 import scala.concurrent.duration.FiniteDuration;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -31,6 +34,8 @@ import java.util.concurrent.TimeUnit;
  */
 @Singleton
 public class AuctionScheduler {
+
+    private static final Logger log = LoggerFactory.getLogger(AuctionScheduler.class);
 
     private final CassandraSession session;
     private final ActorSystem system;
@@ -55,12 +60,20 @@ public class AuctionScheduler {
     }
 
     private void checkFinishBidding() {
-        session.select("SELECT itemId FROM auctionSchedule WHERE endAuction < toTimestamp(now())")
-                .runForeach(row -> {
-                    UUID uuid = row.getUUID("itemId");
-                    registry.refFor(AuctionEntity.class, uuid.toString())
-                        .ask(FinishBidding.INSTANCE);
-                }, materializer);
+        try {
+            session.select("SELECT itemId FROM auctionSchedule WHERE endAuction < toTimestamp(now()) allow filtering")
+                    .runForeach(row -> {
+                        UUID uuid = row.getUUID("itemId");
+                        registry.refFor(AuctionEntity.class, uuid.toString())
+                                .ask(FinishBidding.INSTANCE);
+                    }, materializer).exceptionally(t -> {
+                log.warn("Error running finish bidding query", t);
+                return Done.getInstance();
+            });
+        } catch (IllegalStateException iae) {
+            // Ignore materializer illegal state exceptions that get thrown when the system shuts down.
+
+        }
     }
 
 
@@ -95,14 +108,20 @@ public class AuctionScheduler {
         private CompletionStage<Done> createTable() {
             return session.executeCreateTable(
                     "CREATE TABLE IF NOT EXISTS auctionSchedule ( " +
+                            "itemId uuid, " +
                             "endAuction timestamp, " +
-                            "itemId timeuuid, " +
-                            "PRIMARY KEY (endAuction, itemId)" +
-                    ")");
+                            "PRIMARY KEY (itemId)" +
+                    ")").thenCompose(d ->
+                session.executeCreateTable(
+                        "CREATE INDEX IF NOT EXISTS auctionScheduleIndex " +
+                                "on auctionSchedule (endAuction)"
+                )
+            );
+
         }
 
         private CompletionStage<Done> prepareInsertAuctionStatement() {
-            return session.prepare("INSERT INTO auctionSchedule(endAuction, itemId) VALUES (?, ?)")
+            return session.prepare("INSERT INTO auctionSchedule(itemId, endAuction) VALUES (?, ?)")
                     .thenApply(s -> {
                         insertAuctionStatement = s;
                         return Done.getInstance();
@@ -119,8 +138,8 @@ public class AuctionScheduler {
 
         private CompletionStage<List<BoundStatement>> insertAuction(AuctionStarted started) {
             return completedStatement(insertAuctionStatement.bind(
-                    Date.from(started.getAuction().getEndTime()),
-                    started.getItemId()
+                    started.getItemId(),
+                    Date.from(started.getAuction().getEndTime())
             ));
         }
 
@@ -130,7 +149,7 @@ public class AuctionScheduler {
 
         @Override
         public PSequence<AggregateEventTag<AuctionEvent>> aggregateTags() {
-            return AggregateEventTag.shards(AuctionEvent.class, AuctionEvent.NUM_SHARDS);
+            return AuctionEvent.TAGS;
         }
     }
 }
