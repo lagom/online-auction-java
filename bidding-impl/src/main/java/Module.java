@@ -5,6 +5,9 @@ import com.example.auction.item.api.ItemService;
 import com.google.inject.AbstractModule;
 import com.lightbend.lagom.javadsl.server.ServiceGuiceSupport;
 
+/**
+ * Module that registers the bidding service, the clients it talks to, and the auction scheduler.
+ */
 public class Module extends AbstractModule implements ServiceGuiceSupport {
 
     @Override

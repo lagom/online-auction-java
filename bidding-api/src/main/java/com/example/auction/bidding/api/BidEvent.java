@@ -12,7 +12,7 @@ import java.util.UUID;
 /**
  * A bid event.
  */
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type", defaultImpl = Void.class)
 @JsonSubTypes({
                 @JsonSubTypes.Type(BidEvent.BidPlaced.class),
                 @JsonSubTypes.Type(BidEvent.BiddingFinished.class)

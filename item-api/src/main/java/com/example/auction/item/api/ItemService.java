@@ -19,18 +19,57 @@ import java.util.UUID;
 
 import static com.lightbend.lagom.javadsl.api.Service.*;
 
+/**
+ * The item service.
+ *
+ * Manages the lifecycle of items, as well properties on them.
+ */
 public interface ItemService extends Service {
 
+  /**
+   * Create an item.
+   *
+   * @return The created item with its ID populated.
+   */
   ServiceCall<Item, Item> createItem();
 
+  /**
+   * Update an item.
+   *
+   * @param id The ID of the item to update.
+   * @return Done.
+   */
   ServiceCall<Item, Done> updateItem(UUID id);
 
+  /**
+   * Start an auction for an item.
+   *
+   * @param id The id of the item to start the auction for.
+   * @return Done if the auction was started.
+   */
   ServiceCall<NotUsed, Done> startAuction(UUID id);
 
+  /**
+   * Get an item with the given ID.
+   *
+   * @param id The ID of the item to get.
+   * @return The item.
+   */
   ServiceCall<NotUsed, Item> getItem(UUID id);
 
+  /**
+   * Get a list of items for the given user.
+   *
+   * @param id The ID of the user.
+   * @param pageNo The page number.
+   * @param pageSize The number of items to return per page.
+   * @return The sequence of items.
+   */
   ServiceCall<NotUsed, PSequence<Item>> getItemsForUser(UUID id, Optional<Integer> pageNo, Optional<Integer> pageSize);
 
+  /**
+   * The item events stream.
+   */
   Topic<ItemEvent> itemEvents();
 
   @Override

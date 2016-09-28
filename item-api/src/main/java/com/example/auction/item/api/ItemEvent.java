@@ -10,7 +10,7 @@ import java.util.UUID;
 /**
  * Events pertaining to items.
  */
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type", defaultImpl = Void.class)
 @JsonSubTypes({
         @JsonSubTypes.Type(ItemEvent.ItemUpdated.class),
         @JsonSubTypes.Type(ItemEvent.AuctionStarted.class),
@@ -47,6 +47,26 @@ public abstract class ItemEvent {
         @Override
         public UUID getItemId() {
             return itemId;
+        }
+
+        public UUID getCreator() {
+            return creator;
+        }
+
+        public String getTitle() {
+            return title;
+        }
+
+        public String getDescription() {
+            return description;
+        }
+
+        public UUID getCategoryId() {
+            return categoryId;
+        }
+
+        public String getCurrencyId() {
+            return currencyId;
         }
     }
 

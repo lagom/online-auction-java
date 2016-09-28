@@ -59,6 +59,9 @@ public class AuctionScheduler {
                 this::checkFinishBidding, system.dispatcher());
     }
 
+    /**
+     * Check whether there are any auctions that are due to finish, and if so, send a command to finish them.
+     */
     private void checkFinishBidding() {
         try {
             session.select("SELECT itemId FROM auctionSchedule WHERE endAuction < toTimestamp(now()) allow filtering")

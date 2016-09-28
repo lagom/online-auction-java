@@ -24,7 +24,6 @@ public final class Item {
     private final int increment;
     private final int reservePrice;
     private final PSet<DeliveryOption> deliveryOptions = null;
-    private final PSet<PaymentOption> paymentOptions = null;
     private final int price;
     private final ItemStatus status;
     private final Duration auctionDuration;

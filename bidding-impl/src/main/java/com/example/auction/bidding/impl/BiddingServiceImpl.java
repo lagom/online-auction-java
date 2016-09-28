@@ -32,6 +32,9 @@ import java.util.stream.Collectors;
 
 import static com.example.auction.security.ServerSecurity.authenticated;
 
+/**
+ * Implementation of the bidding service.
+ */
 @Singleton
 public class BiddingServiceImpl implements BiddingService {
 
@@ -43,6 +46,7 @@ public class BiddingServiceImpl implements BiddingService {
 
         registry.register(AuctionEntity.class);
 
+        // Subscribe to the events from the event service.
         itemService.itemEvents().subscribe().atLeastOnce(Flow.<ItemEvent>create().mapAsync(1, itemEvent -> {
             if (itemEvent instanceof ItemEvent.AuctionStarted) {
                 ItemEvent.AuctionStarted auctionStarted = (ItemEvent.AuctionStarted) itemEvent;

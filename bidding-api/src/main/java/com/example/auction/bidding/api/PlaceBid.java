@@ -2,8 +2,14 @@ package com.example.auction.bidding.api;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 
+/**
+ * A request to place a bid.
+ */
 public final class PlaceBid {
 
+    /**
+     * The maximum bid price.
+     */
     private final int maximumBidPrice;
 
     @JsonCreator
