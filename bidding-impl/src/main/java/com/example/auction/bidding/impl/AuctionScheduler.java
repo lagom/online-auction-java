@@ -152,7 +152,7 @@ public class AuctionScheduler {
 
         @Override
         public PSequence<AggregateEventTag<AuctionEvent>> aggregateTags() {
-            return AuctionEvent.TAGS;
+            return AuctionEvent.TAG.allTags();
         }
     }
 }

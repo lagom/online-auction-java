@@ -2,9 +2,10 @@ package com.example.auction.item.impl;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.lightbend.lagom.javadsl.persistence.AggregateEvent;
+import com.lightbend.lagom.javadsl.persistence.AggregateEventShards;
 import com.lightbend.lagom.javadsl.persistence.AggregateEventTag;
+import com.lightbend.lagom.javadsl.persistence.AggregateEventTagger;
 import com.lightbend.lagom.serialization.Jsonable;
-import org.pcollections.PSequence;
 
 import java.time.Instant;
 import java.util.Optional;
@@ -13,7 +14,12 @@ import java.util.UUID;
 public interface PItemEvent extends AggregateEvent<PItemEvent>, Jsonable {
 
     int NUM_SHARDS = 4;
-    PSequence<AggregateEventTag<PItemEvent>> TAGS = AggregateEventTag.shards(PItemEvent.class, NUM_SHARDS);
+    AggregateEventShards<PItemEvent> TAG = AggregateEventTag.sharded(PItemEvent.class, NUM_SHARDS);
+
+    @Override
+    default AggregateEventTagger<PItemEvent> aggregateTag() {
+        return TAG;
+    }
 
     final class ItemCreated implements PItemEvent {
         private final PItem item;
@@ -21,11 +27,6 @@ public interface PItemEvent extends AggregateEvent<PItemEvent>, Jsonable {
         @JsonCreator
         public ItemCreated(PItem item) {
             this.item = item;
-        }
-
-        @Override
-        public AggregateEventTag<PItemEvent> aggregateTag() {
-            return AggregateEventTag.shard(PItemEvent.class, NUM_SHARDS, item.getId().toString());
         }
 
         public PItem getItem() {
@@ -57,11 +58,6 @@ public interface PItemEvent extends AggregateEvent<PItemEvent>, Jsonable {
         public AuctionStarted(UUID itemId, Instant startTime) {
             this.itemId = itemId;
             this.startTime = startTime;
-        }
-
-        @Override
-        public AggregateEventTag<PItemEvent> aggregateTag() {
-            return AggregateEventTag.shard(PItemEvent.class, NUM_SHARDS, itemId.toString());
         }
 
         public UUID getItemId() {
@@ -102,11 +98,6 @@ public interface PItemEvent extends AggregateEvent<PItemEvent>, Jsonable {
             this.price = price;
         }
 
-        @Override
-        public AggregateEventTag<PItemEvent> aggregateTag() {
-            return AggregateEventTag.shard(PItemEvent.class, NUM_SHARDS, itemId.toString());
-        }
-
         public UUID getItemId() {
             return itemId;
         }
@@ -145,11 +136,6 @@ public interface PItemEvent extends AggregateEvent<PItemEvent>, Jsonable {
             this.itemId = itemId;
             this.winner = winner;
             this.price = price;
-        }
-
-        @Override
-        public AggregateEventTag<PItemEvent> aggregateTag() {
-            return AggregateEventTag.shard(PItemEvent.class, NUM_SHARDS, itemId.toString());
         }
 
         public UUID getItemId() {

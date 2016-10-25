@@ -88,7 +88,7 @@ public class BiddingServiceImpl implements BiddingService {
 
     @Override
     public Topic<BidEvent> bidEvents() {
-        return TopicProducer.taggedStreamWithOffset(AuctionEvent.TAGS, this::streamForTag);
+        return TopicProducer.taggedStreamWithOffset(AuctionEvent.TAG.allTags(), this::streamForTag);
     }
 
     private Source<Pair<BidEvent, Offset>, ?> streamForTag(AggregateEventTag<AuctionEvent> tag, Offset offset) {
