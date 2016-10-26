@@ -1,5 +1,6 @@
 lazy val root = (project in file("."))
   .aggregate(itemApi, itemImpl, biddingApi, biddingImpl, userApi, userImpl, webGateway)
+  .settings(commonSettings: _*)
 
 organization in ThisBuild := "com.example"
 
