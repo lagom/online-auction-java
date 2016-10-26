@@ -2,9 +2,10 @@ package com.example.auction.bidding.impl;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.lightbend.lagom.javadsl.persistence.AggregateEvent;
+import com.lightbend.lagom.javadsl.persistence.AggregateEventShards;
 import com.lightbend.lagom.javadsl.persistence.AggregateEventTag;
+import com.lightbend.lagom.javadsl.persistence.AggregateEventTagger;
 import com.lightbend.lagom.serialization.Jsonable;
-import org.pcollections.PSequence;
 
 import java.util.UUID;
 
@@ -14,7 +15,12 @@ import java.util.UUID;
 public interface AuctionEvent extends Jsonable, AggregateEvent<AuctionEvent> {
 
     int NUM_SHARDS = 4;
-    PSequence<AggregateEventTag<AuctionEvent>> TAGS = AggregateEventTag.shards(AuctionEvent.class, NUM_SHARDS);
+    AggregateEventShards<AuctionEvent> TAG = AggregateEventTag.sharded(AuctionEvent.class, NUM_SHARDS);
+
+    @Override
+    default AggregateEventTagger<AuctionEvent> aggregateTag() {
+        return TAG;
+    }
 
     /**
      * The auction started.
@@ -41,11 +47,6 @@ public interface AuctionEvent extends Jsonable, AggregateEvent<AuctionEvent> {
 
         public Auction getAuction() {
             return auction;
-        }
-
-        @Override
-        public AggregateEventTag<AuctionEvent> aggregateTag() {
-            return AggregateEventTag.shard(AuctionEvent.class, NUM_SHARDS, itemId.toString());
         }
 
         @Override
@@ -104,11 +105,6 @@ public interface AuctionEvent extends Jsonable, AggregateEvent<AuctionEvent> {
         }
 
         @Override
-        public AggregateEventTag<AuctionEvent> aggregateTag() {
-            return AggregateEventTag.shard(AuctionEvent.class, NUM_SHARDS, itemId.toString());
-        }
-
-        @Override
         public boolean equals(Object o) {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
@@ -155,11 +151,6 @@ public interface AuctionEvent extends Jsonable, AggregateEvent<AuctionEvent> {
         }
 
         @Override
-        public AggregateEventTag<AuctionEvent> aggregateTag() {
-            return AggregateEventTag.shard(AuctionEvent.class, NUM_SHARDS, itemId.toString());
-        }
-
-        @Override
         public boolean equals(Object o) {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
@@ -199,11 +190,6 @@ public interface AuctionEvent extends Jsonable, AggregateEvent<AuctionEvent> {
 
         public UUID getItemId() {
             return itemId;
-        }
-
-        @Override
-        public AggregateEventTag<AuctionEvent> aggregateTag() {
-            return AggregateEventTag.shard(AuctionEvent.class, NUM_SHARDS, itemId.toString());
         }
 
         @Override

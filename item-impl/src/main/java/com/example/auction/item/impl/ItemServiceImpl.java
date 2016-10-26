@@ -133,7 +133,7 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public Topic<ItemEvent> itemEvents() {
-        return TopicProducer.taggedStreamWithOffset(PItemEvent.TAGS, (tag, offset) -> {
+        return TopicProducer.taggedStreamWithOffset(PItemEvent.TAG.allTags(), (tag, offset) -> {
             return registry.eventStream(tag, offset)
                     .filter(this::filterEvent)
                     .mapAsync(1, eventAndOffset ->
