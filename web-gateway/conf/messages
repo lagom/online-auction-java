@@ -13,6 +13,7 @@ increment=Minimum bid increment
 incrementHelp=When someone makes a bid, their bid must be at least this much more than the current winning bid.
 reserve=Reserve price
 reserveHelp=The reserve is the minimum price that the auction must reach in order for the item to be won by someone.
+status=Auction status
 duration=Auction duration
 durationUnits=Units
 createItem=Create item
@@ -52,3 +53,15 @@ durationHours={0,choice, 1#1 hour|1<{0,number} hours}
 durationDays={0,choice, 1#1 day|1<{0,number} days}
 durationWeeks={0,choice, 1#1 week|1<{0,number} weeks}
 
+noItems.CREATED=No items awaiting auction
+items.CREATED=Awaiting auction
+noItems.AUCTION=No items under auction
+items.AUCTION=Under auction
+noItems.COMPLETED=No completed auctions
+items.COMPLETED=Completed auctions
+noItems.CANCELLED=No cancelled auctions
+items.CANCELLED=Cancelled auctions
+items.caption={0} ({1})
+
+pagination.prev=Previous
+pagination.next=Next

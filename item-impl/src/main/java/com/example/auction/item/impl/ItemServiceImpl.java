@@ -4,13 +4,11 @@ import akka.Done;
 import akka.NotUsed;
 import akka.japi.Pair;
 import akka.stream.javadsl.Flow;
+import com.datastax.driver.core.utils.UUIDs;
 import com.example.auction.bidding.api.Bid;
 import com.example.auction.bidding.api.BidEvent;
 import com.example.auction.bidding.api.BiddingService;
-import com.example.auction.item.api.Item;
-import com.example.auction.item.api.ItemEvent;
-import com.example.auction.item.api.ItemService;
-import com.example.auction.item.api.ItemStatus;
+import com.example.auction.item.api.*;
 import com.lightbend.lagom.javadsl.api.ServiceCall;
 import com.lightbend.lagom.javadsl.api.broker.Topic;
 import com.lightbend.lagom.javadsl.api.transport.Forbidden;
@@ -33,11 +31,15 @@ import static com.example.auction.security.ServerSecurity.*;
 @Singleton
 public class ItemServiceImpl implements ItemService {
 
+    private static final Integer DEFAULT_PAGE_SIZE = 10;
+
     private final PersistentEntityRegistry registry;
+    private final ItemRepository items;
 
     @Inject
-    public ItemServiceImpl(PersistentEntityRegistry registry, BiddingService biddingService) {
+    public ItemServiceImpl(PersistentEntityRegistry registry, BiddingService biddingService, ItemRepository items) {
         this.registry = registry;
+        this.items = items;
 
         registry.register(PItemEntity.class);
 
@@ -66,7 +68,7 @@ public class ItemServiceImpl implements ItemService {
             if (!userId.equals(item.getCreator())) {
                 throw new Forbidden("User " + userId + " can't created an item on behalf of " + item.getCreator());
             }
-            UUID itemId = UUID.randomUUID();
+            UUID itemId = UUIDs.timeBased();
             PItem pItem = new PItem(itemId, item.getCreator(), item.getTitle(), item.getDescription(),
                     item.getCurrencyId(), item.getIncrement(), item.getReservePrice(), item.getAuctionDuration());
             return entityRef(itemId).ask(new PItemCommand.CreateItem(pItem)).thenApply(done -> convertItem(pItem));
@@ -102,33 +104,15 @@ public class ItemServiceImpl implements ItemService {
     private Item convertItem(PItem item) {
         return new Item(item.getId(), item.getCreator(), item.getTitle(), item.getDescription(),
                 item.getCurrencyId(), item.getIncrement(), item.getReservePrice(), item.getPrice(),
-                convertStatus(item.getStatus()), item.getAuctionDuration(), item.getAuctionStart(),
+                item.getStatus().toItemStatus(), item.getAuctionDuration(), item.getAuctionStart(),
                 item.getAuctionEnd(), item.getAuctionWinner());
     }
 
-    private ItemStatus convertStatus(PItemStatus status) {
-        switch (status) {
-            case NOT_CREATED:
-                throw new IllegalStateException("Publicly exposed item can't be not created");
-            case CREATED:
-                return ItemStatus.CREATED;
-            case AUCTION:
-                return ItemStatus.AUCTION;
-            case COMPLETED:
-                return ItemStatus.COMPLETED;
-            case CANCELLED:
-                return ItemStatus.CANCELLED;
-            default:
-                throw new IllegalArgumentException("Unknown status " + status);
-        }
-    }
-
     @Override
-    public ServiceCall<NotUsed, PSequence<Item>> getItemsForUser(UUID id, Optional<Integer> pageNo, Optional<Integer> pageSize) {
-        return req -> {
-            // todo implement
-            return null;
-        };
+    public ServiceCall<NotUsed, PaginatedSequence<ItemSummary>> getItemsForUser(
+            UUID id, ItemStatus status, Optional<Integer> pageNo, Optional<Integer> pageSize) {
+        return req ->
+                items.getItemsForUser(id, status, pageNo.orElse(0), pageSize.orElse(DEFAULT_PAGE_SIZE));
     }
 
     @Override
