@@ -1,3 +1,5 @@
+@import com.example.auction.item.api.ItemStatus
+
 @(title: String)(content: Html)(implicit nav: Nav)
 
 <html>
@@ -19,7 +21,7 @@
             <div class="top-bar-right">
                 <ul class="menu dropdown" data-dropdown-menu>
                     <li>
-                        <a href="#">@if(nav.getUser.isPresent) {
+                        <a href="@ProfileController.defaultProfilePage">@if(nav.getUser.isPresent) {
                             @nav.getUser.get.getName
                         } else {
                             @message("logInAs")

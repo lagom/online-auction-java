@@ -23,3 +23,8 @@ form label.error span.error {
     font-size: 0.75rem;
     display: block;
 }
+
+/* Override a Foundation style that throws off table alignment */
+table td .button {
+    margin: 0;
+}

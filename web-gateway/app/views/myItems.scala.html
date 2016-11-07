@@ -1,0 +1,66 @@
+@import ProfileController.profilePage
+@import com.example.auction.item.api.{ItemStatus, ItemSummary, PaginatedSequence}
+@import controllers.Currency
+@import routes.ItemController.{getItem, startAuction}
+
+@(status: ItemStatus, paginatedItems: PaginatedSequence[ItemSummary])(implicit nav: Nav)
+
+@defining(nav.getUser.get) { user =>
+    @main(user.getName) {
+        <h1>@user.getName</h1>
+
+        <div class="row">
+            <ul class="menu vertical large-3 columns">
+            @for(menuStatus <- ItemStatus.values) {
+                <li class="@if(menuStatus == status) {active}">
+                    <a href="@profilePage(menuStatus)">@message("items." + menuStatus)</a>
+                </li>
+            }
+            </ul>
+
+            <div class="large-9 columns">
+            @if(paginatedItems.isEmpty) {
+                <em>@message("noItems." + status)</em>
+            } else {
+                <table>
+                    <caption>@message("items.caption", message("items." + status), paginatedItems.getCount)</caption>
+
+                    <thead>
+                        <tr>
+                            <th>@message("title")</th>
+                            <th>@message("status")</th>
+                            <th>@message("currency")</th>
+                            <th>@message("reserve")</th>
+                            <th><!-- Start auction--></th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                    @for(item <- paginatedItems.getItems) {
+                        @defining(Currency.valueOf(item.getCurrencyId)) { currency =>
+                            <tr>
+                                <td>
+                                    <a href="@getItem(item.getId.toString)">@item.getTitle</a>
+                                </td>
+                                <td>@item.getStatus</td>
+                                <td>@currency.getDisplayName</td>
+                                <td>@currency.format(item.getReservePrice)</td>
+                                <td>
+                                @if(item.getStatus == ItemStatus.CREATED) {
+                                    <form action="@startAuction(item.getId.toString)" method="POST">
+                                        <input class="button success" type="submit" value="@message("startAuction")"/>
+                                    </form>
+                                }
+                                </td>
+                            </tr>
+                        }
+                    }
+                    </tbody>
+                </table>
+
+                @paginate(paginatedItems)((pageNumber, pageSize) => profilePage(status, pageNumber, pageSize))
+            }
+            </div>
+        </div>
+    }
+}

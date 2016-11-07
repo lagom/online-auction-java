@@ -51,7 +51,7 @@ public class Main extends AbstractController {
 
                     return userService.createUser().invoke(new User(form.get().getName())).thenApply(user -> {
                         ctx.session().put("user", user.getId().toString());
-                        return redirect(routes.Main.index());
+                        return redirect(ProfileController.defaultProfilePage());
                     });
                 })
         );

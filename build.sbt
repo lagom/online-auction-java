@@ -33,7 +33,8 @@ lazy val itemImpl = (project in file("item-impl"))
     libraryDependencies ++= Seq(
       lagomJavadslPersistenceCassandra,
       lagomJavadslTestKit,
-      lagomJavadslKafkaBroker
+      lagomJavadslKafkaBroker,
+      "com.datastax.cassandra" % "cassandra-driver-extras" % "3.0.0"
     )
   )
   .settings(lagomForkedTestSettings: _*)

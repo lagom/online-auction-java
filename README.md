@@ -4,12 +4,12 @@ System architecture:
 
 # Item service
 
-Manages the description and auction state (created, auction, completed, cancelled) of an item.
+Manages the description and auction status (created, auction, completed, cancelled) of an item.
 
 ## Queries handled
 
 * **getItem** - Gets an item by an ID.
-* **getItemsForUser** - Gets a list of items that are owned by a given user.
+* **getItemsForUser** - Gets a list of items in a provided status that are owned by a given user.
 
 ## Events emitted
 
