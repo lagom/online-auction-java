@@ -244,4 +244,53 @@ public final class Item {
             return item;
         }
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Item item = (Item) o;
+
+        if (increment != item.increment) return false;
+        if (reservePrice != item.reservePrice) return false;
+        if (price != item.price) return false;
+        if (id != null ? !id.equals(item.id) : item.id != null) return false;
+        if (creator != null ? !creator.equals(item.creator) : item.creator != null) return false;
+        if (title != null ? !title.equals(item.title) : item.title != null) return false;
+        if (description != null ? !description.equals(item.description) : item.description != null) return false;
+        if (categoryId != null ? !categoryId.equals(item.categoryId) : item.categoryId != null) return false;
+        if (currencyId != null ? !currencyId.equals(item.currencyId) : item.currencyId != null) return false;
+        if (location != null ? !location.equals(item.location) : item.location != null) return false;
+        if (deliveryOptions != null ? !deliveryOptions.equals(item.deliveryOptions) : item.deliveryOptions != null)
+            return false;
+        if (status != item.status) return false;
+        if (auctionDuration != null ? !auctionDuration.equals(item.auctionDuration) : item.auctionDuration != null)
+            return false;
+        if (auctionStart != null ? !auctionStart.equals(item.auctionStart) : item.auctionStart != null) return false;
+        if (auctionEnd != null ? !auctionEnd.equals(item.auctionEnd) : item.auctionEnd != null) return false;
+        return auctionWinner != null ? auctionWinner.equals(item.auctionWinner) : item.auctionWinner == null;
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = id != null ? id.hashCode() : 0;
+        result = 31 * result + (creator != null ? creator.hashCode() : 0);
+        result = 31 * result + (title != null ? title.hashCode() : 0);
+        result = 31 * result + (description != null ? description.hashCode() : 0);
+        result = 31 * result + (categoryId != null ? categoryId.hashCode() : 0);
+        result = 31 * result + (currencyId != null ? currencyId.hashCode() : 0);
+        result = 31 * result + (location != null ? location.hashCode() : 0);
+        result = 31 * result + increment;
+        result = 31 * result + reservePrice;
+        result = 31 * result + (deliveryOptions != null ? deliveryOptions.hashCode() : 0);
+        result = 31 * result + price;
+        result = 31 * result + (status != null ? status.hashCode() : 0);
+        result = 31 * result + (auctionDuration != null ? auctionDuration.hashCode() : 0);
+        result = 31 * result + (auctionStart != null ? auctionStart.hashCode() : 0);
+        result = 31 * result + (auctionEnd != null ? auctionEnd.hashCode() : 0);
+        result = 31 * result + (auctionWinner != null ? auctionWinner.hashCode() : 0);
+        return result;
+    }
 }

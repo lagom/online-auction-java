@@ -3,6 +3,7 @@ package com.example.auction.item.impl;
 import akka.Done;
 import akka.NotUsed;
 import akka.japi.Pair;
+import akka.japi.function.Function;
 import akka.stream.javadsl.Flow;
 import com.datastax.driver.core.utils.UUIDs;
 import com.example.auction.bidding.api.Bid;
@@ -43,25 +44,32 @@ public class ItemServiceImpl implements ItemService {
 
         registry.register(PItemEntity.class);
 
-        biddingService.bidEvents().subscribe().atLeastOnce(Flow.<BidEvent>create().mapAsync(1, event -> {
-            if (event instanceof BidEvent.BidPlaced) {
-                BidEvent.BidPlaced bidPlaced = (BidEvent.BidPlaced) event;
-                return entityRef(bidPlaced.getItemId())
-                        .ask(new PItemCommand.UpdatePrice(bidPlaced.getBid().getPrice()));
-            } else if (event instanceof BidEvent.BiddingFinished) {
-                BidEvent.BiddingFinished biddingFinished = (BidEvent.BiddingFinished) event;
-                PItemCommand.FinishAuction finishAuction = new PItemCommand.FinishAuction(
-                        biddingFinished.getWinningBid().map(Bid::getBidder),
-                        biddingFinished.getWinningBid().map(Bid::getPrice).orElse(0));
-                return entityRef(biddingFinished.getItemId()).ask(finishAuction);
-            } else {
-                // Ignore.
-                return CompletableFuture.completedFuture(Done.getInstance());
-            }
-        }));
+        biddingService.bidEvents().subscribe().atLeastOnce(Flow.<BidEvent>create().mapAsync(1, this::handleBidEvent));
     }
 
-    
+  /**
+   *  TODO: doc this.
+   * @param event
+   * @return
+   */
+    private CompletionStage<Done> handleBidEvent(BidEvent event) {
+        if (event instanceof BidEvent.BidPlaced) {
+            BidEvent.BidPlaced bidPlaced = (BidEvent.BidPlaced) event;
+            return entityRef(bidPlaced.getItemId())
+                .ask(new PItemCommand.UpdatePrice(bidPlaced.getBid().getPrice()));
+        } else if (event instanceof BidEvent.BiddingFinished) {
+            BidEvent.BiddingFinished biddingFinished = (BidEvent.BiddingFinished) event;
+            PItemCommand.FinishAuction finishAuction = new PItemCommand.FinishAuction(
+                biddingFinished.getWinningBid().map(Bid::getBidder),
+                biddingFinished.getWinningBid().map(Bid::getPrice).orElse(0));
+            return entityRef(biddingFinished.getItemId()).ask(finishAuction);
+        } else {
+            // Ignore.
+            return CompletableFuture.completedFuture(Done.getInstance());
+        }
+    }
+
+
     @Override
     public ServiceCall<Item, Item> createItem() {
         return authenticated(userId -> item -> {
