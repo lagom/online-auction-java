@@ -49,6 +49,7 @@ public class ItemServiceImplIntegrationTest {
                     // a 1 node cluster so this delay is not necessary.
                     b.configure("cassandra-query-journal.eventual-consistency-delay", "0")
                             .overrides(bind(BiddingService.class).to(BiddingStub.class))
+
             );
 
     private static TestServer testServer;
@@ -212,13 +213,12 @@ public class ItemServiceImplIntegrationTest {
 
                         @Override
                         public CompletionStage<Done> atLeastOnce(Flow<BidEvent, Done, ?> flow) {
-                            Pair<ActorRef, CompletionStage<Done>> actorAndDone =
-                                    Source.<BidEvent>actorRef(1, OverflowStrategy.fail())
-                                            .via(flow)
-                                            .toMat(Sink.ignore(), Keep.both())
-                                            .run(materializer);
-                            bidEventActor = actorAndDone.first();
-                            return actorAndDone.second();
+                          Pair<ActorRef, CompletionStage<Done>> pair = Source.<BidEvent>actorRef(1, OverflowStrategy.fail())
+                              .via(flow)
+                              .toMat(Sink.ignore(), Keep.both())
+                              .run(materializer);
+                          bidEventActor = pair.first();
+                          return pair.second();
                         }
                     };
                 }

@@ -33,7 +33,11 @@ final class CompletionStageUtils {
         };
     }
 
-    static CompletionStage<Done> doAll(CompletionStage<?>... stages) {
+    static <T> CompletionStage<Done> doAll(CompletionStage<T>... stages) {
+        return doAll(Arrays.asList(stages));
+    }
+
+    static <T> CompletionStage<Done> doAll(List<CompletionStage<T>> stages) {
         CompletionStage<Done> result = CompletableFuture.completedFuture(Done.getInstance());
         for (CompletionStage<?> stage : stages) {
             result = result.thenCombine(stage, (d1, d2) -> Done.getInstance());
