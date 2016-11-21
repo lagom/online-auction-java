@@ -1,4 +1,4 @@
-package com.example.auction.item.impl;
+package com.example.auction.item.impl.testkit;
 
 import akka.Done;
 import akka.japi.Pair;
@@ -6,6 +6,7 @@ import akka.stream.Materializer;
 import akka.stream.javadsl.Flow;
 import akka.stream.javadsl.Sink;
 import akka.stream.javadsl.Source;
+import com.example.auction.item.impl.CompletionStageUtils;
 import com.google.inject.Injector;
 import com.google.inject.Singleton;
 import com.lightbend.lagom.javadsl.persistence.*;
@@ -25,7 +26,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
  *
  */
 @Singleton
-class ReadSideTestDriver implements ReadSide {
+public class ReadSideTestDriver implements ReadSide {
 
   private final Injector injector;
   private final Materializer materializer;

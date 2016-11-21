@@ -30,6 +30,7 @@ import java.util.UUID;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Supplier;
 
 import static com.example.auction.security.ClientSecurity.authenticate;
 import static com.lightbend.lagom.javadsl.testkit.ServiceTest.*;
@@ -52,111 +53,6 @@ public class ItemServiceImplIntegrationTest {
 
             );
 
-    private static TestServer testServer;
-    private static ItemService itemService;
-
-    @Test
-    public void shouldCreate() throws InterruptedException, ExecutionException, TimeoutException {
-
-        UUID creatorId = UUID.randomUUID();
-        Item createItem = new Item(creatorId, "title", "description", "USD", 10, 10, Duration.ofMinutes(10));
-        Item createdItem =
-                itemService.createItem().handleRequestHeader(authenticate(creatorId)).invoke(createItem).toCompletableFuture().get(5, SECONDS);
-        Item retrievedItem =
-                itemService.getItem(createdItem.getId()).invoke().toCompletableFuture().get(5, SECONDS);
-
-        assertEquals(createdItem, retrievedItem);
-    }
-
-    @Test
-    public void shouldReturnAllItemsForTheRequiredUser() throws InterruptedException, ExecutionException, TimeoutException {
-        UUID tom = UUID.randomUUID();
-        UUID jerry = UUID.randomUUID();
-        Item tomItem = new Item(tom, "title", "description", "USD", 10, 10, Duration.ofMinutes(10));
-        Item jerryItem = new Item(jerry, "title", "description", "USD", 10, 10, Duration.ofMinutes(10));
-
-        itemService.createItem().handleRequestHeader(authenticate(jerry)).invoke(jerryItem).toCompletableFuture().get(5, SECONDS);
-        Item createdTomItem =
-                itemService.createItem().handleRequestHeader(authenticate(tom)).invoke(tomItem).toCompletableFuture().get(5, SECONDS);
-
-
-        eventually(new FiniteDuration(10, SECONDS), () -> {
-
-                    PaginatedSequence<ItemSummary> paginatedSequence = itemService.getItemsForUser(tom, ItemStatus.CREATED, Optional.empty(), Optional.empty()).invoke().toCompletableFuture().get(5, SECONDS);
-
-                    assertEquals(1, paginatedSequence.getCount());
-                    ItemSummary expected =
-                            new ItemSummary(
-                                    createdTomItem.getId(),
-                                    createdTomItem.getTitle(),
-                                    createdTomItem.getCurrencyId(),
-                                    createdTomItem.getReservePrice(),
-                                    createdTomItem.getStatus());
-                    assertEquals(expected, paginatedSequence.getItems().get(0));
-                }
-        );
-    }
-
-    @Test
-    public void shouldUpdatePriceAfterBid() throws InterruptedException, ExecutionException, TimeoutException {
-        UUID creatorId = UUID.randomUUID();
-        Item createItem = new Item(creatorId, "title", "description", "USD", 10, 10, Duration.ofMinutes(10));
-
-        Item createdItem =
-                itemService.createItem()
-                        .handleRequestHeader(authenticate(creatorId))
-                        .invoke(createItem)
-                        .toCompletableFuture()
-                        .get(5, SECONDS);
-
-        itemService.startAuction(createdItem.getId())
-                .handleRequestHeader(authenticate(creatorId))
-                .invoke()
-                .toCompletableFuture()
-                .get(5, SECONDS);
-
-        Bid bid = new Bid(UUID.randomUUID(), Instant.now(), 100, 100);
-        BidEvent bidEvent = new BidEvent.BidPlaced(createdItem.getId(), bid);
-        bidEventActor.tell(bidEvent, ActorRef.noSender());
-
-        eventually(new FiniteDuration(10, SECONDS), () -> {
-            Item retrievedItem =
-                    itemService.getItem(createdItem.getId()).invoke().toCompletableFuture().get(5, SECONDS);
-
-            assertEquals(bid.getPrice(), retrievedItem.getPrice());
-        });
-    }
-
-    @Test
-    public void shouldEmitAuctionStartedEvent() throws InterruptedException, ExecutionException, TimeoutException {
-        UUID creatorId = UUID.randomUUID();
-        Item createItem = new Item(creatorId, "title", "description", "USD", 10, 10, Duration.ofMinutes(10));
-
-        Item createdItem =
-                itemService.createItem()
-                        .handleRequestHeader(authenticate(creatorId))
-                        .invoke(createItem)
-                        .toCompletableFuture()
-                        .get(5, SECONDS);
-
-        itemService.startAuction(createdItem.getId())
-                .handleRequestHeader(authenticate(creatorId))
-                .invoke()
-                .toCompletableFuture()
-                .get(5, SECONDS);
-
-        Source<ItemEvent, ?> events = itemService.itemEvents().subscribe().atMostOnceSource();
-        ItemEvent itemEvent = events.dropWhile(event -> !event.getItemId().equals(createdItem.getId()))
-                .runWith(Sink.head(), testServer.materializer())
-                .toCompletableFuture()
-                .get(5, SECONDS);
-
-        assertThat(itemEvent, instanceOf(ItemEvent.AuctionStarted.class));
-    }
-
-
-    // --------------------------------------------------
-
     @BeforeClass
     public static void beforeAll() {
         testServer = ServiceTest.startServer(setup);
@@ -168,8 +64,161 @@ public class ItemServiceImplIntegrationTest {
         testServer.stop();
     }
 
+    private static TestServer testServer;
+    private static ItemService itemService;
 
+    /**
+     * Stubs BiddingService#Tipc("bidding-BidEvent") so a test can tell messages into this actor to simulate
+     * BiddingService behavior.
+     */
     private static ActorRef bidEventActor;
+
+    @Test
+    public void shouldCreate() {
+        UUID creatorId = UUID.randomUUID();
+        Item createItem = sampleItem(creatorId);
+        Item createdItem = createItem(creatorId, createItem);
+        Item retrievedItem = retrieveItem(createdItem);
+        assertEquals(createdItem, retrievedItem);
+    }
+
+
+    @Test
+    public void shouldReturnAllItemsForTheRequiredUser() {
+        UUID tom = UUID.randomUUID();
+        UUID jerry = UUID.randomUUID();
+        Item tomItem = sampleItem(tom);
+        Item jerryItem = sampleItem(jerry);
+
+        createItem(jerry, jerryItem);
+        Item createdTomItem = createItem(tom, tomItem);
+
+
+        eventually(new FiniteDuration(10, SECONDS), () -> {
+
+                PaginatedSequence<ItemSummary> paginatedSequence = itemService.getItemsForUser(tom, ItemStatus.CREATED, Optional.empty(), Optional.empty()).invoke().toCompletableFuture().get(5, SECONDS);
+
+                assertEquals(1, paginatedSequence.getCount());
+                ItemSummary expected =
+                    new ItemSummary(
+                        createdTomItem.getId(),
+                        createdTomItem.getTitle(),
+                        createdTomItem.getCurrencyId(),
+                        createdTomItem.getReservePrice(),
+                        createdTomItem.getStatus());
+                assertEquals(expected, paginatedSequence.getItems().get(0));
+            }
+        );
+    }
+
+    @Test
+    public void shouldUpdatePriceAfterBid() {
+        UUID creatorId = UUID.randomUUID();
+        Item createItem = sampleItem(creatorId);
+        Item createdItem = createItem(creatorId, createItem);
+        startAuction(creatorId, createdItem);
+
+        Bid bid = new Bid(UUID.randomUUID(), Instant.now(), 100, 100);
+        BidEvent bidEvent = new BidEvent.BidPlaced(createdItem.getId(), bid);
+        bidEventActor.tell(bidEvent, ActorRef.noSender());
+
+        eventually(new FiniteDuration(10, SECONDS), () -> {
+            Item retrievedItem = retrieveItem(createdItem);
+            assertEquals(bid.getPrice(), retrievedItem.getPrice());
+        });
+    }
+
+    @Test
+    public void shouldEmitAuctionStartedEvent() {
+        UUID creatorId = UUID.randomUUID();
+        Item createItem = sampleItem(creatorId);
+        Item createdItem = createItem(creatorId, createItem);
+
+        // build the stream and materialize it
+        Source<ItemEvent, ?> events = itemService.itemEvents().subscribe().atMostOnceSource();
+        CompletionStage<ItemEvent> eventualHead = events
+            .dropWhile(event -> !event.getItemId().equals(createdItem.getId()))
+            .runWith(Sink.head(), testServer.materializer());
+
+        // cause the event
+        startAuction(creatorId, createdItem);
+
+        // await on the stream's eventual head.
+        ItemEvent itemEvent = await(eventualHead);
+        assertThat(itemEvent, instanceOf(ItemEvent.AuctionStarted.class));
+    }
+
+
+    @Test
+    public void shouldFinishAuctionOnBiddingFinished() {
+        UUID creatorId = UUID.randomUUID();
+        Item createItem = sampleItem(creatorId);
+
+        Item createdItem = createItem(creatorId, createItem);
+
+        startAuction(creatorId, createdItem);
+
+        UUID bidder1 = UUID.randomUUID();
+        Bid bid1 = new Bid(bidder1, Instant.now(), 10, 12);
+        BidEvent biddingFinished = new BidEvent.BiddingFinished(createdItem.getId(), Optional.of(bid1));
+        bidEventActor.tell(biddingFinished, ActorRef.noSender());
+
+        eventually(new FiniteDuration(10, SECONDS), () -> {
+            Item retrievedItem = retrieveItem(createdItem);
+            assertEquals(bid1.getPrice(), retrievedItem.getPrice());
+        });
+    }
+
+    @Test
+    public void shouldManageDuplicateBiddingFinishedEventsIdempotently() {
+
+        UUID creatorId = UUID.randomUUID();
+        Item createItem = sampleItem(creatorId);
+
+        Item createdItem = createItem(creatorId, createItem);
+
+        startAuction(creatorId, createdItem);
+
+        UUID bidder1 = UUID.randomUUID();
+        Bid bid1 = new Bid(bidder1, Instant.now(), 10, 12);
+        BidEvent biddingFinished = new BidEvent.BiddingFinished(createdItem.getId(), Optional.of(bid1));
+        bidEventActor.tell(biddingFinished, ActorRef.noSender());
+        bidEventActor.tell(biddingFinished, ActorRef.noSender());
+        bidEventActor.tell(biddingFinished, ActorRef.noSender());
+
+        eventually(new FiniteDuration(10, SECONDS), () -> {
+            Item retrievedItem = retrieveItem(createdItem);
+            assertEquals(bid1.getPrice(), retrievedItem.getPrice());
+        });
+    }
+
+    // --------------------------------------------------
+
+    private Item sampleItem(UUID creatorId) {
+        return new Item(creatorId, "title", "description", "USD", 10, 10, Duration.ofMinutes(10));
+    }
+
+    private Item createItem(UUID creatorId, Item createItem) {
+        return await(itemService.createItem().handleRequestHeader(authenticate(creatorId)).invoke(createItem));
+    }
+
+    private Item retrieveItem(Item createdItem) {
+        return await(itemService.getItem(createdItem.getId()).invoke());
+    }
+
+    private Done startAuction(UUID creatorId, Item createdItem) {
+        return await(itemService.startAuction(createdItem.getId()).handleRequestHeader(authenticate(creatorId)).invoke());
+    }
+
+    private <T> T await(CompletionStage<T> s) {
+        try {
+            return s.toCompletableFuture().get(5, SECONDS);
+        } catch (InterruptedException | ExecutionException | TimeoutException e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+    // --------------------------------------------------
 
     private static class BiddingStub implements BiddingService {
 

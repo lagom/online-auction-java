@@ -4,6 +4,8 @@ import com.datastax.driver.core.utils.UUIDs;
 import com.example.auction.item.api.ItemStatus;
 import com.example.auction.item.api.ItemSummary;
 import com.example.auction.item.api.PaginatedSequence;
+import com.example.auction.item.impl.testkit.DoNothingTopicFactory;
+import com.example.auction.item.impl.testkit.ReadSideTestDriver;
 import com.lightbend.lagom.internal.api.broker.TopicFactory;
 import com.lightbend.lagom.javadsl.persistence.Offset;
 import com.lightbend.lagom.javadsl.persistence.ReadSide;

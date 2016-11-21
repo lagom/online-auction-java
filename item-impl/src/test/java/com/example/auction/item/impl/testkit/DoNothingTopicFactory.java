@@ -1,4 +1,4 @@
-package com.example.auction.item.impl;
+package com.example.auction.item.impl.testkit;
 
 import akka.Done;
 import akka.stream.javadsl.Flow;
