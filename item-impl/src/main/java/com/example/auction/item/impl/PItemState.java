@@ -54,4 +54,19 @@ public class PItemState implements Jsonable {
         return item.map(PItem::getStatus).orElse(PItemStatus.NOT_CREATED);
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        PItemState that = (PItemState) o;
+
+        return item != null ? item.equals(that.item) : that.item == null;
+
+    }
+
+    @Override
+    public int hashCode() {
+        return item != null ? item.hashCode() : 0;
+    }
 }

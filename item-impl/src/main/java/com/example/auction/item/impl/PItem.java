@@ -136,4 +136,64 @@ public class PItem implements Jsonable {
         return auctionWinner;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        PItem pItem = (PItem) o;
+
+        if (increment != pItem.increment) return false;
+        if (reservePrice != pItem.reservePrice) return false;
+        if (price != pItem.price) return false;
+        if (id != null ? !id.equals(pItem.id) : pItem.id != null) return false;
+        if (creator != null ? !creator.equals(pItem.creator) : pItem.creator != null) return false;
+        if (title != null ? !title.equals(pItem.title) : pItem.title != null) return false;
+        if (description != null ? !description.equals(pItem.description) : pItem.description != null) return false;
+        if (currencyId != null ? !currencyId.equals(pItem.currencyId) : pItem.currencyId != null) return false;
+        if (status != pItem.status) return false;
+        if (auctionDuration != null ? !auctionDuration.equals(pItem.auctionDuration) : pItem.auctionDuration != null)
+            return false;
+        if (auctionStart != null ? !auctionStart.equals(pItem.auctionStart) : pItem.auctionStart != null) return false;
+        if (auctionEnd != null ? !auctionEnd.equals(pItem.auctionEnd) : pItem.auctionEnd != null) return false;
+        return auctionWinner != null ? auctionWinner.equals(pItem.auctionWinner) : pItem.auctionWinner == null;
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = id != null ? id.hashCode() : 0;
+        result = 31 * result + (creator != null ? creator.hashCode() : 0);
+        result = 31 * result + (title != null ? title.hashCode() : 0);
+        result = 31 * result + (description != null ? description.hashCode() : 0);
+        result = 31 * result + (currencyId != null ? currencyId.hashCode() : 0);
+        result = 31 * result + increment;
+        result = 31 * result + reservePrice;
+        result = 31 * result + price;
+        result = 31 * result + (status != null ? status.hashCode() : 0);
+        result = 31 * result + (auctionDuration != null ? auctionDuration.hashCode() : 0);
+        result = 31 * result + (auctionStart != null ? auctionStart.hashCode() : 0);
+        result = 31 * result + (auctionEnd != null ? auctionEnd.hashCode() : 0);
+        result = 31 * result + (auctionWinner != null ? auctionWinner.hashCode() : 0);
+        return result;
+    }
+
+    @Override
+    public String toString() {
+        return "PItem{" +
+                "id=" + id +
+                ", creator=" + creator +
+                ", title='" + title + '\'' +
+                ", description='" + description + '\'' +
+                ", currencyId='" + currencyId + '\'' +
+                ", increment=" + increment +
+                ", reservePrice=" + reservePrice +
+                ", price=" + price +
+                ", status=" + status +
+                ", auctionDuration=" + auctionDuration +
+                ", auctionStart=" + auctionStart +
+                ", auctionEnd=" + auctionEnd +
+                ", auctionWinner=" + auctionWinner +
+                '}';
+    }
 }
