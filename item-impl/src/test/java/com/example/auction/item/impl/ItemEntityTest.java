@@ -2,13 +2,18 @@ package com.example.auction.item.impl;
 
 import akka.actor.ActorSystem;
 import akka.testkit.JavaTestKit;
+import com.example.auction.item.impl.PItemCommand.*;
+import com.example.auction.item.impl.PItemEvent.AuctionFinished;
+import com.example.auction.item.impl.PItemEvent.AuctionStarted;
+import com.example.auction.item.impl.PItemEvent.ItemCreated;
+import com.example.auction.item.impl.PItemEvent.PriceUpdated;
 import com.lightbend.lagom.javadsl.persistence.PersistentEntity;
 import com.lightbend.lagom.javadsl.testkit.PersistentEntityTestDriver;
 import com.lightbend.lagom.javadsl.testkit.PersistentEntityTestDriver.Outcome;
-import org.junit.*;
-
-import com.example.auction.item.impl.PItemEvent.*;
-import com.example.auction.item.impl.PItemCommand.*;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -149,17 +154,37 @@ public class ItemEntityTest {
         Outcome<PItemEvent, PItemState> outcome = driver.run(createItem, getItem);
 
         assertEquals(Optional.of(pitem), outcome.getReplies().get(1));
-
     }
 
     @Test
-    public void shouldReturnItemWithCurrentBidDuringAuction() {
+    public void shouldReturnItemWithCurrentPriceDuringAuction() {
+        int latestPrice = 23;
+        UpdatePrice updatePrice1 = new UpdatePrice(latestPrice);
+        driver.run(createItem, startAuction, updatePrice1);
 
+        Optional<PItem> maybePItem = getItem();
+
+        assertEquals(latestPrice, maybePItem.get().getPrice());
     }
 
     @Test
     public void shouldReturnItemWithWinningBidAfterAuction() {
+        UpdatePrice updatePrice1 = new UpdatePrice(23);
+        UUID winner = UUID.randomUUID();
+        int winningPrice = 42;
+        UpdatePrice updatePrice2 = new UpdatePrice(winningPrice);
+        FinishAuction finish = new FinishAuction(Optional.of(winner), winningPrice);
+        driver.run(createItem, startAuction, updatePrice1, updatePrice2, finish);
 
+        Optional<PItem> maybePItem = getItem();
+
+        assertEquals(winningPrice, maybePItem.get().getPrice());
+    }
+
+    private Optional<PItem> getItem() {
+        GetItem getItem = GetItem.INSTANCE;
+        Outcome<PItemEvent, PItemState> outcome = driver.run(getItem);
+        return (Optional<PItem>)((PersistentEntityTestDriver.Reply) outcome.sideEffects().get(0)).msg();
     }
 
 
