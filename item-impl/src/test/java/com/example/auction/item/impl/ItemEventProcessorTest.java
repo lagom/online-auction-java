@@ -27,48 +27,49 @@ import static org.junit.Assert.assertEquals;
 
 public class ItemEventProcessorTest {
 
-  private final static ServiceTest.Setup setup = defaultSetup().withCassandra(true)
-      .configureBuilder(b ->
-          // by default, cassandra-query-journal delays propagation of events by 10sec. In test we're using
-          // a 1 node cluster so this delay is not necessary.
-          b.configure("cassandra-query-journal.eventual-consistency-delay", "0")
-              .overrides(bind(ReadSide.class).to(ReadSideTestDriver.class),
-                  bind(TopicFactory.class).to(DoNothingTopicFactory.class))
-      );
+    private final static ServiceTest.Setup setup = defaultSetup().withCassandra(true)
+            .configureBuilder(b ->
+                    // by default, cassandra-query-journal delays propagation of events by 10sec. In test we're using
+                    // a 1 node cluster so this delay is not necessary.
+                    b.configure("cassandra-query-journal.eventual-consistency-delay", "0")
+                            .overrides(bind(ReadSide.class).to(ReadSideTestDriver.class),
+                                    bind(TopicFactory.class).to(DoNothingTopicFactory.class))
+            );
 
-  private static ServiceTest.TestServer testServer;
+    private static ServiceTest.TestServer testServer;
+
+    @BeforeClass
+    public static void beforeAll() {
+        testServer = ServiceTest.startServer(setup);
+    }
+
+    @AfterClass
+    public static void afterAll() {
+        testServer.stop();
+    }
+
+    @Test
+    public void shouldCreateAnItem() throws InterruptedException, ExecutionException, TimeoutException {
+        ReadSideTestDriver testDriver = testServer.injector().instanceOf(ReadSideTestDriver.class);
+        ItemRepository itemRepository = testServer.injector().instanceOf(ItemRepository.class);
+
+        UUID creatorId = UUID.randomUUID();
+        UUID itemId = UUIDs.timeBased();
+        PItem item = new PItem(itemId, creatorId, "title", "desc", "USD", 10, 100, Duration.ofMinutes(10));
 
 
-  @Test
-  public void shouldCreateAnItem() throws InterruptedException, ExecutionException, TimeoutException {
-    ReadSideTestDriver testDriver = testServer.injector().instanceOf(ReadSideTestDriver.class);
-    ItemRepository itemRepository = testServer.injector().instanceOf(ItemRepository.class);
-
-    UUID creatorId = UUID.randomUUID();
-    UUID itemId = UUIDs.timeBased();
-    PItem item = new PItem(itemId, creatorId, "title", "desc", "USD", 10, 100, Duration.ofMinutes(10));
-    testDriver.feed(new PItemEvent.ItemCreated(item), Offset.sequence(1)).toCompletableFuture().get(5, SECONDS);
-
-    PaginatedSequence<ItemSummary> items = itemRepository.getItemsForUser(creatorId, ItemStatus.CREATED, 0, 10).toCompletableFuture().get(5, SECONDS);
+        testDriver.feed(new PItemEvent.ItemCreated(item), Offset.sequence(1)).toCompletableFuture().get(5, SECONDS);
 
 
-    assertEquals(1, items.getCount());
-    ItemSummary expected =
-        new ItemSummary(itemId, item.getTitle(), item.getCurrencyId(), item.getReservePrice(), item.getStatus().toItemStatus());
-    assertEquals(expected, items.getItems().get(0));
+        PaginatedSequence<ItemSummary> items = itemRepository.getItemsForUser(creatorId, ItemStatus.CREATED, 0, 10).toCompletableFuture().get(5, SECONDS);
+        assertEquals(1, items.getCount());
+        ItemSummary expected =
+                new ItemSummary(itemId, item.getTitle(), item.getCurrencyId(), item.getReservePrice(), item.getStatus().toItemStatus());
+        assertEquals(expected, items.getItems().get(0));
 
-  }
+    }
 
-  //  ---------------------------------------------------------------------------------------------------
 
-  @BeforeClass
-  public static void beforeAll() {
-    testServer = ServiceTest.startServer(setup);
-  }
 
-  @AfterClass
-  public static void afterAll() {
-    testServer.stop();
-  }
 }
 
