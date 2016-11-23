@@ -12,6 +12,7 @@ import akka.stream.javadsl.Sink;
 import akka.stream.javadsl.Source;
 import com.example.auction.bidding.api.*;
 import com.example.auction.item.api.*;
+import com.example.auction.item.impl.testkit.Await;
 import com.lightbend.lagom.javadsl.api.ServiceCall;
 import com.lightbend.lagom.javadsl.api.broker.Subscriber;
 import com.lightbend.lagom.javadsl.api.broker.Topic;
@@ -28,9 +29,6 @@ import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletionStage;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeoutException;
-import java.util.function.Supplier;
 
 import static com.example.auction.security.ClientSecurity.authenticate;
 import static com.lightbend.lagom.javadsl.testkit.ServiceTest.*;
@@ -143,8 +141,8 @@ public class ItemServiceImplIntegrationTest {
         // cause the event
         startAuction(creatorId, createdItem);
 
-        // await on the stream's eventual head.
-        ItemEvent itemEvent = await(eventualHead);
+        // result on the stream's eventual head.
+        ItemEvent itemEvent = Await.result(eventualHead);
         assertThat(itemEvent, instanceOf(ItemEvent.AuctionStarted.class));
     }
 
@@ -199,25 +197,17 @@ public class ItemServiceImplIntegrationTest {
     }
 
     private Item createItem(UUID creatorId, Item createItem) {
-        return await(itemService.createItem().handleRequestHeader(authenticate(creatorId)).invoke(createItem));
+        return Await.result(itemService.createItem().handleRequestHeader(authenticate(creatorId)).invoke(createItem));
     }
 
     private Item retrieveItem(Item createdItem) {
-        return await(itemService.getItem(createdItem.getId()).invoke());
+        return Await.result(itemService.getItem(createdItem.getId()).invoke());
     }
 
     private Done startAuction(UUID creatorId, Item createdItem) {
-        return await(itemService.startAuction(createdItem.getId()).handleRequestHeader(authenticate(creatorId)).invoke());
+        return Await.result(itemService.startAuction(createdItem.getId()).handleRequestHeader(authenticate(creatorId)).invoke());
     }
 
-    private <T> T await(CompletionStage<T> s) {
-        try {
-            return s.toCompletableFuture().get(5, SECONDS);
-        } catch (InterruptedException | ExecutionException | TimeoutException e) {
-            throw new RuntimeException(e);
-        }
-
-    }
     // --------------------------------------------------
 
     private static class BiddingStub implements BiddingService {
