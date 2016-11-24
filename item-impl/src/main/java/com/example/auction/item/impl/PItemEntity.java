@@ -52,7 +52,7 @@ public class PItemEntity extends PersistentEntity<PItemCommand, PItemEvent, PIte
 
         builder.setCommandHandler(StartAuction.class, (start, ctx) -> {
             if (start.getUserId().equals(state().getItem().get().getCreator())) {
-                return ctx.thenPersist(new AuctionStarted(entityUuid(), Instant.now()), done(ctx));
+                return ctx.thenPersist(new AuctionStarted(entityUuid(), Instant.now()), alreadyDone(ctx));
             } else {
                 ctx.invalidCommand("User " + start.getUserId() + " is not allowed to start this auction");
                 return ctx.done();
@@ -70,11 +70,11 @@ public class PItemEntity extends PersistentEntity<PItemCommand, PItemEvent, PIte
         builder.setReadOnlyCommandHandler(GetItem.class, this::getItem);
 
         builder.setCommandHandler(UpdatePrice.class, (cmd, ctx) ->
-                ctx.thenPersist(new PriceUpdated(entityUuid(), cmd.getPrice()), done(ctx)));
+                ctx.thenPersist(new PriceUpdated(entityUuid(), cmd.getPrice()), alreadyDone(ctx)));
         builder.setEventHandler(PriceUpdated.class, evt -> state().updatePrice(evt.getPrice()));
 
         builder.setCommandHandler(FinishAuction.class, (cmd, ctx) ->
-                ctx.thenPersist(new AuctionFinished(entityUuid(), cmd.getWinner(), cmd.getPrice()), done(ctx)));
+                ctx.thenPersist(new AuctionFinished(entityUuid(), cmd.getWinner(), cmd.getPrice()), alreadyDone(ctx)));
         builder.setEventHandlerChangingBehavior(AuctionFinished.class,
                 evt -> completed(state().end(evt.getWinner(), evt.getPrice())));
 
@@ -115,16 +115,18 @@ public class PItemEntity extends PersistentEntity<PItemCommand, PItemEvent, PIte
     }
 
     /**
-     * Convenience method to handle when a command has already been processed (idempotent processing).
+     * Convenience method to handle commands which have already been processed (idempotent processing).
+     * TODO: review naming. See AuctionEvent#alreadyDone in bidding-impl project.
      */
     private void alreadyDone(Object command, ReadOnlyCommandContext<Done> ctx) {
         ctx.reply(Done.getInstance());
     }
 
     /**
-     * Convenience method to handle when a command has already been processed (idempotent processing).
+     * Convenience method to handle commands which have already been processed (idempotent processing).
+     * TODO: review naming. See AuctionEvent#alreadyDone in bidding-impl project.
      */
-    private <T> Consumer<T> done(ReadOnlyCommandContext<Done> ctx) {
+    private <T> Consumer<T> alreadyDone(ReadOnlyCommandContext<Done> ctx) {
         return (evt) -> ctx.reply(Done.getInstance());
     }
 
