@@ -57,7 +57,7 @@ public class ReadSideTestDriver implements ReadSide {
     });
 
     try {
-      processorInit.toCompletableFuture().get(10, SECONDS);
+      processorInit.toCompletableFuture().get(30, SECONDS);
     } catch (Exception e) {
       throw new RuntimeException("Couldn't register the processor on the testkit.", e);
     }
