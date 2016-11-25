@@ -145,12 +145,15 @@ def commonSettings: Seq[Setting[_]] = eclipseSettings ++ Seq(
 // Configuration of sbteclipse
 // Needed for importing the project into Eclipse
 lazy val eclipseSettings = Seq(
-  EclipseKeys.projectFlavor := EclipseProjectFlavor.Scala,
+  EclipseKeys.projectFlavor := EclipseProjectFlavor.Java,
   EclipseKeys.withBundledScalaContainers := false,
   EclipseKeys.createSrc := EclipseCreateSrc.Default + EclipseCreateSrc.Resource,
   EclipseKeys.eclipseOutput := Some(".target"),
   EclipseKeys.withSource := true,
-  EclipseKeys.withJavadoc := true
+  EclipseKeys.withJavadoc := true,
+  // avoid some scala specific source directories
+  unmanagedSourceDirectories in Compile := Seq((javaSource in Compile).value),
+  unmanagedSourceDirectories in Test := Seq((javaSource in Test).value)
 )
 
 lagomCassandraCleanOnStart in ThisBuild := false
