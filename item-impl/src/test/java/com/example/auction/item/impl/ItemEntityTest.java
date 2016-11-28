@@ -68,8 +68,6 @@ public class ItemEntityTest {
         expectEvents(outcome, new ItemCreated(pitem));
         assertEquals(PItemStatus.CREATED, outcome.state().getStatus());
     }
-
-
     @Test
     public void shouldEmitEventWhenStartingAnAuction() {
         Outcome<PItemEvent, PItemState> outcome = driver.run(createItem, startAuction);

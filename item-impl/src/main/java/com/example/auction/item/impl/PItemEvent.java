@@ -57,6 +57,40 @@ public interface PItemEvent extends AggregateEvent<PItemEvent>, Jsonable {
         }
     }
 
+    final class ItemUpdated implements PItemEvent {
+        private final PItem item;
+
+        @JsonCreator
+        public ItemUpdated(PItem item) {
+            this.item = item;
+        }
+
+        public PItem getItem() {
+            return item;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            ItemCreated that = (ItemCreated) o;
+            return item.equals(that.item);
+        }
+
+        @Override
+        public int hashCode() {
+            return item.hashCode();
+        }
+
+        @Override
+        public String toString() {
+            return "ItemUpdated{" +
+                    "item=" + item +
+                    '}';
+        }
+    }
+
+
     final class AuctionStarted implements PItemEvent {
         private final UUID itemId;
         private final Instant startTime;

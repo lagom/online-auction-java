@@ -2,13 +2,13 @@
 @import java.time.temporal.ChronoUnit
 @import controllers.{Currency => Currencies}
 
-@(itemId: UUID, itemForm: Form[ItemForm])(implicit nav: Nav)
+@(itemForm: Form[ItemForm])(implicit nav: Nav)
 
-@main(message("editItem")) {
+@main(message("createItem")) {
 
-    <h2>@message("editItem")</h2>
+    <h2>@message("createItem")</h2>
 
-    @foundationForm(itemForm, routes.ItemController.editItem(itemId.toString)) {
+    @foundationForm(itemForm, routes.ItemController.createItem()) {
         <div class="column row">
             @inputText(itemForm("title"))
         </div>
@@ -21,7 +21,6 @@
                 options = Currencies.values().toSeq.map(c => c.name() -> c.getDisplayName).sortBy(_._2)
             )
         @* todo set min and step according to the selected currency *@
-        @* todo format currencies (¿using to @currency.format?) *@
         </div>
         <div class="row">
             <div class="medium-6 columns">
@@ -43,6 +42,6 @@
                 )
             </div>
         </div>
-        <input type="submit" class="button" value="@message("saveItem")"/>
+        <input type="submit" class="button" value="@message("createItem")"/>
     }
 }

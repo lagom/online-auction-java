@@ -79,6 +79,7 @@ public interface ItemService extends Service {
                 pathCall("/api/item", this::createItem),
                 restCall(Method.POST, "/api/item/:id/start", this::startAuction),
                 pathCall("/api/item/:id", this::getItem),
+                restCall(Method.PUT, "/api/item/:id/update", this::updateItem),
                 pathCall("/api/item?userId&status&pageNo&pageSize", this::getItemsForUser)
         ).publishing(
                 topic("item-ItemEvent", this::itemEvents)
@@ -88,4 +89,5 @@ public interface ItemService extends Service {
                 ItemStatus.class, PathParamSerializers.required("ItemStatus", ItemStatus::valueOf, ItemStatus::toString)
         ).withHeaderFilter(SecurityHeaderFilter.INSTANCE);
     }
+
 }

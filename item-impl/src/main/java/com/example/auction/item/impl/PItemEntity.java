@@ -50,6 +50,13 @@ public class PItemEntity extends PersistentEntity<PItemCommand, PItemEvent, PIte
 
         builder.setReadOnlyCommandHandler(GetItem.class, this::getItem);
 
+        builder.setCommandHandler(UpdateItem.class, (create, ctx) ->
+                ctx.thenPersist(new ItemUpdated(create.getItem()), evt -> ctx.reply(Done.getInstance()))
+        );
+
+        builder.setEventHandler(ItemUpdated.class, (evt) -> PItemState.create(evt.getItem()));
+
+
         builder.setCommandHandler(StartAuction.class, (start, ctx) -> {
             if (start.getUserId().equals(state().getItem().get().getCreator())) {
                 return ctx.thenPersist(new AuctionStarted(entityUuid(), Instant.now()), alreadyDone(ctx));

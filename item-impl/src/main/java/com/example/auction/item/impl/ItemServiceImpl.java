@@ -74,7 +74,7 @@ public class ItemServiceImpl implements ItemService {
     public ServiceCall<Item, Item> createItem() {
         return authenticated(userId -> item -> {
             if (!userId.equals(item.getCreator())) {
-                throw new Forbidden("User " + userId + " can't created an item on behalf of " + item.getCreator());
+                throw new Forbidden("User " + userId + " can't create an item on behalf of " + item.getCreator());
             }
             UUID itemId = UUIDs.timeBased();
             PItem pItem = new PItem(itemId, item.getCreator(), item.getTitle(), item.getDescription(),
@@ -84,10 +84,14 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public ServiceCall<Item, Done> updateItem(UUID id) {
+    public ServiceCall<Item, Done> updateItem(UUID itemId) {
         return authenticated(userId -> item -> {
-            // todo implement
-            return null;
+            if (!userId.equals(item.getCreator())) {
+                throw new Forbidden("User " + userId + " can't edit an item on behalf of " + item.getCreator());
+            }
+            PItem pItem = new PItem(itemId, item.getCreator(), item.getTitle(), item.getDescription(),
+                    item.getCurrencyId(), item.getIncrement(), item.getReservePrice(), item.getAuctionDuration());
+            return entityRef(itemId).ask(new PItemCommand.UpdateItem(pItem));
         });
     }
 

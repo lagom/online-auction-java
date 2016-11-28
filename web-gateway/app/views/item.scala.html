@@ -17,7 +17,14 @@
 
 @main(item.getTitle) {
 
-    <h1>@item.getTitle</h1>
+    <div >
+        <h1>@item.getTitle</h1>
+    </div>
+
+    @if(currentUser == item.getCreator &&(item.getStatus == ItemStatus.CREATED || item.getStatus == ItemStatus.AUCTION )){
+        <a href="@routes.ItemController.editItemForm(item.getId.toString)" class="edit" >@message("editItem")</a>
+    }
+
 
     @if(bidResult.isPresent) {
 
@@ -97,6 +104,7 @@
             <input class="button success" type="submit" value="@message("startAuction")"/>
         </form>
     }
+
     @if(currentUser != item.getCreator && item.getStatus == ItemStatus.AUCTION) {
         <h3>@message("placeBid")</h3>
         @if(currentMaximumBid.isPresent) {
