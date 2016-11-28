@@ -1,6 +1,7 @@
 package com.example.auction.item.impl;
 
 import akka.Done;
+import com.example.auction.item.api.UpdateItemResult;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.lightbend.lagom.javadsl.persistence.PersistentEntity;
 import com.lightbend.lagom.serialization.Jsonable;
@@ -41,7 +42,7 @@ public interface PItemCommand extends Jsonable {
     }
 
 
-    final class UpdateItem implements PItemCommand, PersistentEntity.ReplyType<Done> {
+    final class UpdateItem implements PItemCommand, PersistentEntity.ReplyType<PUpdateItemResult> {
         private final PItem item;
 
         @JsonCreator

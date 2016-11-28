@@ -1,14 +1,30 @@
 @import helper._
+@import java.util.Optional
 @import java.time.temporal.ChronoUnit
 @import controllers.{Currency => Currencies}
 
-@(itemId: UUID, itemForm: Form[ItemForm])(implicit nav: Nav)
+@import com.example.auction.item.api.UpdateItemResultCodes
+@import com.example.auction.item.api.UpdateItemResultCodes._
+
+@(itemId: UUID, itemForm: Form[ItemForm], errorMessage: Optional[UpdateItemResultCodes] )(implicit nav: Nav)
+
 
 @main(message("editItem")) {
 
     <h2>@message("editItem")</h2>
 
     @foundationForm(itemForm, routes.ItemController.editItem(itemId.toString)) {
+
+        @if(errorMessage.isPresent) {
+            <div class="alert callout">
+                <i class="fi-alert"></i>
+                @errorMessage.get() match {
+                    case CAN_ONLY_UPDATE_DESCRIPTION => {@message("canOnlyEditDescription")}
+                    case CANT_UPDATE_AUCTION_IS_CLOSED => {@message("cantUpdateClosedAuction")}
+                }
+            </div>
+        }
+
         <div class="column row">
             @inputText(itemForm("title"))
         </div>

@@ -229,7 +229,7 @@ public class ItemServiceImplIntegrationTest {
         return Await.result(itemService.createItem().handleRequestHeader(authenticate(creatorId)).invoke(createItem));
     }
 
-    private Done updateItem(UUID creatorId, Item newItem) {
+    private UpdateItemResult updateItem(UUID creatorId, Item newItem) {
         return Await.result(itemService.updateItem(newItem.getId()).handleRequestHeader(authenticate(creatorId)).invoke(newItem));
     }
 

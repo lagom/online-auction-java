@@ -2,6 +2,8 @@ package com.example.auction.item.impl;
 
 import akka.actor.ActorSystem;
 import akka.testkit.JavaTestKit;
+import com.example.auction.item.api.UpdateItemResult;
+import com.example.auction.item.api.UpdateItemResultCodes;
 import com.example.auction.item.impl.PItemCommand.*;
 import com.example.auction.item.impl.PItemEvent.AuctionFinished;
 import com.example.auction.item.impl.PItemEvent.AuctionStarted;
@@ -143,7 +145,7 @@ public class ItemEntityTest {
     }
 
 
-    @Test(expected = PersistentEntity.InvalidCommandException.class)
+    @Test
     public void shouldForbidEditingAnyFieldThatIsNotDescriptionDuringAuction() {
         driver.run(createItem, startAuction);
 
@@ -152,10 +154,11 @@ public class ItemEntityTest {
         UpdateItem updateItem = new UpdateItem(newPItem);
 
         Outcome<PItemEvent, PItemState> outcome = driver.run(updateItem);
-        expectFailure(outcome);
+        PUpdateItemResult result = (PUpdateItemResult) ((PersistentEntityTestDriver.Reply) outcome.sideEffects().get(0)).msg();
+        assertEquals(new PUpdateItemResult(UpdateItemResultCodes.CAN_ONLY_UPDATE_DESCRIPTION), result);
     }
 
-    @Test(expected = PersistentEntity.InvalidCommandException.class)
+    @Test
     public void shouldForbidEditingAfterAuction() {
         UUID winner = UUID.randomUUID();
         FinishAuction finish = new FinishAuction(Optional.of(winner), 20);
@@ -166,7 +169,8 @@ public class ItemEntityTest {
         UpdateItem updateItem = new UpdateItem(newPItem);
 
         Outcome<PItemEvent, PItemState> outcome = driver.run(updateItem);
-        expectFailure(outcome);
+        PUpdateItemResult result = (PUpdateItemResult) ((PersistentEntityTestDriver.Reply) outcome.sideEffects().get(0)).msg();
+        assertEquals(new PUpdateItemResult(UpdateItemResultCodes.CANT_UPDATE_AUCTION_IS_CLOSED), result);
     }
 
 

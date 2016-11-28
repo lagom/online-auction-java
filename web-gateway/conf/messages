@@ -19,6 +19,8 @@ durationUnits=Units
 createItem=Create item
 editItem=Edit
 saveItem=Save
+canOnlyEditDescription=Can only edit Descrption
+cantUpdateClosedAuction=Can''t edit a finished Auction.
 
 seller=Seller
 auctionStart=Auction start
