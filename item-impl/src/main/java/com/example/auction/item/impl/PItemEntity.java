@@ -1,6 +1,8 @@
 package com.example.auction.item.impl;
 
 import akka.Done;
+import com.example.auction.item.api.UpdateItemResult;
+import com.example.auction.item.api.UpdateItemResultCodes;
 import com.lightbend.lagom.javadsl.persistence.PersistentEntity;
 
 import com.example.auction.item.impl.PItemCommand.*;
@@ -52,7 +54,7 @@ public class PItemEntity extends PersistentEntity<PItemCommand, PItemEvent, PIte
 
         builder.setCommandHandler(UpdateItem.class, (updateItem, ctx) ->
                 // When the Auction is not open it is easier to replace the PItem in the PState with the new one.
-                ctx.thenPersist(new ItemUpdated(updateItem.getItem()), evt -> ctx.reply(Done.getInstance()))
+                ctx.thenPersist(new ItemUpdated(updateItem.getItem()), evt -> ctx.reply(new PUpdateItemResult(UpdateItemResultCodes.SUCCESS)))
         );
         builder.setEventHandler(ItemUpdated.class, (evt) -> PItemState.create(evt.getItem()));
 
@@ -81,9 +83,9 @@ public class PItemEntity extends PersistentEntity<PItemCommand, PItemEvent, PIte
             PItem newPItem = updateItem.getItem();
             if (differOnlyOnDescription(currentPItem, newPItem)) {
                 // When the Auction is ongoing it is easier to resend the current PItem with the new Description
-                return ctx.thenPersist(new ItemUpdated(currentPItem.withDescription(newPItem.getDescription())), evt -> ctx.reply(Done.getInstance()));
+                return ctx.thenPersist(new ItemUpdated(currentPItem.withDescription(newPItem.getDescription())), evt -> ctx.reply(new PUpdateItemResult(UpdateItemResultCodes.SUCCESS)));
             } else {
-                ctx.invalidCommand("When an item is on Auction, only the description can be edited.");
+                ctx.reply(new PUpdateItemResult(UpdateItemResultCodes.CAN_ONLY_UPDATE_DESCRIPTION));
                 return ctx.done();
             }
         });
@@ -106,16 +108,6 @@ public class PItemEntity extends PersistentEntity<PItemCommand, PItemEvent, PIte
         return builder.build();
     }
 
-    private boolean differOnlyOnDescription(PItem currentPItem, PItem newPItem) {
-        return currentPItem.getId().equals(newPItem.getId()) &&
-                currentPItem.getCreator().equals(newPItem.getCreator()) &&
-                currentPItem.getTitle().equals(newPItem.getTitle()) &&
-                currentPItem.getCurrencyId().equals(newPItem.getCurrencyId()) &&
-                currentPItem.getIncrement() == newPItem.getIncrement() &&
-                currentPItem.getReservePrice() == newPItem.getReservePrice() &&
-                currentPItem.getAuctionDuration().equals(newPItem.getAuctionDuration());
-    }
-
     private Behavior completed(PItemState state) {
         BehaviorBuilder builder = newBehaviorBuilder(state);
 
@@ -123,11 +115,11 @@ public class PItemEntity extends PersistentEntity<PItemCommand, PItemEvent, PIte
 
         // a completed auctio's item can't be edited.
         builder.setReadOnlyCommandHandler(UpdateItem.class, (updateItem, ctx) ->
-                ctx.invalidCommand("Editing is forbidden when the auction is completed.")
+                ctx.reply(new PUpdateItemResult(UpdateItemResultCodes.CANT_UPDATE_AUCTION_IS_CLOSED))
         );
         // a completed auction can't be restarted.
         builder.setReadOnlyCommandHandler(StartAuction.class, (updateItem, ctx) ->
-                ctx.invalidCommand("Editing is forbidden when the auction is completed.")
+                ctx.invalidCommand("Can't reopen an auction.")
         );
 
         // Ignore these commands, they may come due to at least once messaging
@@ -148,6 +140,18 @@ public class PItemEntity extends PersistentEntity<PItemCommand, PItemEvent, PIte
 
         return builder.build();
     }
+
+
+    private boolean differOnlyOnDescription(PItem currentPItem, PItem newPItem) {
+        return currentPItem.getId().equals(newPItem.getId()) &&
+                currentPItem.getCreator().equals(newPItem.getCreator()) &&
+                currentPItem.getTitle().equals(newPItem.getTitle()) &&
+                currentPItem.getCurrencyId().equals(newPItem.getCurrencyId()) &&
+                currentPItem.getIncrement() == newPItem.getIncrement() &&
+                currentPItem.getReservePrice() == newPItem.getReservePrice() &&
+                currentPItem.getAuctionDuration().equals(newPItem.getAuctionDuration());
+    }
+
 
     /**
      * Convenience method to handle commands which have already been processed (idempotent processing).

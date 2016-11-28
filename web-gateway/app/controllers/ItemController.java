@@ -5,6 +5,7 @@ import com.example.auction.bidding.api.*;
 import com.example.auction.item.api.Item;
 import com.example.auction.item.api.ItemService;
 import com.example.auction.item.api.ItemStatus;
+import com.example.auction.item.api.UpdateItemResultCodes;
 import com.example.auction.user.api.User;
 import com.example.auction.user.api.UserService;
 import org.pcollections.PSequence;
@@ -13,12 +14,14 @@ import play.data.FormFactory;
 import play.i18n.MessagesApi;
 import play.mvc.Http;
 import play.mvc.Result;
+import views.html.editItem;
 
 import javax.inject.Inject;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
 import static com.example.auction.security.ClientSecurity.*;
@@ -76,35 +79,36 @@ public class ItemController extends AbstractController {
 
     public CompletionStage<Result> editItemForm(String itemId) {
         return requireUser(ctx(), user ->
-                        loadNav(user).thenCompose(nav -> {
-                                    UUID itemUuid = UUID.fromString(itemId);
-                                    CompletionStage<Item> itemFuture = itemService.getItem(itemUuid).handleRequestHeader(authenticate(user)).invoke();
-                                    return itemFuture.thenApply(item -> {
-                                                ItemForm itemForm = new ItemForm();
+                loadNav(user).thenCompose(nav -> {
+                            UUID itemUuid = UUID.fromString(itemId);
+                            CompletionStage<Item> itemFuture = itemService.getItem(itemUuid).handleRequestHeader(authenticate(user)).invoke();
+                            return itemFuture.thenApply(item -> {
+                                        ItemForm itemForm = new ItemForm();
 
-                                                itemForm.setId(item.getId().toString());
-                                                itemForm.setTitle(item.getTitle());
-                                                itemForm.setDescription(item.getDescription());
+                                        itemForm.setId(item.getId().toString());
+                                        itemForm.setTitle(item.getTitle());
+                                        itemForm.setDescription(item.getDescription());
 
-                                                Currency currency = Currency.valueOf(item.getCurrencyId());
-                                                itemForm.setCurrency(item.getCurrencyId());
-                                                itemForm.setIncrement(currency.fromPriceUnits(item.getIncrement()));
-                                                itemForm.setReserve(currency.fromPriceUnits(item.getReservePrice()));
+                                        Currency currency = Currency.valueOf(item.getCurrencyId());
+                                        itemForm.setCurrency(item.getCurrencyId());
+                                        itemForm.setIncrement(currency.fromPriceUnits(item.getIncrement()));
+                                        itemForm.setReserve(currency.fromPriceUnits(item.getReservePrice()));
 
-                                                Pair<ChronoUnit, Long> durationDesc = Durations.fromJDuration(item.getAuctionDuration());
-                                                itemForm.setDurationUnits(durationDesc.first().name());
-                                                itemForm.setDuration(durationDesc.second().intValue());
+                                        Pair<ChronoUnit, Long> durationDesc = Durations.fromJDuration(item.getAuctionDuration());
+                                        itemForm.setDurationUnits(durationDesc.first().name());
+                                        itemForm.setDuration(durationDesc.second().intValue());
 
-                                                return ok(
-                                                        views.html.editItem.render(
-                                                                item.getId(),
-                                                                formFactory.form(ItemForm.class).fill(itemForm),
-                                                                nav)
-                                                );
-                                            }
-                                    );
-                                }
-                        )
+                                        return ok(
+                                                views.html.editItem.render(
+                                                        item.getId(),
+                                                        formFactory.form(ItemForm.class).fill(itemForm),
+                                                        Optional.empty(),
+                                                        nav)
+                                        );
+                                    }
+                            );
+                        }
+                )
         );
     }
 
@@ -117,7 +121,7 @@ public class ItemController extends AbstractController {
 
             if (form.hasErrors()) {
                 return loadNav(user).thenApply(nav ->
-                        ok(views.html.editItem.render(itemId, form, nav))
+                        ok(views.html.editItem.render(itemId, form, Optional.empty(), nav))
                 );
             } else {
                 ItemForm itemForm = form.get();
@@ -132,7 +136,14 @@ public class ItemController extends AbstractController {
                         .updateItem(itemId)
                         .handleRequestHeader(authenticate(user))
                         .invoke(payload)
-                        .thenApply(item -> redirect(routes.ItemController.getItem(itemId.toString())));
+                        .thenCompose(updateItemResult -> {
+                                    if (updateItemResult.getCode().equals(UpdateItemResultCodes.SUCCESS)) {
+                                        return CompletableFuture.completedFuture(redirect(controllers.routes.ItemController.getItem(itemId.toString())));
+                                    } else {
+                                        return loadNav(user).thenApply(nav -> ok(editItem.render(itemId, form, Optional.of(updateItemResult.getCode()), nav)));
+                                    }
+                                }
+                        );
             }
         });
     }

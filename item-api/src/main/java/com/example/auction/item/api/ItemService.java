@@ -12,7 +12,6 @@ import com.lightbend.lagom.javadsl.api.ServiceCall;
 import com.lightbend.lagom.javadsl.api.broker.Topic;
 import com.lightbend.lagom.javadsl.api.deser.PathParamSerializers;
 import com.lightbend.lagom.javadsl.api.transport.Method;
-import org.pcollections.PSequence;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -38,7 +37,7 @@ public interface ItemService extends Service {
      * @param id The ID of the item to update.
      * @return Done.
      */
-    ServiceCall<Item, Done> updateItem(UUID id);
+    ServiceCall<Item, UpdateItemResult> updateItem(UUID id);
 
     /**
      * Start an auction for an item.
@@ -73,13 +72,15 @@ public interface ItemService extends Service {
      */
     Topic<ItemEvent> itemEvents();
 
+
+
     @Override
     default Descriptor descriptor() {
         return named("item").withCalls(
                 pathCall("/api/item", this::createItem),
                 restCall(Method.POST, "/api/item/:id/start", this::startAuction),
                 pathCall("/api/item/:id", this::getItem),
-                restCall(Method.PUT, "/api/item/:id/update", this::updateItem),
+                pathCall("/api/item/:id/update", this::updateItem),
                 pathCall("/api/item?userId&status&pageNo&pageSize", this::getItemsForUser)
         ).publishing(
                 topic("item-ItemEvent", this::itemEvents)
@@ -87,6 +88,8 @@ public interface ItemService extends Service {
                 UUID.class, PathParamSerializers.required("UUID", UUID::fromString, UUID::toString)
         ).withPathParamSerializer(
                 ItemStatus.class, PathParamSerializers.required("ItemStatus", ItemStatus::valueOf, ItemStatus::toString)
+        ).withPathParamSerializer(
+                UpdateItemResultCodes.class, PathParamSerializers.required("UpdateItemResultCode", UpdateItemResultCodes::valueOf, UpdateItemResultCodes::toString)
         ).withHeaderFilter(SecurityHeaderFilter.INSTANCE);
     }
 

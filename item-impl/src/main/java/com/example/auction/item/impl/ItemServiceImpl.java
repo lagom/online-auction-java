@@ -3,7 +3,6 @@ package com.example.auction.item.impl;
 import akka.Done;
 import akka.NotUsed;
 import akka.japi.Pair;
-import akka.japi.function.Function;
 import akka.stream.javadsl.Flow;
 import com.datastax.driver.core.utils.UUIDs;
 import com.example.auction.bidding.api.Bid;
@@ -18,7 +17,6 @@ import com.lightbend.lagom.javadsl.broker.TopicProducer;
 import com.lightbend.lagom.javadsl.persistence.Offset;
 import com.lightbend.lagom.javadsl.persistence.PersistentEntityRef;
 import com.lightbend.lagom.javadsl.persistence.PersistentEntityRegistry;
-import org.pcollections.PSequence;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -84,14 +82,16 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public ServiceCall<Item, Done> updateItem(UUID itemId) {
+    public ServiceCall<Item, UpdateItemResult> updateItem(UUID itemId) {
         return authenticated(userId -> item -> {
             if (!userId.equals(item.getCreator())) {
                 throw new Forbidden("User " + userId + " can't edit an item on behalf of " + item.getCreator());
             }
             PItem pItem = new PItem(itemId, item.getCreator(), item.getTitle(), item.getDescription(),
                     item.getCurrencyId(), item.getIncrement(), item.getReservePrice(), item.getAuctionDuration());
-            return entityRef(itemId).ask(new PItemCommand.UpdateItem(pItem));
+            return entityRef(itemId).ask(new PItemCommand.UpdateItem(pItem)).thenApply(
+                    pupdate -> new UpdateItemResult(pupdate.getCode())
+            );
         });
     }
 
