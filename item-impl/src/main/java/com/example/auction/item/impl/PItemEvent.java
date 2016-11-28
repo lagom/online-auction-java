@@ -73,13 +73,13 @@ public interface PItemEvent extends AggregateEvent<PItemEvent>, Jsonable {
         public boolean equals(Object o) {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
-            ItemCreated that = (ItemCreated) o;
-            return item.equals(that.item);
+            ItemUpdated that = (ItemUpdated) o;
+            return item != null ? item.equals(that.item) : that.item == null;
         }
 
         @Override
         public int hashCode() {
-            return item.hashCode();
+            return item != null ? item.hashCode() : 0;
         }
 
         @Override

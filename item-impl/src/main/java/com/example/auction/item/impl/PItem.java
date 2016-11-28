@@ -196,4 +196,27 @@ public class PItem implements Jsonable {
                 ", auctionWinner=" + auctionWinner +
                 '}';
     }
+
+    /**
+     * Returns a copy of this instance with the new description.
+     * @param description
+     * @return
+     */
+    public PItem withDescription(String description) {
+        return new PItem(
+                this.getId(),
+                this.getCreator(),
+                this.getTitle() ,
+                description,
+                this.getCurrencyId(),
+                this.getIncrement() ,
+                this.getReservePrice() ,
+                this.getPrice(),
+                this.getStatus(),
+                this.getAuctionDuration(),
+                this.getAuctionStart(),
+                this.getAuctionEnd(),
+                this.getAuctionWinner()
+        );
+    }
 }

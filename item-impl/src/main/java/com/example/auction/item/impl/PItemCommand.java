@@ -57,13 +57,13 @@ public interface PItemCommand extends Jsonable {
         public boolean equals(Object o) {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
-            CreateItem that = (CreateItem) o;
-            return item.equals(that.item);
+            UpdateItem that = (UpdateItem) o;
+            return item != null ? item.equals(that.item) : that.item == null;
         }
 
         @Override
         public int hashCode() {
-            return item.hashCode();
+            return item != null ? item.hashCode() : 0;
         }
     }
 
@@ -83,9 +83,7 @@ public interface PItemCommand extends Jsonable {
         public boolean equals(Object o) {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
-
             StartAuction that = (StartAuction) o;
-
             return userId.equals(that.userId);
 
         }
@@ -112,9 +110,7 @@ public interface PItemCommand extends Jsonable {
         public boolean equals(Object o) {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
-
             UpdatePrice that = (UpdatePrice) o;
-
             return price == that.price;
 
         }

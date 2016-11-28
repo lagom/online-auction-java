@@ -50,10 +50,9 @@ public class PItemEntity extends PersistentEntity<PItemCommand, PItemEvent, PIte
 
         builder.setReadOnlyCommandHandler(GetItem.class, this::getItem);
 
-        builder.setCommandHandler(UpdateItem.class, (create, ctx) ->
-                ctx.thenPersist(new ItemUpdated(create.getItem()), evt -> ctx.reply(Done.getInstance()))
+        builder.setCommandHandler(UpdateItem.class, (updateItem, ctx) ->
+                ctx.thenPersist(new ItemUpdated(updateItem.getItem()), evt -> ctx.reply(Done.getInstance()))
         );
-
         builder.setEventHandler(ItemUpdated.class, (evt) -> PItemState.create(evt.getItem()));
 
 
@@ -76,6 +75,22 @@ public class PItemEntity extends PersistentEntity<PItemCommand, PItemEvent, PIte
 
         builder.setReadOnlyCommandHandler(GetItem.class, this::getItem);
 
+        builder.setCommandHandler(UpdateItem.class, (updateItem, ctx) -> {
+            PItem currentPItem = state().getItem().get();
+            String currentDesc = currentPItem.getDescription();
+            PItem newPItem = updateItem.getItem();
+            // if newPitem with current Description equals current PItem, then only the description
+            // changed and edit is accepted.
+            if (newPItem.withDescription(currentDesc).equals(currentPItem)) {
+                return ctx.thenPersist(new ItemUpdated(newPItem), evt -> ctx.reply(Done.getInstance()));
+            } else {
+                ctx.invalidCommand("When an item is on Auction, only the description can be edited.");
+                return ctx.done();
+            }
+        });
+        builder.setEventHandler(ItemUpdated.class, (evt) -> PItemState.create(evt.getItem()));
+
+
         builder.setCommandHandler(UpdatePrice.class, (cmd, ctx) ->
                 ctx.thenPersist(new PriceUpdated(entityUuid(), cmd.getPrice()), alreadyDone(ctx)));
         builder.setEventHandler(PriceUpdated.class, evt -> state().updatePrice(evt.getPrice()));
@@ -97,14 +112,18 @@ public class PItemEntity extends PersistentEntity<PItemCommand, PItemEvent, PIte
 
         builder.setReadOnlyCommandHandler(GetItem.class, this::getItem);
 
+        // a completed auctio's item can't be edited.
+        builder.setReadOnlyCommandHandler(UpdateItem.class, (updateItem, ctx) ->
+                ctx.invalidCommand("Editing is forbidden when the auction is completed.")
+        );
+        // a completed auction can't be restarted.
+        builder.setReadOnlyCommandHandler(StartAuction.class, (updateItem, ctx) ->
+                ctx.invalidCommand("Editing is forbidden when the auction is completed.")
+        );
 
         // Ignore these commands, they may come due to at least once messaging
         builder.setReadOnlyCommandHandler(UpdatePrice.class, this::alreadyDone);
         builder.setReadOnlyCommandHandler(FinishAuction.class, this::alreadyDone);
-
-        // a completed auction can't be restarted. Don't fail this command because it may
-        // be a dupe due to at least once messaging.
-        builder.setReadOnlyCommandHandler(StartAuction.class, this::alreadyDone);
 
         return builder.build();
     }
