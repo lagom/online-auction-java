@@ -105,6 +105,7 @@ public class ItemEventProcessorTest {
     }
 
 
+
     @Test
     public void shouldUpdateAnItemWhenFinishingTheAuction() throws InterruptedException, ExecutionException, TimeoutException {
         feed(new PItemEvent.ItemCreated(item));

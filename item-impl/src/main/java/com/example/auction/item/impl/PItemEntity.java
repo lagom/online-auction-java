@@ -51,6 +51,7 @@ public class PItemEntity extends PersistentEntity<PItemCommand, PItemEvent, PIte
         builder.setReadOnlyCommandHandler(GetItem.class, this::getItem);
 
         builder.setCommandHandler(UpdateItem.class, (updateItem, ctx) ->
+                // When the Auction is not open it is easier to replace the PItem in the PState with the new one.
                 ctx.thenPersist(new ItemUpdated(updateItem.getItem()), evt -> ctx.reply(Done.getInstance()))
         );
         builder.setEventHandler(ItemUpdated.class, (evt) -> PItemState.create(evt.getItem()));
@@ -77,12 +78,10 @@ public class PItemEntity extends PersistentEntity<PItemCommand, PItemEvent, PIte
 
         builder.setCommandHandler(UpdateItem.class, (updateItem, ctx) -> {
             PItem currentPItem = state().getItem().get();
-            String currentDesc = currentPItem.getDescription();
             PItem newPItem = updateItem.getItem();
-            // if newPitem with current Description equals current PItem, then only the description
-            // changed and edit is accepted.
-            if (newPItem.withDescription(currentDesc).equals(currentPItem)) {
-                return ctx.thenPersist(new ItemUpdated(newPItem), evt -> ctx.reply(Done.getInstance()));
+            if (differOnlyOnDescription(currentPItem, newPItem)) {
+                // When the Auction is ongoing it is easier to resend the current PItem with the new Description
+                return ctx.thenPersist(new ItemUpdated(currentPItem.withDescription(newPItem.getDescription())), evt -> ctx.reply(Done.getInstance()));
             } else {
                 ctx.invalidCommand("When an item is on Auction, only the description can be edited.");
                 return ctx.done();
@@ -105,6 +104,16 @@ public class PItemEntity extends PersistentEntity<PItemCommand, PItemEvent, PIte
 
 
         return builder.build();
+    }
+
+    private boolean differOnlyOnDescription(PItem currentPItem, PItem newPItem) {
+        return currentPItem.getId().equals(newPItem.getId()) &&
+                currentPItem.getCreator().equals(newPItem.getCreator()) &&
+                currentPItem.getTitle().equals(newPItem.getTitle()) &&
+                currentPItem.getCurrencyId().equals(newPItem.getCurrencyId()) &&
+                currentPItem.getIncrement() == newPItem.getIncrement() &&
+                currentPItem.getReservePrice() == newPItem.getReservePrice() &&
+                currentPItem.getAuctionDuration().equals(newPItem.getAuctionDuration());
     }
 
     private Behavior completed(PItemState state) {

@@ -74,6 +74,7 @@ public interface PItemEvent extends AggregateEvent<PItemEvent>, Jsonable {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
             ItemUpdated that = (ItemUpdated) o;
+
             return item != null ? item.equals(that.item) : that.item == null;
         }
 

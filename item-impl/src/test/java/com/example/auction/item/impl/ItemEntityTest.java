@@ -139,6 +139,7 @@ public class ItemEntityTest {
 
         Outcome<PItemEvent, PItemState> outcome = driver.run(updateItem);
         expectEvents(outcome, new PItemEvent.ItemUpdated(newPItem));
+        assertEquals(PItemStatus.AUCTION, outcome.state().getStatus());
     }
 
 
@@ -167,7 +168,6 @@ public class ItemEntityTest {
         Outcome<PItemEvent, PItemState> outcome = driver.run(updateItem);
         expectFailure(outcome);
     }
-
 
 
     @Test
@@ -254,11 +254,12 @@ public class ItemEntityTest {
 
     /**
      * Edits all the editable fields of the passed in PItem.
+     *
      * @param oldPItem
      * @return
      */
     private PItem editAllFields(PItem oldPItem) {
-        String newCurrency = (oldPItem.getCurrencyId().equals("USD"))? "EUR":"USD";
+        String newCurrency = (oldPItem.getCurrencyId().equals("USD")) ? "EUR" : "USD";
         return new PItem(
                 oldPItem.getId(),
                 oldPItem.getCreator(),
