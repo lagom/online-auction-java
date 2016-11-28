@@ -1,5 +1,6 @@
 package controllers;
 
+import akka.japi.Pair;
 import com.example.auction.user.api.User;
 import org.ocpsoft.prettytime.PrettyTime;
 import org.ocpsoft.prettytime.impl.ResourcesTimeFormat;
@@ -11,6 +12,7 @@ import play.i18n.Messages;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalUnit;
 import java.util.Date;
 import java.util.Optional;
 import java.util.TimeZone;
@@ -75,16 +77,18 @@ public class Nav {
     }
 
     public String formatDuration(Duration duration) {
-        if (duration.getSeconds() % ChronoUnit.WEEKS.getDuration().getSeconds() == 0) {
-            return messages.at("durationWeeks", duration.toDays() / 7);
-        } else if (duration.getSeconds() % ChronoUnit.DAYS.getDuration().getSeconds() == 0) {
-            return messages.at("durationDays", duration.toDays());
-        } else if (duration.getSeconds() % ChronoUnit.HOURS.getDuration().getSeconds() == 0) {
-            return messages.at("durationHours", duration.toHours());
-        } else if (duration.getSeconds() % ChronoUnit.MINUTES.getDuration().getSeconds() == 0) {
-            return messages.at("durationMinutes", duration.toMinutes());
-        } else {
-            return messages.at("durationSeconds", duration.getSeconds());
+        Pair<ChronoUnit, Long> pair = Durations.fromJDuration(duration);
+
+        String key ;
+        switch (pair.first()){
+            case WEEKS:   {key = "durationWeeks"; break;}
+            case DAYS:    {key = "durationDays"; break;}
+            case HOURS:   {key = "durationHours"; break;}
+            case MINUTES: {key = "durationMinutes"; break;}
+            default:      {key = "durationSeconds"; break;}
         }
+
+        return messages.at(key, pair.second());
+
     }
 }

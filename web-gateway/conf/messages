@@ -17,6 +17,8 @@ status=Auction status
 duration=Auction duration
 durationUnits=Units
 createItem=Create item
+editItem=Edit
+saveItem=Save
 
 seller=Seller
 auctionStart=Auction start

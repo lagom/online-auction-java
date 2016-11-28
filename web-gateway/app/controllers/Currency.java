@@ -29,6 +29,10 @@ public enum Currency {
         return format.format(toDecimal(value));
     }
 
+    public String format(BigDecimal value) {
+        return format.format(value);
+    }
+
     public String getDisplayName() {
         return currency.getDisplayName();
     }
@@ -58,6 +62,14 @@ public enum Currency {
             return (int) Math.round(value * Math.pow(10, currency.getDefaultFractionDigits()));
         } else {
             return (int) Math.round(value);
+        }
+    }
+
+    public BigDecimal fromPriceUnits(int value) {
+        if (currency.getDefaultFractionDigits() > 0) {
+            return BigDecimal.valueOf(value).divide(BigDecimal.valueOf(Math.pow(10, currency.getDefaultFractionDigits())));
+        } else {
+            return BigDecimal.valueOf(value);
         }
     }
 

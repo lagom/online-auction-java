@@ -30,11 +30,35 @@ public interface PItemCommand extends Jsonable {
         public boolean equals(Object o) {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
-
             CreateItem that = (CreateItem) o;
-
             return item.equals(that.item);
+        }
 
+        @Override
+        public int hashCode() {
+            return item.hashCode();
+        }
+    }
+
+
+    final class UpdateItem implements PItemCommand, PersistentEntity.ReplyType<Done> {
+        private final PItem item;
+
+        @JsonCreator
+        public UpdateItem(PItem item) {
+            this.item = item;
+        }
+
+        public PItem getItem() {
+            return item;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            CreateItem that = (CreateItem) o;
+            return item.equals(that.item);
         }
 
         @Override

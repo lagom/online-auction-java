@@ -1,5 +1,6 @@
 package controllers;
 
+import akka.japi.Pair;
 import com.example.auction.bidding.api.*;
 import com.example.auction.item.api.Item;
 import com.example.auction.item.api.ItemService;
@@ -30,7 +31,7 @@ public class ItemController extends AbstractController {
 
     @Inject
     public ItemController(MessagesApi messagesApi, UserService userService, FormFactory formFactory,
-            ItemService itemService, BiddingService bidService) {
+                          ItemService itemService, BiddingService bidService) {
         super(messagesApi, userService);
         this.formFactory = formFactory;
         this.itemService = itemService;
@@ -40,7 +41,7 @@ public class ItemController extends AbstractController {
     public CompletionStage<Result> createItemForm() {
         return requireUser(ctx(), user ->
                 loadNav(user).thenApply(nav ->
-                        ok(views.html.editItem.render(formFactory.form(ItemForm.class).fill(new ItemForm()), nav))
+                        ok(views.html.createItem.render(formFactory.form(ItemForm.class).fill(new ItemForm()), nav))
                 )
         );
     }
@@ -53,7 +54,7 @@ public class ItemController extends AbstractController {
 
             if (form.hasErrors()) {
                 return loadNav(user).thenApply(nav ->
-                        ok(views.html.editItem.render(form, nav))
+                        ok(views.html.createItem.render(form, nav))
                 );
             } else {
                 ItemForm itemForm = form.get();
@@ -63,12 +64,75 @@ public class ItemController extends AbstractController {
 
                 return itemService.createItem().handleRequestHeader(authenticate(user))
                         .invoke(new Item(user, itemForm.getTitle(), itemForm.getDescription(), itemForm.getCurrency(),
+                                currency.toPriceUnits(itemForm.getIncrement().doubleValue()),
+                                currency.toPriceUnits(itemForm.getReserve().doubleValue()), duration)).thenApply(item -> {
+
+                            return redirect(routes.ItemController.getItem(item.getId().toString()));
+
+                        });
+            }
+        });
+    }
+
+    public CompletionStage<Result> editItemForm(String itemId) {
+        return requireUser(ctx(), user ->
+                        loadNav(user).thenCompose(nav -> {
+                                    UUID itemUuid = UUID.fromString(itemId);
+                                    CompletionStage<Item> itemFuture = itemService.getItem(itemUuid).handleRequestHeader(authenticate(user)).invoke();
+                                    return itemFuture.thenApply(item -> {
+                                                ItemForm itemForm = new ItemForm();
+
+                                                itemForm.setId(item.getId().toString());
+                                                itemForm.setTitle(item.getTitle());
+                                                itemForm.setDescription(item.getDescription());
+
+                                                Currency currency = Currency.valueOf(item.getCurrencyId());
+                                                itemForm.setCurrency(item.getCurrencyId());
+                                                itemForm.setIncrement(currency.fromPriceUnits(item.getIncrement()));
+                                                itemForm.setReserve(currency.fromPriceUnits(item.getReservePrice()));
+
+                                                Pair<ChronoUnit, Long> durationDesc = Durations.fromJDuration(item.getAuctionDuration());
+                                                itemForm.setDurationUnits(durationDesc.first().name());
+                                                itemForm.setDuration(durationDesc.second().intValue());
+
+                                                return ok(
+                                                        views.html.editItem.render(
+                                                                item.getId(),
+                                                                formFactory.form(ItemForm.class).fill(itemForm),
+                                                                nav)
+                                                );
+                                            }
+                                    );
+                                }
+                        )
+        );
+    }
+
+    public CompletionStage<Result> editItem(String id) {
+        Http.Context ctx = ctx();
+        return requireUser(ctx, user -> {
+
+            Form<ItemForm> form = formFactory.form(ItemForm.class).bindFromRequest(ctx.request());
+            UUID itemId = UUID.fromString(id);
+
+            if (form.hasErrors()) {
+                return loadNav(user).thenApply(nav ->
+                        ok(views.html.editItem.render(itemId, form, nav))
+                );
+            } else {
+                ItemForm itemForm = form.get();
+
+                Currency currency = Currency.valueOf(itemForm.getCurrency());
+                Duration duration = Duration.of(itemForm.getDuration(), ChronoUnit.valueOf(itemForm.getDurationUnits()));
+
+                Item payload = new Item(user, itemForm.getTitle(), itemForm.getDescription(), itemForm.getCurrency(),
                         currency.toPriceUnits(itemForm.getIncrement().doubleValue()),
-                        currency.toPriceUnits(itemForm.getReserve().doubleValue()), duration)).thenApply(item -> {
-
-                    return redirect(routes.ItemController.getItem(item.getId().toString()));
-
-                 });
+                        currency.toPriceUnits(itemForm.getReserve().doubleValue()), duration);
+                return itemService
+                        .updateItem(itemId)
+                        .handleRequestHeader(authenticate(user))
+                        .invoke(payload)
+                        .thenApply(item -> redirect(routes.ItemController.getItem(itemId.toString())));
             }
         });
     }
@@ -179,7 +243,7 @@ public class ItemController extends AbstractController {
     public CompletionStage<Result> startAuction(String itemId) {
         return requireUser(ctx(), user ->
                 itemService.startAuction(UUID.fromString(itemId))
-                    .handleRequestHeader(authenticate(user)).invoke().thenApply(done ->
+                        .handleRequestHeader(authenticate(user)).invoke().thenApply(done ->
                         redirect(routes.ItemController.getItem(itemId))
                 )
         );
@@ -206,7 +270,7 @@ public class ItemController extends AbstractController {
                             ctx.flash().put("bidResultStatus", bidResult.getStatus().name());
                             ctx.flash().put("bidResultPrice", Integer.toString(bidResult.getCurrentPrice()));
                             return redirect(routes.ItemController.getItem(itemId));
-                });
+                        });
             }
         });
     }
