@@ -42,6 +42,10 @@ public class PItemState implements Jsonable {
         return update(i -> i.updatePrice(price));
     }
 
+    public PItemState updateDescription(String description) {
+        return update(i->i.withDescription(description));
+    }
+
     public PItemState cancel() {
         return update(i -> i.cancel());
     }
@@ -69,4 +73,5 @@ public class PItemState implements Jsonable {
     public int hashCode() {
         return item != null ? item.hashCode() : 0;
     }
+
 }

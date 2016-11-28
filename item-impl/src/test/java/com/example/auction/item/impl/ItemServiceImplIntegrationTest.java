@@ -94,18 +94,18 @@ public class ItemServiceImplIntegrationTest {
 
         eventually(new FiniteDuration(10, SECONDS), () -> {
 
-                PaginatedSequence<ItemSummary> paginatedSequence = itemService.getItemsForUser(tom, ItemStatus.CREATED, Optional.empty(), Optional.empty()).invoke().toCompletableFuture().get(5, SECONDS);
+                    PaginatedSequence<ItemSummary> paginatedSequence = itemService.getItemsForUser(tom, ItemStatus.CREATED, Optional.empty(), Optional.empty()).invoke().toCompletableFuture().get(5, SECONDS);
 
-                assertEquals(1, paginatedSequence.getCount());
-                ItemSummary expected =
-                    new ItemSummary(
-                        createdTomItem.getId(),
-                        createdTomItem.getTitle(),
-                        createdTomItem.getCurrencyId(),
-                        createdTomItem.getReservePrice(),
-                        createdTomItem.getStatus());
-                assertEquals(expected, paginatedSequence.getItems().get(0));
-            }
+                    assertEquals(1, paginatedSequence.getCount());
+                    ItemSummary expected =
+                            new ItemSummary(
+                                    createdTomItem.getId(),
+                                    createdTomItem.getTitle(),
+                                    createdTomItem.getCurrencyId(),
+                                    createdTomItem.getReservePrice(),
+                                    createdTomItem.getStatus());
+                    assertEquals(expected, paginatedSequence.getItems().get(0));
+                }
         );
     }
 
@@ -127,6 +127,35 @@ public class ItemServiceImplIntegrationTest {
     }
 
     @Test
+    public void shouldEditDescriptionDuringAuction() {
+        UUID creatorId = UUID.randomUUID();
+        Item createItem = sampleItem(creatorId);
+        Item createdItem = createItem(creatorId, createItem);
+        startAuction(creatorId, createdItem);
+
+        String newDescription = "the new description";
+        Item newItem = new Item(
+                createdItem.getId(),
+                createdItem.getCreator(),
+                createdItem.getTitle(),
+                newDescription,
+                createdItem.getCurrencyId(),
+                createdItem.getIncrement(),
+                createdItem.getReservePrice(),
+                createdItem.getPrice(),
+                createdItem.getStatus(),
+                createdItem.getAuctionDuration(),
+                createdItem.getAuctionStart(),
+                createdItem.getAuctionEnd(),
+                createdItem.getAuctionWinner()
+        );
+        updateItem(creatorId, newItem);
+
+        Item retrievedItem = retrieveItem(createdItem);
+        assertEquals(newDescription, retrievedItem.getDescription());
+    }
+
+    @Test
     public void shouldEmitAuctionStartedEvent() {
         UUID creatorId = UUID.randomUUID();
         Item createItem = sampleItem(creatorId);
@@ -135,8 +164,8 @@ public class ItemServiceImplIntegrationTest {
         // build the stream and materialize it
         Source<ItemEvent, ?> events = itemService.itemEvents().subscribe().atMostOnceSource();
         CompletionStage<ItemEvent> eventualHead = events
-            .dropWhile(event -> !event.getItemId().equals(createdItem.getId()))
-            .runWith(Sink.head(), testServer.materializer());
+                .dropWhile(event -> !event.getItemId().equals(createdItem.getId()))
+                .runWith(Sink.head(), testServer.materializer());
 
         // cause the event
         startAuction(creatorId, createdItem);
@@ -200,6 +229,10 @@ public class ItemServiceImplIntegrationTest {
         return Await.result(itemService.createItem().handleRequestHeader(authenticate(creatorId)).invoke(createItem));
     }
 
+    private Done updateItem(UUID creatorId, Item newItem) {
+        return Await.result(itemService.updateItem(newItem.getId()).handleRequestHeader(authenticate(creatorId)).invoke(newItem));
+    }
+
     private Item retrieveItem(Item createdItem) {
         return Await.result(itemService.getItem(createdItem.getId()).invoke());
     }
@@ -252,12 +285,12 @@ public class ItemServiceImplIntegrationTest {
 
                         @Override
                         public CompletionStage<Done> atLeastOnce(Flow<BidEvent, Done, ?> flow) {
-                          Pair<ActorRef, CompletionStage<Done>> pair = Source.<BidEvent>actorRef(1, OverflowStrategy.fail())
-                              .via(flow)
-                              .toMat(Sink.ignore(), Keep.both())
-                              .run(materializer);
-                          bidEventActor = pair.first();
-                          return pair.second();
+                            Pair<ActorRef, CompletionStage<Done>> pair = Source.<BidEvent>actorRef(1, OverflowStrategy.fail())
+                                    .via(flow)
+                                    .toMat(Sink.ignore(), Keep.both())
+                                    .run(materializer);
+                            bidEventActor = pair.first();
+                            return pair.second();
                         }
                     };
                 }
