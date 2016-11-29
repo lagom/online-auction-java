@@ -124,7 +124,7 @@ public class ItemRepository {
                     .setEventHandler(PItemEvent.ItemCreated.class,
                             e -> insertItem(e.getItem()))
                     .setEventHandler(PItemEvent.ItemUpdated.class,
-                            e -> updateItemSummary(e.getItem()))
+                            e -> updateItemSummary(e))
                     .setEventHandler(PItemEvent.AuctionStarted.class,
                             e -> updateItemSummaryStatus(e.getItemId(), ItemStatus.AUCTION))
                     .setEventHandler(PItemEvent.AuctionFinished.class,
@@ -245,7 +245,7 @@ public class ItemRepository {
             );
         }
 
-        private CompletionStage<List<BoundStatement>> updateItemSummary(PItem item) {
+        private CompletionStage<List<BoundStatement>> updateItemSummary(PItemEvent.ItemUpdated item) {
             return completedStatements(
                     updateItemSummaryStatement.bind(
                             item.getTitle(),

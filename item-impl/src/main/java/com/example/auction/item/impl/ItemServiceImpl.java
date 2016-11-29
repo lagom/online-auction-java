@@ -45,21 +45,22 @@ public class ItemServiceImpl implements ItemService {
         biddingService.bidEvents().subscribe().atLeastOnce(Flow.<BidEvent>create().mapAsync(1, this::handleBidEvent));
     }
 
-  /**
-   *  TODO: doc this.
-   * @param event
-   * @return
-   */
+    /**
+     * TODO: doc this.
+     *
+     * @param event
+     * @return
+     */
     private CompletionStage<Done> handleBidEvent(BidEvent event) {
         if (event instanceof BidEvent.BidPlaced) {
             BidEvent.BidPlaced bidPlaced = (BidEvent.BidPlaced) event;
             return entityRef(bidPlaced.getItemId())
-                .ask(new PItemCommand.UpdatePrice(bidPlaced.getBid().getPrice()));
+                    .ask(new PItemCommand.UpdatePrice(bidPlaced.getBid().getPrice()));
         } else if (event instanceof BidEvent.BiddingFinished) {
             BidEvent.BiddingFinished biddingFinished = (BidEvent.BiddingFinished) event;
             PItemCommand.FinishAuction finishAuction = new PItemCommand.FinishAuction(
-                biddingFinished.getWinningBid().map(Bid::getBidder),
-                biddingFinished.getWinningBid().map(Bid::getPrice).orElse(0));
+                    biddingFinished.getWinningBid().map(Bid::getBidder),
+                    biddingFinished.getWinningBid().map(Bid::getPrice).orElse(0));
             return entityRef(biddingFinished.getItemId()).ask(finishAuction);
         } else {
             // Ignore.
@@ -87,9 +88,17 @@ public class ItemServiceImpl implements ItemService {
             if (!userId.equals(item.getCreator())) {
                 throw new Forbidden("User " + userId + " can't edit an item on behalf of " + item.getCreator());
             }
-            PItem pItem = new PItem(itemId, item.getCreator(), item.getTitle(), item.getDescription(),
-                    item.getCurrencyId(), item.getIncrement(), item.getReservePrice(), item.getAuctionDuration());
-            return entityRef(itemId).ask(new PItemCommand.UpdateItem(pItem)).thenApply(
+            PItemCommand.UpdateItem updateItem = new PItemCommand.UpdateItem(
+                    item.getId(),
+                    item.getCreator(),
+                    item.getTitle(),
+                    item.getDescription(),
+                    item.getCurrencyId(),
+                    item.getIncrement(),
+                    item.getReservePrice(),
+                    item.getAuctionDuration()
+            );
+            return entityRef(itemId).ask(updateItem).thenApply(
                     pupdate -> new UpdateItemResult(pupdate.getCode())
             );
         });
@@ -98,7 +107,7 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public ServiceCall<NotUsed, Done> startAuction(UUID id) {
         return authenticated(userId -> req ->
-            entityRef(id).ask(new PItemCommand.StartAuction(userId))
+                entityRef(id).ask(new PItemCommand.StartAuction(userId))
         );
     }
 

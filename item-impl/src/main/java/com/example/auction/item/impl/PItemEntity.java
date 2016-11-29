@@ -12,6 +12,7 @@ import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 public class PItemEntity extends PersistentEntity<PItemCommand, PItemEvent, PItemState> {
     @Override
@@ -52,11 +53,12 @@ public class PItemEntity extends PersistentEntity<PItemCommand, PItemEvent, PIte
 
         builder.setReadOnlyCommandHandler(GetItem.class, this::getItem);
 
-        builder.setCommandHandler(UpdateItem.class, (updateItem, ctx) ->
-                // When the Auction is not open it is easier to replace the PItem in the PState with the new one.
-                ctx.thenPersist(new ItemUpdated(updateItem.getItem()), evt -> ctx.reply(new PUpdateItemResult(UpdateItemResultCodes.SUCCESS)))
+        builder.setCommandHandler(UpdateItem.class, (updateItem, ctx) -> {
+                    ItemUpdated event = ItemUpdated.from(updateItem);
+                    return ctx.thenPersist(event, evt -> ctx.reply(new PUpdateItemResult(UpdateItemResultCodes.SUCCESS)));
+                }
         );
-        builder.setEventHandler(ItemUpdated.class, (evt) -> PItemState.create(evt.getItem()));
+        builder.setEventHandler(ItemUpdated.class, updateItemPublicFields());
 
 
         builder.setCommandHandler(StartAuction.class, (start, ctx) -> {
@@ -80,16 +82,14 @@ public class PItemEntity extends PersistentEntity<PItemCommand, PItemEvent, PIte
 
         builder.setCommandHandler(UpdateItem.class, (updateItem, ctx) -> {
             PItem currentPItem = state().getItem().get();
-            PItem newPItem = updateItem.getItem();
-            if (differOnlyOnDescription(currentPItem, newPItem)) {
-                // When the Auction is ongoing it is easier to resend the current PItem with the new Description
-                return ctx.thenPersist(new ItemUpdated(currentPItem.withDescription(newPItem.getDescription())), evt -> ctx.reply(new PUpdateItemResult(UpdateItemResultCodes.SUCCESS)));
+            if (differOnlyOnDescription(currentPItem, updateItem)) {
+                return ctx.thenPersist(ItemUpdated.from(updateItem), evt -> ctx.reply(new PUpdateItemResult(UpdateItemResultCodes.SUCCESS)));
             } else {
                 ctx.reply(new PUpdateItemResult(UpdateItemResultCodes.CAN_ONLY_UPDATE_DESCRIPTION));
                 return ctx.done();
             }
         });
-        builder.setEventHandler(ItemUpdated.class, (evt) -> PItemState.create(evt.getItem()));
+        builder.setEventHandler(ItemUpdated.class, updateItemPublicFields());
 
 
         builder.setCommandHandler(UpdatePrice.class, (cmd, ctx) ->
@@ -142,14 +142,32 @@ public class PItemEntity extends PersistentEntity<PItemCommand, PItemEvent, PIte
     }
 
 
-    private boolean differOnlyOnDescription(PItem currentPItem, PItem newPItem) {
-        return currentPItem.getId().equals(newPItem.getId()) &&
-                currentPItem.getCreator().equals(newPItem.getCreator()) &&
-                currentPItem.getTitle().equals(newPItem.getTitle()) &&
-                currentPItem.getCurrencyId().equals(newPItem.getCurrencyId()) &&
-                currentPItem.getIncrement() == newPItem.getIncrement() &&
-                currentPItem.getReservePrice() == newPItem.getReservePrice() &&
-                currentPItem.getAuctionDuration().equals(newPItem.getAuctionDuration());
+    /**
+     * @return true if all fields in <code>updateCmd</code> (except Description) have equal
+     * values in the <code>currentPItem</code>
+     */
+    private boolean differOnlyOnDescription(PItem currentPItem, UpdateItem updateCmd) {
+        return currentPItem.getTitle().equals(updateCmd.getTitle()) &&
+                currentPItem.getCurrencyId().equals(updateCmd.getCurrencyId()) &&
+                currentPItem.getIncrement() == updateCmd.getIncrement() &&
+                currentPItem.getReservePrice() == updateCmd.getReservePrice() &&
+                currentPItem.getAuctionDuration().equals(updateCmd.getAuctionDuration());
+    }
+
+
+    /**
+     * convenience method to update the PItem in the PItemState with altering Instants, Status, etc...
+     * @return
+     */
+    private Function<ItemUpdated, PItemState> updateItemPublicFields() {
+        return (evt) ->
+                state().updateDetails(
+                        evt.getTitle(),
+                        evt.getDescription(),
+                        evt.getCurrencyId(),
+                        evt.getIncrement(),
+                        evt.getReservePrice(),
+                        evt.getAuctionDuration());
     }
 
 

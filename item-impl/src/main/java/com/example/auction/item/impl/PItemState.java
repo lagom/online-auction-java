@@ -3,6 +3,7 @@ package com.example.auction.item.impl;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.lightbend.lagom.serialization.Jsonable;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
@@ -43,7 +44,11 @@ public class PItemState implements Jsonable {
     }
 
     public PItemState updateDescription(String description) {
-        return update(i->i.withDescription(description));
+        return update(i -> i.withDescription(description));
+    }
+
+    public PItemState updateDetails(String title, String description, String currencyId, int increment, int reservePrice, Duration auctionDuration) {
+        return update(i -> i.withFields(title, description, currencyId, increment, reservePrice, auctionDuration));
     }
 
     public PItemState cancel() {

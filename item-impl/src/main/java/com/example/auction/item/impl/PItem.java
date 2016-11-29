@@ -180,7 +180,7 @@ public class PItem implements Jsonable {
 
     @Override
     public String toString() {
-        return "PItem{" +
+        return "PItemFields{" +
                 "id=" + id +
                 ", creator=" + creator +
                 ", title='" + title + '\'' +
@@ -195,6 +195,30 @@ public class PItem implements Jsonable {
                 ", auctionEnd=" + auctionEnd +
                 ", auctionWinner=" + auctionWinner +
                 '}';
+    }
+
+
+    /**
+     * Returns a copy of this instance with updates on the publicly editable fields..
+     * @param description
+     * @return
+     */
+    public PItem withFields(String title, String description, String currencyId, int increment, int reservePrice, Duration auctionDuration){
+        return new PItem(
+                this.getId(),
+                this.getCreator(),
+                title ,
+                description,
+                currencyId,
+                increment ,
+                reservePrice,
+                this.getPrice(),
+                this.getStatus(),
+                auctionDuration,
+                this.getAuctionStart(),
+                this.getAuctionEnd(),
+                this.getAuctionWinner()
+        );
     }
 
     /**
