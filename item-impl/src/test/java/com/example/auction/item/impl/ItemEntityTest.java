@@ -2,7 +2,6 @@ package com.example.auction.item.impl;
 
 import akka.actor.ActorSystem;
 import akka.testkit.JavaTestKit;
-import com.example.auction.item.api.UpdateItemResult;
 import com.example.auction.item.api.UpdateItemResultCodes;
 import com.example.auction.item.impl.PItemCommand.*;
 import com.example.auction.item.impl.PItemEvent.AuctionFinished;
@@ -124,23 +123,37 @@ public class ItemEntityTest {
     public void shouldEmitEventWhenUpdatingTheItemBeforeStartingAuction() {
         driver.run(createItem); //arrange
 
-        PItem newPItem = editAllFields(pitem);
-        UpdateItem updateItem = new UpdateItem(newPItem);
+        UpdateItem cmd = editAllFields(pitem);
 
-        Outcome<PItemEvent, PItemState> outcome = driver.run(updateItem);
-        expectEvents(outcome, new PItemEvent.ItemUpdated(newPItem));
+        Outcome<PItemEvent, PItemState> outcome = driver.run(cmd);
+        expectEvents(outcome, new PItemEvent.ItemUpdated(
+                cmd.getId(),
+                cmd.getCreator(),
+                cmd.getTitle(),
+                cmd.getDescription(),
+                cmd.getCurrencyId(),
+                cmd.getIncrement(),
+                cmd.getReservePrice(),
+                cmd.getAuctionDuration()));
     }
 
     @Test
     public void shouldEmitEventWhenUpdatingOnlyTheItemDescriptionDuringAuction() {
         driver.run(createItem, startAuction); //arrange
 
-        PItem currentPItem = getItem().get();
-        PItem newPItem = currentPItem.withDescription("Some new description.");
-        UpdateItem updateItem = new UpdateItem(newPItem);
+        PItem currentItem = getItem().get();
+        String description = "Some new description.";
+        UpdateItem cmd = new UpdateItem(currentItem.getId(),
+                currentItem.getCreator(),
+                currentItem.getTitle(),
+                description,
+                currentItem.getCurrencyId(),
+                currentItem.getIncrement(),
+                currentItem.getReservePrice(),
+                currentItem.getAuctionDuration());
 
-        Outcome<PItemEvent, PItemState> outcome = driver.run(updateItem);
-        expectEvents(outcome, new PItemEvent.ItemUpdated(newPItem));
+        Outcome<PItemEvent, PItemState> outcome = driver.run(cmd);
+        assertEquals(description, ((PItemEvent.ItemUpdated) outcome.events().get(0)).getDescription());
         assertEquals(PItemStatus.AUCTION, outcome.state().getStatus());
     }
 
@@ -150,10 +163,9 @@ public class ItemEntityTest {
         driver.run(createItem, startAuction);
 
         PItem currentPItem = getItem().get();
-        PItem newPItem = editAllFields(currentPItem);
-        UpdateItem updateItem = new UpdateItem(newPItem);
+        UpdateItem cmd = editAllFields(currentPItem);
 
-        Outcome<PItemEvent, PItemState> outcome = driver.run(updateItem);
+        Outcome<PItemEvent, PItemState> outcome = driver.run(cmd);
         PUpdateItemResult result = (PUpdateItemResult) ((PersistentEntityTestDriver.Reply) outcome.sideEffects().get(0)).msg();
         assertEquals(new PUpdateItemResult(UpdateItemResultCodes.CAN_ONLY_UPDATE_DESCRIPTION), result);
     }
@@ -165,8 +177,16 @@ public class ItemEntityTest {
         driver.run(createItem, startAuction, finish);
 
         PItem currentPItem = getItem().get();
-        PItem newPItem = currentPItem.withDescription("Some new description.");
-        UpdateItem updateItem = new UpdateItem(newPItem);
+        PItem newPItem = currentPItem.withDescription(".");
+        UpdateItem updateItem = new UpdateItem(
+                currentPItem.getId(),
+                currentPItem.getCreator(),
+                currentPItem.getTitle(),
+                "Some new description",
+                currentPItem.getCurrencyId(),
+                currentPItem.getIncrement(),
+                currentPItem.getReservePrice(),
+                currentPItem.getAuctionDuration());
 
         Outcome<PItemEvent, PItemState> outcome = driver.run(updateItem);
         PUpdateItemResult result = (PUpdateItemResult) ((PersistentEntityTestDriver.Reply) outcome.sideEffects().get(0)).msg();
@@ -257,14 +277,14 @@ public class ItemEntityTest {
     }
 
     /**
-     * Edits all the editable fields of the passed in PItem.
+     * Edits all the editable fields of the passed in PItemFields.
      *
      * @param oldPItem
      * @return
      */
-    private PItem editAllFields(PItem oldPItem) {
+    private UpdateItem editAllFields(PItem oldPItem) {
         String newCurrency = (oldPItem.getCurrencyId().equals("USD")) ? "EUR" : "USD";
-        return new PItem(
+        return new UpdateItem(
                 oldPItem.getId(),
                 oldPItem.getCreator(),
                 oldPItem.getTitle() + " (edited)",
