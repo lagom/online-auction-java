@@ -9,12 +9,13 @@ import com.example.auction.item.impl.PItemEvent.*;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 public class PItemEntity extends PersistentEntity<PItemCommand, PItemEvent, PItemState> {
     @Override
     public Behavior initialBehavior(Optional<PItemState> snapshotState) {
         PItemStatus status = snapshotState.map(PItemState::getStatus).orElse(PItemStatus.NOT_CREATED);
-        switch(status) {
+        switch (status) {
             case NOT_CREATED:
                 return empty();
             case CREATED:
@@ -51,7 +52,7 @@ public class PItemEntity extends PersistentEntity<PItemCommand, PItemEvent, PIte
 
         builder.setCommandHandler(StartAuction.class, (start, ctx) -> {
             if (start.getUserId().equals(state().getItem().get().getCreator())) {
-                return ctx.thenPersist(new AuctionStarted(entityUuid(), Instant.now()), evt -> ctx.reply(Done.getInstance()));
+                return ctx.thenPersist(new AuctionStarted(entityUuid(), Instant.now()), alreadyDone(ctx));
             } else {
                 ctx.invalidCommand("User " + start.getUserId() + " is not allowed to start this auction");
                 return ctx.done();
@@ -69,16 +70,17 @@ public class PItemEntity extends PersistentEntity<PItemCommand, PItemEvent, PIte
         builder.setReadOnlyCommandHandler(GetItem.class, this::getItem);
 
         builder.setCommandHandler(UpdatePrice.class, (cmd, ctx) ->
-                ctx.thenPersist(new PriceUpdated(entityUuid(), cmd.getPrice()),
-                        (evt) -> ctx.reply(Done.getInstance())));
+                ctx.thenPersist(new PriceUpdated(entityUuid(), cmd.getPrice()), alreadyDone(ctx)));
         builder.setEventHandler(PriceUpdated.class, evt -> state().updatePrice(evt.getPrice()));
 
         builder.setCommandHandler(FinishAuction.class, (cmd, ctx) ->
-                ctx.thenPersist(new AuctionFinished(entityUuid(), cmd.getWinner(), cmd.getPrice()),
-                        (evt) -> ctx.reply(Done.getInstance()))
-        );
+                ctx.thenPersist(new AuctionFinished(entityUuid(), cmd.getWinner(), cmd.getPrice()), alreadyDone(ctx)));
         builder.setEventHandlerChangingBehavior(AuctionFinished.class,
                 evt -> completed(state().end(evt.getWinner(), evt.getPrice())));
+
+        // Ignored commands
+        builder.setReadOnlyCommandHandler(StartAuction.class, this::alreadyDone);
+
 
         return builder.build();
     }
@@ -88,11 +90,14 @@ public class PItemEntity extends PersistentEntity<PItemCommand, PItemEvent, PIte
 
         builder.setReadOnlyCommandHandler(GetItem.class, this::getItem);
 
+
         // Ignore these commands, they may come due to at least once messaging
-        builder.setReadOnlyCommandHandler(UpdatePrice.class,
-                (cmd, ctx) -> ctx.reply(Done.getInstance()));
-        builder.setReadOnlyCommandHandler(FinishAuction.class,
-                (cmd, ctx) -> ctx.reply(Done.getInstance()));
+        builder.setReadOnlyCommandHandler(UpdatePrice.class, this::alreadyDone);
+        builder.setReadOnlyCommandHandler(FinishAuction.class, this::alreadyDone);
+
+        // a completed auction can't be restarted. Don't fail this command because it may
+        // be a dupe due to at least once messaging.
+        builder.setReadOnlyCommandHandler(StartAuction.class, this::alreadyDone);
 
         return builder.build();
     }
@@ -103,12 +108,26 @@ public class PItemEntity extends PersistentEntity<PItemCommand, PItemEvent, PIte
         builder.setReadOnlyCommandHandler(GetItem.class, this::getItem);
 
         // Ignore these commands, they may come due to at least once messaging
-        builder.setReadOnlyCommandHandler(UpdatePrice.class,
-                (cmd, ctx) -> ctx.reply(Done.getInstance()));
-        builder.setReadOnlyCommandHandler(FinishAuction.class,
-                (cmd, ctx) -> ctx.reply(Done.getInstance()));
+        builder.setReadOnlyCommandHandler(UpdatePrice.class, this::alreadyDone);
+        builder.setReadOnlyCommandHandler(FinishAuction.class, this::alreadyDone);
 
         return builder.build();
+    }
+
+    /**
+     * Convenience method to handle commands which have already been processed (idempotent processing).
+     * TODO: review naming. See AuctionEvent#alreadyDone in bidding-impl project.
+     */
+    private void alreadyDone(Object command, ReadOnlyCommandContext<Done> ctx) {
+        ctx.reply(Done.getInstance());
+    }
+
+    /**
+     * Convenience method to handle commands which have already been processed (idempotent processing).
+     * TODO: review naming. See AuctionEvent#alreadyDone in bidding-impl project.
+     */
+    private <T> Consumer<T> alreadyDone(ReadOnlyCommandContext<Done> ctx) {
+        return (evt) -> ctx.reply(Done.getInstance());
     }
 
     private void getItem(GetItem get, ReadOnlyCommandContext<Optional<PItem>> ctx) {

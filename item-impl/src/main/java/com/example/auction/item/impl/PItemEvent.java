@@ -48,6 +48,13 @@ public interface PItemEvent extends AggregateEvent<PItemEvent>, Jsonable {
         public int hashCode() {
             return item.hashCode();
         }
+
+        @Override
+        public String toString() {
+            return "ItemCreated{" +
+                    "item=" + item +
+                    '}';
+        }
     }
 
     final class AuctionStarted implements PItemEvent {
@@ -85,6 +92,14 @@ public interface PItemEvent extends AggregateEvent<PItemEvent>, Jsonable {
             int result = itemId.hashCode();
             result = 31 * result + startTime.hashCode();
             return result;
+        }
+
+        @Override
+        public String toString() {
+            return "AuctionStarted{" +
+                    "itemId=" + itemId +
+                    ", startTime=" + startTime +
+                    '}';
         }
     }
 

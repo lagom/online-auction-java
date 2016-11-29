@@ -13,7 +13,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-final class CompletionStageUtils {
+public final class CompletionStageUtils {
     private CompletionStageUtils() {
         throw new Error("no instances");
     }
@@ -33,7 +33,11 @@ final class CompletionStageUtils {
         };
     }
 
-    static CompletionStage<Done> doAll(CompletionStage<?>... stages) {
+    static <T> CompletionStage<Done> doAll(CompletionStage<T>... stages) {
+        return doAll(Arrays.asList(stages));
+    }
+
+    public static <T> CompletionStage<Done> doAll(List<CompletionStage<T>> stages) {
         CompletionStage<Done> result = CompletableFuture.completedFuture(Done.getInstance());
         for (CompletionStage<?> stage : stages) {
             result = result.thenCombine(stage, (d1, d2) -> Done.getInstance());
