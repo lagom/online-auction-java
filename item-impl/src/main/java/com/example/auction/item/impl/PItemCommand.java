@@ -5,7 +5,6 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.lightbend.lagom.javadsl.persistence.PersistentEntity;
 import com.lightbend.lagom.serialization.Jsonable;
 
-import java.time.Duration;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -43,57 +42,26 @@ public interface PItemCommand extends Jsonable {
 
 
     final class UpdateItem implements PItemCommand, PersistentEntity.ReplyType<PUpdateItemResult> {
-        private final UUID id;
-        private final UUID creator;
-        final String title;
-        private final String description;
-        private final String currencyId;
-        private final int increment;
-        private final int reservePrice;
-        private final Duration auctionDuration;
+        private final UUID commander;
+        private final PItemDetails itemDetails;
 
+        /**
+         * @param commander the UUID of the user requesting this update. PersistenEntity must assert it's the same
+         *                  than the PItem creator.
+         * @param itemDetails
+         */
         @JsonCreator
-        public UpdateItem(UUID id, UUID creator, String title, String description, String currencyId, int increment, int reservePrice, Duration auctionDuration) {
-            this.id = id;
-            this.creator = creator;
-            this.title = title;
-            this.description = description;
-            this.currencyId = currencyId;
-            this.increment = increment;
-            this.reservePrice = reservePrice;
-            this.auctionDuration = auctionDuration;
+        public UpdateItem(UUID commander, PItemDetails itemDetails) {
+            this.commander = commander;
+            this.itemDetails = itemDetails;
         }
 
-        public UUID getId() {
-            return id;
+        public UUID getCommander() {
+            return commander;
         }
 
-        public UUID getCreator() {
-            return creator;
-        }
-
-        public String getTitle() {
-            return title;
-        }
-
-        public String getDescription() {
-            return description;
-        }
-
-        public String getCurrencyId() {
-            return currencyId;
-        }
-
-        public int getIncrement() {
-            return increment;
-        }
-
-        public int getReservePrice() {
-            return reservePrice;
-        }
-
-        public Duration getAuctionDuration() {
-            return auctionDuration;
+        public PItemDetails getItemDetails() {
+            return itemDetails;
         }
 
         @Override
@@ -103,26 +71,14 @@ public interface PItemCommand extends Jsonable {
 
             UpdateItem that = (UpdateItem) o;
 
-            if (increment != that.increment) return false;
-            if (reservePrice != that.reservePrice) return false;
-            if (id != null ? !id.equals(that.id) : that.id != null) return false;
-            if (creator != null ? !creator.equals(that.creator) : that.creator != null) return false;
-            if (title != null ? !title.equals(that.title) : that.title != null) return false;
-            if (description != null ? !description.equals(that.description) : that.description != null) return false;
-            if (currencyId != null ? !currencyId.equals(that.currencyId) : that.currencyId != null) return false;
-            return auctionDuration != null ? auctionDuration.equals(that.auctionDuration) : that.auctionDuration == null;
+            if (commander != null ? !commander.equals(that.commander) : that.commander != null) return false;
+            return itemDetails != null ? itemDetails.equals(that.itemDetails) : that.itemDetails == null;
         }
 
         @Override
         public int hashCode() {
-            int result = id != null ? id.hashCode() : 0;
-            result = 31 * result + (creator != null ? creator.hashCode() : 0);
-            result = 31 * result + (title != null ? title.hashCode() : 0);
-            result = 31 * result + (description != null ? description.hashCode() : 0);
-            result = 31 * result + (currencyId != null ? currencyId.hashCode() : 0);
-            result = 31 * result + increment;
-            result = 31 * result + reservePrice;
-            result = 31 * result + (auctionDuration != null ? auctionDuration.hashCode() : 0);
+            int result = commander != null ? commander.hashCode() : 0;
+            result = 31 * result + (itemDetails != null ? itemDetails.hashCode() : 0);
             return result;
         }
     }

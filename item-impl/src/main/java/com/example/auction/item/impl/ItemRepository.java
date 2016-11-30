@@ -248,9 +248,9 @@ public class ItemRepository {
         private CompletionStage<List<BoundStatement>> updateItemSummary(PItemEvent.ItemUpdated item) {
             return completedStatements(
                     updateItemSummaryStatement.bind(
-                            item.getTitle(),
-                            item.getCurrencyId(),
-                            item.getReservePrice(),
+                            item.getItemDetails().getTitle(),
+                            item.getItemDetails().getCurrencyId(),
+                            item.getItemDetails().getReservePrice(),
                             item.getCreator(),
                             item.getId()));
         }

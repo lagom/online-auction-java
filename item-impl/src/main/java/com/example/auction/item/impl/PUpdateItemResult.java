@@ -5,15 +5,20 @@ import com.example.auction.item.api.UpdateItemResultCodes;
 import com.lightbend.lagom.serialization.Jsonable;
 
 public final class PUpdateItemResult implements Jsonable{
-    private UpdateItemResultCodes code;
+    private final UpdateItemResultCodes code;
+    private final PItem pItem;
 
-    public PUpdateItemResult(UpdateItemResultCodes code) {
+    public PUpdateItemResult(UpdateItemResultCodes code, PItem pItem) {
         this.code = code;
+        this.pItem = pItem;
     }
-
 
     public UpdateItemResultCodes getCode() {
         return code;
+    }
+
+    public PItem getItem() {
+        return pItem;
     }
 
     @Override
@@ -23,13 +28,15 @@ public final class PUpdateItemResult implements Jsonable{
 
         PUpdateItemResult that = (PUpdateItemResult) o;
 
-        return code == that.code;
+        if (code != that.code) return false;
+        return pItem != null ? pItem.equals(that.pItem) : that.pItem == null;
     }
 
     @Override
     public int hashCode() {
-        return code != null ? code.hashCode() : 0;
+        int result = code != null ? code.hashCode() : 0;
+        result = 31 * result + (pItem != null ? pItem.hashCode() : 0);
+        return result;
     }
-
 }
 

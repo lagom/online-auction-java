@@ -47,8 +47,8 @@ public class PItemState implements Jsonable {
         return update(i -> i.withDescription(description));
     }
 
-    public PItemState updateDetails(String title, String description, String currencyId, int increment, int reservePrice, Duration auctionDuration) {
-        return update(i -> i.withFields(title, description, currencyId, increment, reservePrice, auctionDuration));
+    public PItemState updateDetails(PItemDetails details) {
+        return update(i -> i.withDetails(details));
     }
 
     public PItemState cancel() {

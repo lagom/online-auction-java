@@ -293,4 +293,26 @@ public final class Item {
         result = 31 * result + (auctionWinner != null ? auctionWinner.hashCode() : 0);
         return result;
     }
+
+    @Override
+    public String toString() {
+        return "Item{" +
+                "id=" + id +
+                ", creator=" + creator +
+                ", title='" + title + '\'' +
+                ", description='" + description + '\'' +
+                ", categoryId=" + categoryId +
+                ", currencyId='" + currencyId + '\'' +
+                ", location=" + location +
+                ", increment=" + increment +
+                ", reservePrice=" + reservePrice +
+                ", deliveryOptions=" + deliveryOptions +
+                ", price=" + price +
+                ", status=" + status +
+                ", auctionDuration=" + auctionDuration +
+                ", auctionStart=" + auctionStart +
+                ", auctionEnd=" + auctionEnd +
+                ", auctionWinner=" + auctionWinner +
+                '}';
+    }
 }

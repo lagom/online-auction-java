@@ -13,7 +13,7 @@ GET         /my/items/:status           controllers.ProfileController.myItems(st
 GET         /createitem                 controllers.ItemController.createItemForm
 POST        /item                       controllers.ItemController.createItem
 GET         /item/:id                   controllers.ItemController.getItem(id)
-POST        /item/:id                   controllers.ItemController.editItem(id)
+POST        /item/:id                   controllers.ItemController.editItem(id, itemStatus)
 GET         /item/:id/edit              controllers.ItemController.editItemForm(id)
 POST        /item/:id/auction           controllers.ItemController.startAuction(id)
 POST        /item/:id/bid               controllers.ItemController.placeBid(id)

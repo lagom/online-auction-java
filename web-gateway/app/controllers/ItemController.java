@@ -102,6 +102,8 @@ public class ItemController extends AbstractController {
                                                 views.html.editItem.render(
                                                         item.getId(),
                                                         formFactory.form(ItemForm.class).fill(itemForm),
+                                                        item.getStatus(),
+                                                        Currency.valueOf(item.getCurrencyId()),
                                                         Optional.empty(),
                                                         nav)
                                         );
@@ -112,16 +114,17 @@ public class ItemController extends AbstractController {
         );
     }
 
-    public CompletionStage<Result> editItem(String id) {
+    public CompletionStage<Result> editItem(String id, String itemStatusStr) {
         Http.Context ctx = ctx();
         return requireUser(ctx, user -> {
 
             Form<ItemForm> form = formFactory.form(ItemForm.class).bindFromRequest(ctx.request());
             UUID itemId = UUID.fromString(id);
 
+            ItemStatus itemStatus = ItemStatus.valueOf(itemStatusStr);
             if (form.hasErrors()) {
                 return loadNav(user).thenApply(nav ->
-                        ok(views.html.editItem.render(itemId, form, Optional.empty(), nav))
+                        ok(views.html.editItem.render(itemId, form, itemStatus, Currency.EUR, Optional.empty(), nav))
                 );
             } else {
                 ItemForm itemForm = form.get();
@@ -138,9 +141,15 @@ public class ItemController extends AbstractController {
                         .invoke(payload)
                         .thenCompose(updateItemResult -> {
                                     if (updateItemResult.getCode().equals(UpdateItemResultCodes.SUCCESS)) {
+                                        // TODO: this is creating an extra roundtrip to the server. Maybe we could render the returned item already.
                                         return CompletableFuture.completedFuture(redirect(controllers.routes.ItemController.getItem(itemId.toString())));
                                     } else {
-                                        return loadNav(user).thenApply(nav -> ok(editItem.render(itemId, form, Optional.of(updateItemResult.getCode()), nav)));
+                                        System.out.println(updateItemResult);
+                                        return loadNav(user).thenApply(nav -> ok(
+                                                editItem.render(itemId, form,
+                                                        updateItemResult.getItem().getStatus(),
+                                                        Currency.valueOf(updateItemResult.getItem().getCurrencyId()),
+                                                        Optional.of(updateItemResult.getCode()), nav)));
                                     }
                                 }
                         );

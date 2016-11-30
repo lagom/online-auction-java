@@ -126,15 +126,30 @@ public class ItemEntityTest {
         UpdateItem cmd = editAllFields(pitem);
 
         Outcome<PItemEvent, PItemState> outcome = driver.run(cmd);
-        expectEvents(outcome, new PItemEvent.ItemUpdated(
-                cmd.getId(),
-                cmd.getCreator(),
-                cmd.getTitle(),
-                cmd.getDescription(),
-                cmd.getCurrencyId(),
-                cmd.getIncrement(),
-                cmd.getReservePrice(),
-                cmd.getAuctionDuration()));
+        expectEvents(outcome, PItemEvent.ItemUpdated.from(
+                itemId,
+                creatorId,
+                cmd.getItemDetails()));
+    }
+
+    @Test(expected = PersistentEntity.InvalidCommandException.class)
+    public void shouldFaileWhenUpdatingAnTheItemCreatedBySomeoneElse() {
+        driver.run(createItem); //arrange
+
+        UUID hacker = UUID.randomUUID();
+        UpdateItem cmd = new UpdateItem(
+                hacker,
+                new PItemDetails(
+                        pitem.getTitle() + " (edited)",
+                        pitem.getDescription() + " (edited)",
+                        "CAD",
+                        pitem.getIncrement() * 2,
+                        pitem.getReservePrice() * 3,
+                        pitem.getAuctionDuration().plus(1, ChronoUnit.HOURS)
+                ));
+
+        Outcome<PItemEvent, PItemState> outcome = driver.run(cmd);
+        expectFailure(outcome);
     }
 
     @Test
@@ -143,18 +158,19 @@ public class ItemEntityTest {
 
         PItem currentItem = getItem().get();
         String description = "Some new description.";
-        UpdateItem cmd = new UpdateItem(currentItem.getId(),
-                currentItem.getCreator(),
-                currentItem.getTitle(),
-                description,
-                currentItem.getCurrencyId(),
-                currentItem.getIncrement(),
-                currentItem.getReservePrice(),
-                currentItem.getAuctionDuration());
+        UpdateItem cmd = new UpdateItem(
+                creatorId,
+                new PItemDetails(
+                        currentItem.getTitle(),
+                        description,
+                        currentItem.getCurrencyId(),
+                        currentItem.getIncrement(),
+                        currentItem.getReservePrice(),
+                        currentItem.getAuctionDuration()));
 
         Outcome<PItemEvent, PItemState> outcome = driver.run(cmd);
-        assertEquals(description, ((PItemEvent.ItemUpdated) outcome.events().get(0)).getDescription());
-        assertEquals(PItemStatus.AUCTION, outcome.state().getStatus());
+        expectEvents(outcome,
+                PItemEvent.ItemUpdated.from(itemId, creatorId, currentItem.withDescription(description).getItemDetails()));
     }
 
 
@@ -167,7 +183,7 @@ public class ItemEntityTest {
 
         Outcome<PItemEvent, PItemState> outcome = driver.run(cmd);
         PUpdateItemResult result = (PUpdateItemResult) ((PersistentEntityTestDriver.Reply) outcome.sideEffects().get(0)).msg();
-        assertEquals(new PUpdateItemResult(UpdateItemResultCodes.CAN_ONLY_UPDATE_DESCRIPTION), result);
+        assertEquals(new PUpdateItemResult(UpdateItemResultCodes.CAN_ONLY_UPDATE_DESCRIPTION, currentPItem), result);
     }
 
     @Test
@@ -179,18 +195,18 @@ public class ItemEntityTest {
         PItem currentPItem = getItem().get();
         PItem newPItem = currentPItem.withDescription(".");
         UpdateItem updateItem = new UpdateItem(
-                currentPItem.getId(),
-                currentPItem.getCreator(),
-                currentPItem.getTitle(),
-                "Some new description",
-                currentPItem.getCurrencyId(),
-                currentPItem.getIncrement(),
-                currentPItem.getReservePrice(),
-                currentPItem.getAuctionDuration());
+                creatorId,
+                new PItemDetails(
+                        currentPItem.getTitle(),
+                        "Some new description",
+                        currentPItem.getCurrencyId(),
+                        currentPItem.getIncrement(),
+                        currentPItem.getReservePrice(),
+                        currentPItem.getAuctionDuration()));
 
         Outcome<PItemEvent, PItemState> outcome = driver.run(updateItem);
         PUpdateItemResult result = (PUpdateItemResult) ((PersistentEntityTestDriver.Reply) outcome.sideEffects().get(0)).msg();
-        assertEquals(new PUpdateItemResult(UpdateItemResultCodes.CANT_UPDATE_AUCTION_IS_CLOSED), result);
+        assertEquals(new PUpdateItemResult(UpdateItemResultCodes.CANT_UPDATE_AUCTION_IS_CLOSED, currentPItem), result);
     }
 
 
@@ -285,16 +301,15 @@ public class ItemEntityTest {
     private UpdateItem editAllFields(PItem oldPItem) {
         String newCurrency = (oldPItem.getCurrencyId().equals("USD")) ? "EUR" : "USD";
         return new UpdateItem(
-                oldPItem.getId(),
-                oldPItem.getCreator(),
-                oldPItem.getTitle() + " (edited)",
-                oldPItem.getDescription() + " (edited)",
-                newCurrency,
-                oldPItem.getIncrement() * 2,
-                oldPItem.getReservePrice() * 3,
-                oldPItem.getAuctionDuration().plus(1, ChronoUnit.HOURS)
+                creatorId,
+                new PItemDetails(
+                        oldPItem.getTitle() + " (edited)",
+                        oldPItem.getDescription() + " (edited)",
+                        newCurrency,
+                        oldPItem.getIncrement() * 2,
+                        oldPItem.getReservePrice() * 3,
+                        oldPItem.getAuctionDuration().plus(1, ChronoUnit.HOURS)
+                )
         );
     }
-
-
 }

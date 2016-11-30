@@ -61,35 +61,19 @@ public interface PItemEvent extends AggregateEvent<PItemEvent>, Jsonable {
     final class ItemUpdated implements PItemEvent {
         private final UUID id;
         private final UUID creator;
-        private final String title;
-        private final String description;
-        private final String currencyId;
-        private final int increment;
-        private final int reservePrice;
-        private final Duration auctionDuration;
+        private final PItemDetails itemDetails;
+
 
         @JsonCreator
-        public ItemUpdated(UUID id, UUID creator, String title, String description, String currencyId, int increment, int reservePrice, Duration auctionDuration) {
+        private ItemUpdated(UUID id, UUID creator, PItemDetails itemDetails) {
             this.id = id;
             this.creator = creator;
-            this.title = title;
-            this.description = description;
-            this.currencyId = currencyId;
-            this.increment = increment;
-            this.reservePrice = reservePrice;
-            this.auctionDuration = auctionDuration;
+            this.itemDetails = itemDetails;
         }
 
 
-        public static ItemUpdated from(PItemCommand.UpdateItem updateItem) {
-            return new ItemUpdated(updateItem.getId(),
-                    updateItem.getCreator(),
-                    updateItem.getTitle(),
-                    updateItem.getDescription(),
-                    updateItem.getCurrencyId(),
-                    updateItem.getIncrement(),
-                    updateItem.getReservePrice(),
-                    updateItem.getAuctionDuration());
+        public static ItemUpdated from(UUID id, UUID creatorId, PItemDetails itemDetails) {
+            return new ItemUpdated(id, creatorId, itemDetails);
         }
 
         public UUID getId() {
@@ -100,28 +84,8 @@ public interface PItemEvent extends AggregateEvent<PItemEvent>, Jsonable {
             return creator;
         }
 
-        public String getTitle() {
-            return title;
-        }
-
-        public String getDescription() {
-            return description;
-        }
-
-        public String getCurrencyId() {
-            return currencyId;
-        }
-
-        public int getIncrement() {
-            return increment;
-        }
-
-        public int getReservePrice() {
-            return reservePrice;
-        }
-
-        public Duration getAuctionDuration() {
-            return auctionDuration;
+        public PItemDetails getItemDetails() {
+            return itemDetails;
         }
 
         @Override
@@ -131,26 +95,16 @@ public interface PItemEvent extends AggregateEvent<PItemEvent>, Jsonable {
 
             ItemUpdated that = (ItemUpdated) o;
 
-            if (increment != that.increment) return false;
-            if (reservePrice != that.reservePrice) return false;
             if (id != null ? !id.equals(that.id) : that.id != null) return false;
             if (creator != null ? !creator.equals(that.creator) : that.creator != null) return false;
-            if (title != null ? !title.equals(that.title) : that.title != null) return false;
-            if (description != null ? !description.equals(that.description) : that.description != null) return false;
-            if (currencyId != null ? !currencyId.equals(that.currencyId) : that.currencyId != null) return false;
-            return auctionDuration != null ? auctionDuration.equals(that.auctionDuration) : that.auctionDuration == null;
+            return itemDetails != null ? itemDetails.equals(that.itemDetails) : that.itemDetails == null;
         }
 
         @Override
         public int hashCode() {
             int result = id != null ? id.hashCode() : 0;
             result = 31 * result + (creator != null ? creator.hashCode() : 0);
-            result = 31 * result + (title != null ? title.hashCode() : 0);
-            result = 31 * result + (description != null ? description.hashCode() : 0);
-            result = 31 * result + (currencyId != null ? currencyId.hashCode() : 0);
-            result = 31 * result + increment;
-            result = 31 * result + reservePrice;
-            result = 31 * result + (auctionDuration != null ? auctionDuration.hashCode() : 0);
+            result = 31 * result + (itemDetails != null ? itemDetails.hashCode() : 0);
             return result;
         }
     }

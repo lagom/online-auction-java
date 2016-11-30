@@ -85,21 +85,18 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public ServiceCall<Item, UpdateItemResult> updateItem(UUID itemId) {
         return authenticated(userId -> item -> {
-            if (!userId.equals(item.getCreator())) {
-                throw new Forbidden("User " + userId + " can't edit an item on behalf of " + item.getCreator());
-            }
             PItemCommand.UpdateItem updateItem = new PItemCommand.UpdateItem(
-                    item.getId(),
-                    item.getCreator(),
-                    item.getTitle(),
-                    item.getDescription(),
-                    item.getCurrencyId(),
-                    item.getIncrement(),
-                    item.getReservePrice(),
-                    item.getAuctionDuration()
+                    userId,
+                    new PItemDetails(
+                            item.getTitle(),
+                            item.getDescription(),
+                            item.getCurrencyId(),
+                            item.getIncrement(),
+                            item.getReservePrice(),
+                            item.getAuctionDuration())
             );
             return entityRef(itemId).ask(updateItem).thenApply(
-                    pupdate -> new UpdateItemResult(pupdate.getCode())
+                    pupdate -> new UpdateItemResult(pupdate.getCode(), convertItem(pupdate.getItem()))
             );
         });
     }
