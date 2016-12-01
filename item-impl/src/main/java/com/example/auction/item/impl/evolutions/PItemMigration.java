@@ -17,7 +17,7 @@ public class PItemMigration extends JacksonJsonMigration {
     public JsonNode transform(int fromVersion, JsonNode json) {
         ObjectNode root = (ObjectNode) json;
         if (fromVersion <= 1) {
-            ObjectNode itemDetails = root.with("itemDetails");
+            ObjectNode itemDetails = root.with("itemData");
             itemDetails.set("title", root.get("title"));
             itemDetails.set("description", root.get("description"));
             itemDetails.set("currencyId", root.get("currencyId"));

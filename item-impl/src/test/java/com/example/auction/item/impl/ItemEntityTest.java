@@ -2,19 +2,16 @@ package com.example.auction.item.impl;
 
 import akka.actor.ActorSystem;
 import akka.testkit.JavaTestKit;
-import com.example.auction.item.api.UpdateItemResultCodes;
 import com.example.auction.item.impl.PItemCommand.*;
 import com.example.auction.item.impl.PItemEvent.AuctionFinished;
 import com.example.auction.item.impl.PItemEvent.AuctionStarted;
 import com.example.auction.item.impl.PItemEvent.ItemCreated;
 import com.example.auction.item.impl.PItemEvent.PriceUpdated;
+import com.lightbend.lagom.javadsl.api.transport.NotFound;
 import com.lightbend.lagom.javadsl.persistence.PersistentEntity;
 import com.lightbend.lagom.javadsl.testkit.PersistentEntityTestDriver;
 import com.lightbend.lagom.javadsl.testkit.PersistentEntityTestDriver.Outcome;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.*;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -23,6 +20,7 @@ import java.util.Arrays;
 import java.util.Optional;
 import java.util.UUID;
 
+import static junit.framework.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
@@ -47,6 +45,9 @@ public class ItemEntityTest {
 
     @After
     public void issues() {
+        assertTrue(new UpdateFailureException("asdf").equals(
+        new UpdateFailureException("asdf")));
+
         if (!driver.getAllIssues().isEmpty()) {
             driver.getAllIssues().forEach(System.out::println);
             fail("There were issues.");
@@ -55,18 +56,20 @@ public class ItemEntityTest {
 
     private UUID itemId = UUID.randomUUID();
     private UUID creatorId = UUID.randomUUID();
-    private PItem pitem = new PItem(itemId, creatorId, "title", "desc", "EUR", 1, 10, Duration.ofMinutes(10));
+    private PItemData itemData = new PItemData("title", "desc", "EUR", 1, 10, Duration.ofMinutes(10));
+
+    private PItem pItem = new PItem(itemId, creatorId, itemData);
 
     private PersistentEntityTestDriver<PItemCommand, PItemEvent, PItemState> driver =
             new PersistentEntityTestDriver<>(system, new PItemEntity(), itemId.toString());
 
-    private PItemCommand createItem = new CreateItem(pitem);
+    private PItemCommand createItem = new CreateItem(pItem);
     private PItemCommand startAuction = new StartAuction(creatorId);
 
     @Test
     public void shouldEmitEventWhenCreatingItem() {
         Outcome<PItemEvent, PItemState> outcome = driver.run(createItem);
-        expectEvents(outcome, new ItemCreated(pitem));
+        expectEvents(outcome, new ItemCreated(pItem));
         assertEquals(PItemStatus.CREATED, outcome.state().getStatus());
     }
 
@@ -76,13 +79,13 @@ public class ItemEntityTest {
 
         Instant startInstant = outcome.state().getItem().get().getAuctionStart().get();
         expectEvents(outcome,
-                new ItemCreated(pitem),
+                new ItemCreated(pItem),
                 new AuctionStarted(itemId, startInstant));
         assertEquals(PItemStatus.AUCTION, outcome.state().getStatus());
     }
 
     @Test(expected = PersistentEntity.InvalidCommandException.class)
-    public void shouldForbidCommandWhenStartAuctionIsCommandedByADifferentUser() {
+    public void shouldForbidCommandWhenStartAuctionIsCommandedByADifferentUser() throws Throwable {
         driver.run(createItem);
 
         UUID hackerId = UUID.randomUUID();
@@ -98,7 +101,7 @@ public class ItemEntityTest {
 
         Instant startInstant = outcome.state().getItem().get().getAuctionStart().get();
         expectEvents(outcome,
-                new ItemCreated(pitem),
+                new ItemCreated(pItem),
                 new AuctionStarted(itemId, startInstant));
         assertEquals(PItemStatus.AUCTION, outcome.state().getStatus());
     }
@@ -123,29 +126,29 @@ public class ItemEntityTest {
     public void shouldEmitEventWhenUpdatingTheItemBeforeStartingAuction() {
         driver.run(createItem); //arrange
 
-        UpdateItem cmd = editAllFields(pitem);
+        UpdateItem cmd = editAllFields(pItem);
 
         Outcome<PItemEvent, PItemState> outcome = driver.run(cmd);
-        expectEvents(outcome, PItemEvent.ItemUpdated.from(
+        expectEvents(outcome, new PItemEvent.ItemUpdated(
                 itemId,
                 creatorId,
-                cmd.getItemDetails()));
+                cmd.getItemData()));
     }
 
     @Test(expected = PersistentEntity.InvalidCommandException.class)
-    public void shouldFaileWhenUpdatingAnTheItemCreatedBySomeoneElse() {
+    public void shouldFailWhenUpdatingAnTheItemCreatedBySomeoneElse() throws Throwable {
         driver.run(createItem); //arrange
 
         UUID hacker = UUID.randomUUID();
         UpdateItem cmd = new UpdateItem(
                 hacker,
-                new PItemDetails(
-                        pitem.getTitle() + " (edited)",
-                        pitem.getDescription() + " (edited)",
+                new PItemData(
+                        itemData.getTitle() + " (edited)",
+                        itemData.getDescription() + " (edited)",
                         "CAD",
-                        pitem.getIncrement() * 2,
-                        pitem.getReservePrice() * 3,
-                        pitem.getAuctionDuration().plus(1, ChronoUnit.HOURS)
+                        itemData.getIncrement() * 2,
+                        itemData.getReservePrice() * 3,
+                        itemData.getAuctionDuration().plus(1, ChronoUnit.HOURS)
                 ));
 
         Outcome<PItemEvent, PItemState> outcome = driver.run(cmd);
@@ -153,60 +156,51 @@ public class ItemEntityTest {
     }
 
     @Test
-    public void shouldEmitEventWhenUpdatingOnlyTheItemDescriptionDuringAuction() {
+    public void shouldEmitEventWhenUpdatingOnlyTheItemDescriptionDuringAuction() throws Throwable {
         driver.run(createItem, startAuction); //arrange
 
         PItem currentItem = getItem().get();
         String description = "Some new description.";
-        UpdateItem cmd = new UpdateItem(
-                creatorId,
-                new PItemDetails(
-                        currentItem.getTitle(),
-                        description,
-                        currentItem.getCurrencyId(),
-                        currentItem.getIncrement(),
-                        currentItem.getReservePrice(),
-                        currentItem.getAuctionDuration()));
+        PItemData newData = currentItem.withDescription(description).getItemData();
+        UpdateItem cmd = new UpdateItem(creatorId, newData);
 
         Outcome<PItemEvent, PItemState> outcome = driver.run(cmd);
-        expectEvents(outcome,
-                PItemEvent.ItemUpdated.from(itemId, creatorId, currentItem.withDescription(description).getItemDetails()));
+        expectEvents(outcome, new PItemEvent.ItemUpdated(itemId, creatorId, newData));
     }
 
+    @Test(expected = NotFound.class)
+    @Ignore
+    public void shouldFailWhenUpdatingAnItemThatDoesntExist() throws Throwable {
+        UpdateItem cmd = editAllFields(pItem);
 
-    @Test
-    public void shouldForbidEditingAnyFieldThatIsNotDescriptionDuringAuction() {
+        Outcome<PItemEvent, PItemState> outcome = driver.run(cmd);
+        expectFailure(outcome);
+        expectFailure(outcome);
+    }
+
+    @Test(expected = UpdateFailureException.class)
+    public void shouldForbidEditingAnyFieldThatIsNotDescriptionDuringAuction() throws Throwable {
         driver.run(createItem, startAuction);
 
         PItem currentPItem = getItem().get();
         UpdateItem cmd = editAllFields(currentPItem);
 
         Outcome<PItemEvent, PItemState> outcome = driver.run(cmd);
-        PUpdateItemResult result = (PUpdateItemResult) ((PersistentEntityTestDriver.Reply) outcome.sideEffects().get(0)).msg();
-        assertEquals(new PUpdateItemResult(UpdateItemResultCodes.CAN_ONLY_UPDATE_DESCRIPTION, currentPItem), result);
+        expectFailure(outcome);
     }
 
-    @Test
-    public void shouldForbidEditingAfterAuction() {
+    @Test(expected = UpdateFailureException.class)
+    public void shouldForbidEditingAfterAuction() throws Throwable {
         UUID winner = UUID.randomUUID();
         FinishAuction finish = new FinishAuction(Optional.of(winner), 20);
         driver.run(createItem, startAuction, finish);
 
         PItem currentPItem = getItem().get();
-        PItem newPItem = currentPItem.withDescription(".");
-        UpdateItem updateItem = new UpdateItem(
-                creatorId,
-                new PItemDetails(
-                        currentPItem.getTitle(),
-                        "Some new description",
-                        currentPItem.getCurrencyId(),
-                        currentPItem.getIncrement(),
-                        currentPItem.getReservePrice(),
-                        currentPItem.getAuctionDuration()));
+        PItemData newData = currentPItem.withDescription("new description").getItemData();
+        UpdateItem updateItem = new UpdateItem(creatorId, newData);
 
         Outcome<PItemEvent, PItemState> outcome = driver.run(updateItem);
-        PUpdateItemResult result = (PUpdateItemResult) ((PersistentEntityTestDriver.Reply) outcome.sideEffects().get(0)).msg();
-        assertEquals(new PUpdateItemResult(UpdateItemResultCodes.CANT_UPDATE_AUCTION_IS_CLOSED, currentPItem), result);
+        expectFailure(outcome);
     }
 
 
@@ -227,7 +221,7 @@ public class ItemEntityTest {
     }
 
     @Test(expected = PersistentEntity.InvalidCommandException.class)
-    public void shouldForbidStartingACompletedAuction() {
+    public void shouldForbidStartingACompletedAuction() throws Throwable {
         UpdatePrice updatePrice1 = new UpdatePrice(10);
         UUID winner = UUID.randomUUID();
         FinishAuction finish = new FinishAuction(Optional.of(winner), 20);
@@ -244,7 +238,7 @@ public class ItemEntityTest {
         GetItem getItem = GetItem.INSTANCE;
         Outcome<PItemEvent, PItemState> outcome = driver.run(createItem, getItem);
 
-        assertEquals(Optional.of(pitem), outcome.getReplies().get(1));
+        assertEquals(Optional.of(pItem), outcome.getReplies().get(1));
     }
 
     @Test
@@ -287,28 +281,26 @@ public class ItemEntityTest {
         }
     }
 
-    private void expectFailure(Outcome<PItemEvent, PItemState> outcome) {
+    private void expectFailure(Outcome<PItemEvent, PItemState> outcome) throws Throwable {
         PersistentEntityTestDriver.Reply sideEffect = (PersistentEntityTestDriver.Reply) outcome.sideEffects().get(0);
-        throw (PersistentEntity.InvalidCommandException) sideEffect.msg();
+        throw (Throwable) sideEffect.msg();
     }
 
     /**
      * Edits all the editable fields of the passed in PItemFields.
-     *
-     * @param oldPItem
-     * @return
      */
     private UpdateItem editAllFields(PItem oldPItem) {
-        String newCurrency = (oldPItem.getCurrencyId().equals("USD")) ? "EUR" : "USD";
+        PItemData oldData = oldPItem.getItemData();
+        String newCurrency = (oldData.getCurrencyId().equals("USD")) ? "EUR" : "USD";
         return new UpdateItem(
                 creatorId,
-                new PItemDetails(
-                        oldPItem.getTitle() + " (edited)",
-                        oldPItem.getDescription() + " (edited)",
+                new PItemData(
+                        oldData.getTitle() + " (edited)",
+                        oldData.getDescription() + " (edited)",
                         newCurrency,
-                        oldPItem.getIncrement() * 2,
-                        oldPItem.getReservePrice() * 3,
-                        oldPItem.getAuctionDuration().plus(1, ChronoUnit.HOURS)
+                        oldData.getIncrement() * 2,
+                        oldData.getReservePrice() * 3,
+                        oldData.getAuctionDuration().plus(1, ChronoUnit.HOURS)
                 )
         );
     }

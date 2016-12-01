@@ -12,10 +12,12 @@ import akka.stream.javadsl.Sink;
 import akka.stream.javadsl.Source;
 import com.example.auction.bidding.api.*;
 import com.example.auction.item.api.*;
+import com.example.auction.item.api.Item;
 import com.example.auction.item.impl.testkit.Await;
 import com.lightbend.lagom.javadsl.api.ServiceCall;
 import com.lightbend.lagom.javadsl.api.broker.Subscriber;
 import com.lightbend.lagom.javadsl.api.broker.Topic;
+import com.lightbend.lagom.javadsl.api.transport.TransportException;
 import com.lightbend.lagom.javadsl.testkit.ServiceTest;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -29,6 +31,8 @@ import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletionStage;
+import java.util.concurrent.ExecutionException;
+import java.util.function.Supplier;
 
 import static com.example.auction.security.ClientSecurity.authenticate;
 import static com.lightbend.lagom.javadsl.testkit.ServiceTest.*;
@@ -74,7 +78,7 @@ public class ItemServiceImplIntegrationTest {
     @Test
     public void shouldCreate() {
         UUID creatorId = UUID.randomUUID();
-        Item createItem = sampleItem(creatorId);
+        ItemData createItem = sampleItem();
         Item createdItem = createItem(creatorId, createItem);
         Item retrievedItem = retrieveItem(createdItem);
         assertEquals(createdItem, retrievedItem);
@@ -83,11 +87,10 @@ public class ItemServiceImplIntegrationTest {
 
     @Test
     public void shouldReturnAllItemsForTheRequiredUser() {
+        ItemData tomItem = sampleItem();
+        ItemData jerryItem = sampleItem();
         UUID tom = UUID.randomUUID();
         UUID jerry = UUID.randomUUID();
-        Item tomItem = sampleItem(tom);
-        Item jerryItem = sampleItem(jerry);
-
         createItem(jerry, jerryItem);
         Item createdTomItem = createItem(tom, tomItem);
 
@@ -100,9 +103,9 @@ public class ItemServiceImplIntegrationTest {
                     ItemSummary expected =
                             new ItemSummary(
                                     createdTomItem.getId(),
-                                    createdTomItem.getTitle(),
-                                    createdTomItem.getCurrencyId(),
-                                    createdTomItem.getReservePrice(),
+                                    createdTomItem.getItemData().getTitle(),
+                                    createdTomItem.getItemData().getCurrencyId(),
+                                    createdTomItem.getItemData().getReservePrice(),
                                     createdTomItem.getStatus());
                     assertEquals(expected, paginatedSequence.getItems().get(0));
                 }
@@ -112,7 +115,7 @@ public class ItemServiceImplIntegrationTest {
     @Test
     public void shouldUpdatePriceAfterBid() {
         UUID creatorId = UUID.randomUUID();
-        Item createItem = sampleItem(creatorId);
+        ItemData createItem = sampleItem();
         Item createdItem = createItem(creatorId, createItem);
         startAuction(creatorId, createdItem);
 
@@ -129,36 +132,47 @@ public class ItemServiceImplIntegrationTest {
     @Test
     public void shouldEditDescriptionDuringAuction() {
         UUID creatorId = UUID.randomUUID();
-        Item createItem = sampleItem(creatorId);
+        ItemData createItem = sampleItem();
         Item createdItem = createItem(creatorId, createItem);
         startAuction(creatorId, createdItem);
 
         String newDescription = "the new description";
-        Item newItem = new Item(
-                createdItem.getId(),
-                createdItem.getCreator(),
-                createdItem.getTitle(),
-                newDescription,
-                createdItem.getCurrencyId(),
-                createdItem.getIncrement(),
-                createdItem.getReservePrice(),
-                createdItem.getPrice(),
-                createdItem.getStatus(),
-                createdItem.getAuctionDuration(),
-                createdItem.getAuctionStart(),
-                createdItem.getAuctionEnd(),
-                createdItem.getAuctionWinner()
-        );
-        updateItem(creatorId, newItem);
+        ItemData newData = createdItem.getItemData().withDescription(newDescription);
 
-        Item retrievedItem = retrieveItem(createdItem);
-        assertEquals(newDescription, retrievedItem.getDescription());
+        Item retrievedItem = updateItem(createdItem.getId(), creatorId, newData);
+        assertEquals(newDescription, retrievedItem.getItemData().getDescription());
+    }
+
+    @Test(expected = TransportException.class)
+    public void shouldFailEditOnBiddingFinished() throws Throwable {
+        UUID creatorId = UUID.randomUUID();
+        ItemData createItem = sampleItem();
+        Item createdItem = createItem(creatorId, createItem);
+        startAuction(creatorId, createdItem);
+
+
+        UUID bidder1 = UUID.randomUUID();
+        Bid bid1 = new Bid(bidder1, Instant.now(), 10, 12);
+        BidEvent biddingFinished = new BidEvent.BiddingFinished(createdItem.getId(), Optional.of(bid1));
+        bidEventActor.tell(biddingFinished, ActorRef.noSender());
+
+        String newDescription = "the new description";
+        ItemData newData = createdItem.getItemData().withDescription(newDescription);
+
+
+        try {
+            updateItem(createdItem.getId(), creatorId, newData);
+        } catch (RuntimeException re) {
+            throw re // the RuntimeException throw by Await
+                    .getCause(); // the TransportException I'm expecting
+        }
+
     }
 
     @Test
     public void shouldEmitAuctionStartedEvent() {
         UUID creatorId = UUID.randomUUID();
-        Item createItem = sampleItem(creatorId);
+        ItemData createItem = sampleItem();
         Item createdItem = createItem(creatorId, createItem);
 
         // build the stream and materialize it
@@ -179,7 +193,7 @@ public class ItemServiceImplIntegrationTest {
     @Test
     public void shouldFinishAuctionOnBiddingFinished() {
         UUID creatorId = UUID.randomUUID();
-        Item createItem = sampleItem(creatorId);
+        ItemData createItem = sampleItem();
 
         Item createdItem = createItem(creatorId, createItem);
 
@@ -200,8 +214,7 @@ public class ItemServiceImplIntegrationTest {
     public void shouldManageDuplicateBiddingFinishedEventsIdempotently() {
 
         UUID creatorId = UUID.randomUUID();
-        Item createItem = sampleItem(creatorId);
-
+        ItemData createItem = sampleItem();
         Item createdItem = createItem(creatorId, createItem);
 
         startAuction(creatorId, createdItem);
@@ -221,16 +234,16 @@ public class ItemServiceImplIntegrationTest {
 
     // --------------------------------------------------
 
-    private Item sampleItem(UUID creatorId) {
-        return new Item(creatorId, "title", "description", "USD", 10, 10, Duration.ofMinutes(10));
+    private ItemData sampleItem() {
+        return new ItemData("title", "description", "USD", 10, 10, Duration.ofMinutes(10));
     }
 
-    private Item createItem(UUID creatorId, Item createItem) {
+    private Item createItem(UUID creatorId, ItemData createItem) {
         return Await.result(itemService.createItem().handleRequestHeader(authenticate(creatorId)).invoke(createItem));
     }
 
-    private UpdateItemResult updateItem(UUID creatorId, Item newItem) {
-        return Await.result(itemService.updateItem(newItem.getId()).handleRequestHeader(authenticate(creatorId)).invoke(newItem));
+    private Item updateItem(UUID itemId, UUID creatorId, ItemData newItem) {
+        return Await.result(itemService.updateItem(itemId).handleRequestHeader(authenticate(creatorId)).invoke(newItem));
     }
 
     private Item retrieveItem(Item createdItem) {

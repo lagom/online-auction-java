@@ -22,7 +22,10 @@ lazy val itemApi = (project in file("item-api"))
   .settings(commonSettings: _*)
   .settings(
     version := "1.0-SNAPSHOT",
-    libraryDependencies += lagomJavadslApi
+    libraryDependencies ++= Seq(
+      lagomJavadslApi,
+      lombok
+    )
   )
   .dependsOn(security)
 
@@ -137,6 +140,10 @@ lazy val webGateway = (project in file("web-gateway"))
       "org.webjars" % "foundation-icon-fonts" % "d596a3cfb3"
     )
   )
+
+
+val lombok = "org.projectlombok" % "lombok" % "1.16.10"
+
 
 def commonSettings: Seq[Setting[_]] = eclipseSettings ++ Seq(
     javacOptions ++= Seq("-encoding", "UTF-8", "-source", "1.8", "-target", "1.8", "-Xlint:unchecked", "-Xlint:deprecation", "-parameters")

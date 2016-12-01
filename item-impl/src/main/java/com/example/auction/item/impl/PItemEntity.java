@@ -1,7 +1,7 @@
 package com.example.auction.item.impl;
 
 import akka.Done;
-import com.example.auction.item.api.UpdateItemResultCodes;
+import com.lightbend.lagom.javadsl.api.transport.NotFound;
 import com.lightbend.lagom.javadsl.persistence.PersistentEntity;
 
 import com.example.auction.item.impl.PItemCommand.*;
@@ -46,7 +46,8 @@ public class PItemEntity extends PersistentEntity<PItemCommand, PItemEvent, PIte
         builder.setEventHandlerChangingBehavior(ItemCreated.class, evt -> created(PItemState.create(evt.getItem())));
 
         builder.setReadOnlyCommandHandler(UpdateItem.class, (updateItem, ctx) ->
-                ctx.reply(new PUpdateItemResult(UpdateItemResultCodes.NOT_FOUND, state().getItem().get()))
+                // TODO: avoid using a transport Exception on PersistentEntity
+                ctx.commandFailed(new NotFound(entityId()))
         );
 
         return builder.build();
@@ -61,12 +62,9 @@ public class PItemEntity extends PersistentEntity<PItemCommand, PItemEvent, PIte
         // is allowed to commit those changes.
         builder.setCommandHandler(UpdateItem.class, (cmd, ctx) -> {
             PItem pItem = state().getItem().get();
-            return updateItem(cmd, ctx, pItem,
-                    () -> ctx.thenPersist(
-                            ItemUpdated.from(pItem.getId(), pItem.getCreator(), cmd.getItemDetails()),
-                            evt -> ctx.reply(new PUpdateItemResult(UpdateItemResultCodes.SUCCESS, pItem.withDetails(cmd.getItemDetails())))));
+            return updateItem(cmd, ctx, pItem, () -> emitUpdatedEvent(cmd, ctx, pItem));
         });
-        builder.setEventHandler(ItemUpdated.class, updateItemPublicFields());
+        builder.setEventHandler(ItemUpdated.class, updateItemData());
 
 
         builder.setCommandHandler(StartAuction.class, (start, ctx) -> {
@@ -96,19 +94,17 @@ public class PItemEntity extends PersistentEntity<PItemCommand, PItemEvent, PIte
                     PItem pItem = state().getItem().get();
                     return updateItem(cmd, ctx, pItem,
                             () -> {
-                                if (pItem.getItemDetails().differOnDescriptionOnly(cmd.getItemDetails())) {
-                                    return ctx.thenPersist(
-                                            ItemUpdated.from(pItem.getId(), pItem.getCreator(), cmd.getItemDetails()),
-                                            evt -> ctx.reply(new PUpdateItemResult(UpdateItemResultCodes.SUCCESS, pItem)));
+                                if (pItem.getItemData().differOnDescriptionOnly(cmd.getItemData())) {
+                                    return emitUpdatedEvent(cmd, ctx, pItem);
                                 } else {
-                                    ctx.reply(new PUpdateItemResult(UpdateItemResultCodes.CAN_ONLY_UPDATE_DESCRIPTION, pItem));
+                                    ctx.commandFailed(new UpdateFailureException("During an Auction only the 'Description' may be edited."));
                                     return ctx.done();
                                 }
                             }
                     );
                 }
         );
-        builder.setEventHandler(ItemUpdated.class, updateItemPublicFields());
+        builder.setEventHandler(ItemUpdated.class, updateItemData());
 
         builder.setCommandHandler(UpdatePrice.class, (cmd, ctx) ->
                 ctx.thenPersist(new PriceUpdated(entityUuid(), cmd.getPrice()), alreadyDone(ctx)));
@@ -133,7 +129,7 @@ public class PItemEntity extends PersistentEntity<PItemCommand, PItemEvent, PIte
 
         // a completed auction's item can't be edited.
         builder.setReadOnlyCommandHandler(UpdateItem.class, (updateItem, ctx) ->
-                ctx.reply(new PUpdateItemResult(UpdateItemResultCodes.CANT_UPDATE_AUCTION_IS_CLOSED, state().getItem().get()))
+                ctx.commandFailed(new UpdateFailureException("Can't update an item of a completed Auction." ))
         );
         // a completed auction can't be restarted.
         builder.setReadOnlyCommandHandler(StartAuction.class, (updateItem, ctx) ->
@@ -159,19 +155,31 @@ public class PItemEntity extends PersistentEntity<PItemCommand, PItemEvent, PIte
         return builder.build();
     }
 
+
     /**
-     * Emits an ItemUpdated event if the commander in the command equals the creator and the provided predicate is met.
+     * Invokes <code>onSuccess</code> if the commander in the command equals the creator of this PItem and the command payload
+     * differs from the current item data. Tipically <code>onSuccess</code> will
+     * be {{{@link PItemEntity#emitUpdatedEvent(UpdateItem, CommandContext, PItem)}}} but extra logic may be
+     * required in some cases.
      */
-    private Persist updateItem(UpdateItem cmd, CommandContext ctx, PItem pItem, Supplier<Persist> onDiffer) {
+    private Persist updateItem(UpdateItem cmd, CommandContext ctx, PItem pItem, Supplier<Persist> onSuccess) {
         if (!pItem.getCreator().equals(cmd.getCommander())) {
             ctx.invalidCommand("User " + cmd.getCommander() + " is not allowed to edit this auction");
             return ctx.done();
-        } else if (!pItem.getItemDetails().equals(cmd.getItemDetails())) {
-            return onDiffer.get();
+        } else if (!pItem.getItemData().equals(cmd.getItemData())) {
+            return onSuccess.get();
         } else {
             // when update and current are equal there's no need to emit an event.
             return ctx.done();
         }
+    }
+
+    private Persist emitUpdatedEvent(UpdateItem cmd, CommandContext ctx, PItem pItem) {
+        return ctx.thenPersist(
+                new ItemUpdated(pItem.getId(), pItem.getCreator(), cmd.getItemData()),
+                // when the command is accepted for processing we return a copy of the
+                // state with the updates applied.
+                evt -> ctx.reply(pItem.withDetails(cmd.getItemData())));
     }
 
 
@@ -180,7 +188,7 @@ public class PItemEntity extends PersistentEntity<PItemCommand, PItemEvent, PIte
      *
      * @return
      */
-    private Function<ItemUpdated, PItemState> updateItemPublicFields() {
+    private Function<ItemUpdated, PItemState> updateItemData() {
         return (evt) -> state().updateDetails(evt.getItemDetails());
     }
 
