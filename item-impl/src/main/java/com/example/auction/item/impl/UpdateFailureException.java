@@ -1,6 +1,8 @@
 package com.example.auction.item.impl;
 
-public class UpdateFailureException extends RuntimeException {
+import com.lightbend.lagom.serialization.Jsonable;
+
+public class UpdateFailureException extends RuntimeException implements Jsonable {
 
     private String message;
 
