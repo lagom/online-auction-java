@@ -71,19 +71,23 @@ lazy val searchApi = (project in file("search-api"))
   .settings(commonSettings: _*)
   .settings(
     version := "1.0-SNAPSHOT",
-    libraryDependencies += lagomJavadslApi
+    libraryDependencies ++= Seq(
+      lagomJavadslApi,
+      lombok)
   )
   .dependsOn(security)
 
 lazy val searchImpl = (project in file("search-impl"))
   .settings(commonSettings: _*)
-  // .enablePlugins(LagomJava)
+  .enablePlugins(LagomJava)
   .dependsOn(searchApi, itemApi, biddingApi)
   .settings(
     version := "1.0-SNAPSHOT",
     libraryDependencies ++= Seq(
       lagomJavadslPersistenceCassandra,
-      lagomJavadslTestKit
+      lagomJavadslTestKit,
+      lagomJavadslKafkaClient,
+      lombok
     )
   )
 
@@ -141,12 +145,11 @@ lazy val webGateway = (project in file("web-gateway"))
     )
   )
 
-
 val lombok = "org.projectlombok" % "lombok" % "1.16.10"
 
 
 def commonSettings: Seq[Setting[_]] = eclipseSettings ++ Seq(
-    javacOptions ++= Seq("-encoding", "UTF-8", "-source", "1.8", "-target", "1.8", "-Xlint:unchecked", "-Xlint:deprecation", "-parameters")
+  javacOptions ++= Seq("-encoding", "UTF-8", "-source", "1.8", "-target", "1.8", "-Xlint:unchecked", "-Xlint:deprecation", "-parameters")
 )
 
 // Configuration of sbteclipse
@@ -164,3 +167,30 @@ lazy val eclipseSettings = Seq(
 )
 
 lagomCassandraCleanOnStart in ThisBuild := false
+
+// ------------------------------------------------------------------------------------------------
+
+// 1)
+// register 'elastic-search' as an unmanaged service on the service locator so that at 'runAll' our code
+// will resolve 'elastic-search' and use it. See also com.example.com.ElasticSearch
+lagomUnmanagedServices in ThisBuild += ("elastic-search" -> "http://127.0.0.1:9200")
+
+// 2) Create a few tasks to start/stop elasticserach within SBT
+// See http://www.scala-sbt.org/0.13/docs/Faq.html#How+can+I+create+a+custom+run+task%2C+in+addition+to+%3F
+lazy val startElasticsearch = taskKey[Unit]("Start Elasticsearch")
+fullRunTask(startElasticsearch, Runtime, "com.example.elasticsearch.Starter")
+//fork in startElasticsearch := true
+javaOptions in startElasticsearch += "-Xmx1024m"
+libraryDependencies += "org.elasticsearch" % "elasticsearch" % "2.4.2"
+
+lazy val stopElasticsearch = taskKey[Unit]("Stop Elasticsearch")
+fullRunTask(stopElasticsearch, Runtime, "com.example.elasticsearch.Stopper")
+
+// 3)
+// Wrap runAll in your stop/start tasks
+runAll in ThisBuild <<= stopElasticsearch.in(Runtime)
+  .dependsOn(
+    runAll.in(ThisBuild).
+      dependsOn(startElasticsearch.in(Runtime)
+      )
+  )

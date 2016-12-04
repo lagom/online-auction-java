@@ -110,8 +110,7 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public ServiceCall<NotUsed, Done> startAuction(UUID id) {
         return authenticated(userId -> req ->
-                entityRef(id)
-                        .ask(new PItemCommand.StartAuction(userId))
+                entityRef(id).ask(new PItemCommand.StartAuction(userId))
         );
     }
 
@@ -155,6 +154,14 @@ public class ItemServiceImpl implements ItemService {
                         PItem item = maybeItem.get();
                         return new ItemEvent.AuctionStarted(item.getId(), item.getCreator(), item.getItemData().getReservePrice(),
                                 item.getItemData().getIncrement(), item.getAuctionStart().get(), item.getAuctionEnd().get());
+                    });
+        } else if (event instanceof PItemEvent.ItemCreated) {
+            return entityRef(((PItemEvent.ItemCreated) event).getItem().getId())
+                    .ask(PItemCommand.GetItem.INSTANCE)
+                    .thenApply(maybeItem -> {
+                        PItem item = maybeItem.get();
+                        return new ItemEvent.ItemUpdated(item.getId(), item.getCreator(), item.getTitle(),
+                                item.getDescription(), item.getStatus().toItemStatus(), item.getCurrencyId());
                     });
         } else {
             throw new IllegalArgumentException("Converting non public event");

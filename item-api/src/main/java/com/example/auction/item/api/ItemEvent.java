@@ -32,15 +32,15 @@ public abstract class ItemEvent {
         private final UUID creator;
         private final String title;
         private final String description;
-        private final UUID categoryId;
+        private ItemStatus itemStatus;
         private final String currencyId;
 
-        public ItemUpdated(UUID itemId, UUID creator, String title, String description, UUID categoryId, String currencyId) {
+        public ItemUpdated(UUID itemId, UUID creator, String title, String description, ItemStatus itemStatus, String currencyId) {
             this.itemId = itemId;
             this.creator = creator;
             this.title = title;
             this.description = description;
-            this.categoryId = categoryId;
+            this.itemStatus = itemStatus;
             this.currencyId = currencyId;
         }
 
@@ -61,8 +61,8 @@ public abstract class ItemEvent {
             return description;
         }
 
-        public UUID getCategoryId() {
-            return categoryId;
+        public ItemStatus getItemStatus() {
+            return itemStatus;
         }
 
         public String getCurrencyId() {

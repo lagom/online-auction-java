@@ -19,6 +19,7 @@ import java.util.UUID;
 })
 public interface BidEvent {
 
+    UUID getItemId();
     /**
      * A bid was placed.
      */
