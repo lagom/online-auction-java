@@ -20,7 +20,7 @@ public interface ElasticSearch extends  Service {
 
     ServiceCall<IndexedItem, Done> updateIndex(String index, UUID itemId);
 
-    ServiceCall<Query, PSequence<IndexedItem>> search(String index);
+    ServiceCall<QueryRoot, PSequence<IndexedItem>> search(String index);
 
     @Override
     default public Descriptor descriptor() {

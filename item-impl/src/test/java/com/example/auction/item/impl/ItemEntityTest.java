@@ -132,7 +132,8 @@ public class ItemEntityTest {
         expectEvents(outcome, new PItemEvent.ItemUpdated(
                 itemId,
                 creatorId,
-                cmd.getItemData()));
+                cmd.getItemData(),
+                PItemStatus.CREATED));
     }
 
     @Test(expected = PersistentEntity.InvalidCommandException.class)
@@ -165,7 +166,7 @@ public class ItemEntityTest {
         UpdateItem cmd = new UpdateItem(creatorId, newData);
 
         Outcome<PItemEvent, PItemState> outcome = driver.run(cmd);
-        expectEvents(outcome, new PItemEvent.ItemUpdated(itemId, creatorId, newData));
+        expectEvents(outcome, new PItemEvent.ItemUpdated(itemId, creatorId, newData, PItemStatus.AUCTION));
     }
 
     @Test(expected = NotFound.class)

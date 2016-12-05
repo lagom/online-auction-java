@@ -4,10 +4,13 @@ import akka.Done;
 import akka.NotUsed;
 import akka.stream.javadsl.Flow;
 import com.example.auction.bidding.api.BidEvent;
-import com.example.auction.bidding.api.BidEvent.*;
+import com.example.auction.bidding.api.BidEvent.BidPlaced;
+import com.example.auction.bidding.api.BidEvent.BiddingFinished;
 import com.example.auction.bidding.api.BiddingService;
 import com.example.auction.item.api.ItemEvent;
-import com.example.auction.item.api.ItemEvent.*;
+import com.example.auction.item.api.ItemEvent.AuctionFinished;
+import com.example.auction.item.api.ItemEvent.AuctionStarted;
+import com.example.auction.item.api.ItemEvent.ItemUpdated;
 import com.example.auction.item.api.ItemService;
 import com.example.auction.search.api.SearchItem;
 import com.example.auction.search.api.SearchRequest;
@@ -15,7 +18,7 @@ import com.example.auction.search.api.SearchResult;
 import com.example.auction.search.api.SearchService;
 import com.example.elasticsearch.ElasticSearch;
 import com.example.elasticsearch.IndexedItem;
-import com.example.elasticsearch.Query;
+import com.example.elasticsearch.Queries;
 import com.lightbend.lagom.javadsl.api.ServiceCall;
 import org.pcollections.PSequence;
 import org.pcollections.TreePVector;
@@ -55,9 +58,14 @@ public class SearchServiceImpl implements SearchService {
 
     @Override
     public ServiceCall<NotUsed, PSequence<SearchItem>> getUserAuctions(UUID userId) {
+        return null;
+    }
+
+    @Override
+    public ServiceCall<NotUsed, PSequence<SearchItem>> getOpenAuctionsUnderPrice(Integer maxPrice) {
         return req -> elasticSearch
                 .search(indexName)
-                .invoke(new Query())
+                .invoke(Queries.getOpenAuctionsUnderPrice(maxPrice))
                 .thenApply(xs -> xs.stream())
                 .thenApply(xs -> xs.map(this::toApi))
                 .thenApply(xs -> xs.collect(Collectors.toList()))
@@ -83,6 +91,7 @@ public class SearchServiceImpl implements SearchService {
             ItemUpdated details = (ItemUpdated) event;
             return Optional.of(IndexedItem.forItemDetails(
                     details.getItemId(),
+                    details.getCreator(),
                     details.getTitle(),
                     details.getDescription(),
                     details.getItemStatus(),

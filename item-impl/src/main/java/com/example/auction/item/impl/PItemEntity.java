@@ -176,7 +176,7 @@ public class PItemEntity extends PersistentEntity<PItemCommand, PItemEvent, PIte
 
     private Persist emitUpdatedEvent(UpdateItem cmd, CommandContext ctx, PItem pItem) {
         return ctx.thenPersist(
-                new ItemUpdated(pItem.getId(), pItem.getCreator(), cmd.getItemData()),
+                new ItemUpdated(pItem.getId(), pItem.getCreator(), cmd.getItemData(), pItem.getStatus()),
                 // when the command is accepted for processing we return a copy of the
                 // state with the updates applied.
                 evt -> ctx.reply(pItem.withDetails(cmd.getItemData())));

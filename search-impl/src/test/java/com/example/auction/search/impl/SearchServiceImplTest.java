@@ -10,6 +10,7 @@ import com.example.auction.search.api.SearchItem;
 import com.example.auction.search.api.SearchService;
 import com.example.auction.search.impl.core.TopicStub;
 import com.example.elasticsearch.ElasticSearch;
+import com.example.elasticsearch.ElasticSearchInMem;
 import com.lightbend.lagom.javadsl.api.ServiceCall;
 import com.lightbend.lagom.javadsl.api.broker.Topic;
 import com.lightbend.lagom.javadsl.testkit.ServiceTest;
@@ -51,7 +52,6 @@ public class SearchServiceImplTest {
     public static void beforeAll() {
         testServer = ServiceTest.startServer(setup);
         searchService = testServer.client(SearchService.class);
-
     }
 
     @AfterClass
@@ -67,22 +67,27 @@ public class SearchServiceImplTest {
 
     @Test
     public void shouldStoreInfoUpdatedFromBiddingAndItemServices() throws InterruptedException, ExecutionException, TimeoutException {
-
         UUID itemId = UUID.randomUUID();
         UUID creatorId = UUID.randomUUID();
         UUID bidder1 = UUID.randomUUID();
+
         int reservePrice = 23;
         int increment = 2;
         int price = reservePrice + increment;
         int maximumPrice = reservePrice * 2;
-        ItemEvent.AuctionStarted itemEvent = new ItemEvent.AuctionStarted(itemId, creatorId, reservePrice, increment, Instant.now(), Instant.now().plusSeconds(50));
-        BidEvent.BidPlaced bidEvent = new BidEvent.BidPlaced(itemId, new Bid(bidder1, Instant.now().plusMillis(10), price, maximumPrice));
-        itemStub.get().tell(itemEvent, ActorRef.noSender());
-        bidStub.get().tell(bidEvent, ActorRef.noSender());
 
-        Thread.sleep(10000);
+        ItemEvent.ItemUpdated itemCreated = new ItemEvent.ItemUpdated(itemId, creatorId, "titles", "desc", ItemStatus.CREATED, "EUR");
+        itemStub.get().tell(itemCreated, ActorRef.noSender());
+        ItemEvent.AuctionStarted auctionStarted = new ItemEvent.AuctionStarted(itemId, creatorId, reservePrice, increment, Instant.now(), Instant.now().plusSeconds(50));
+        itemStub.get().tell(auctionStarted, ActorRef.noSender());
+        BidEvent.BidPlaced bidPlaced = new BidEvent.BidPlaced(itemId, new Bid(bidder1, Instant.now().plusMillis(10), price, maximumPrice));
+        bidStub.get().tell(bidPlaced, ActorRef.noSender());
 
-        PSequence<SearchItem> items = searchService.getUserAuctions(creatorId).invoke().toCompletableFuture().get(5, TimeUnit.SECONDS);
+        PSequence<SearchItem> items = searchService
+                .getOpenAuctionsUnderPrice(price + 1100)
+                .invoke()
+                .toCompletableFuture()
+                .get(5, TimeUnit.SECONDS);
         assertEquals(itemId, items.get(0).getId());
 
     }
@@ -106,12 +111,12 @@ public class SearchServiceImplTest {
         }
 
         @Override
-        public ServiceCall<Item, Item> createItem() {
+        public ServiceCall<ItemData, Item> createItem() {
             return null;
         }
 
         @Override
-        public ServiceCall<Item, Done> updateItem(UUID id) {
+        public ServiceCall<ItemData, Item> updateItem(UUID id) {
             return null;
         }
 

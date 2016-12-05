@@ -18,14 +18,17 @@ public interface SearchService extends Service {
 
     ServiceCall<NotUsed, PSequence<SearchItem>> getUserAuctions(UUID userId);
 
+    ServiceCall<NotUsed, PSequence<SearchItem>> getOpenAuctionsUnderPrice(Integer maxPrice);
+
     @Override
     default Descriptor descriptor() {
 
         return named("search").withCalls(
                 Service.restCall(Method.GET, "/search", this::search),
-                Service.restCall(Method.GET, "/auctions?userId", this::getUserAuctions)
+                Service.restCall(Method.GET, "/auctions?userId", this::getUserAuctions),
+                Service.restCall(Method.GET, "/auctions/:maxPrice", this::getOpenAuctionsUnderPrice)
         ).withPathParamSerializer(
-                UUID.class, PathParamSerializers.required("UUID", UUID::fromString, UUID::toString)
+                UUID.class, PathParamSerializers.optional("UUID", UUID::fromString, UUID::toString)
         ).withAutoAcl(true);
     }
 }

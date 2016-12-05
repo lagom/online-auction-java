@@ -100,7 +100,7 @@ public class ItemServiceImpl implements ItemService {
                                     throw new TransportException(TransportErrorCode.fromHttp(409),
                                             new ExceptionMessage("UpdateFailed", updateException.getMessage()));
                                 } else {
-                                    return Mappers.toApi((PItem)pitem);
+                                    return Mappers.toApi((PItem) pitem);
                                 }
                             }
                     );
@@ -156,13 +156,16 @@ public class ItemServiceImpl implements ItemService {
                                 item.getItemData().getIncrement(), item.getAuctionStart().get(), item.getAuctionEnd().get());
                     });
         } else if (event instanceof PItemEvent.ItemCreated) {
-            return entityRef(((PItemEvent.ItemCreated) event).getItem().getId())
-                    .ask(PItemCommand.GetItem.INSTANCE)
-                    .thenApply(maybeItem -> {
-                        PItem item = maybeItem.get();
-                        return new ItemEvent.ItemUpdated(item.getId(), item.getCreator(), item.getTitle(),
-                                item.getDescription(), item.getStatus().toItemStatus(), item.getCurrencyId());
-                    });
+            PItem item = ((PItemEvent.ItemCreated) event).getItem();
+            return CompletableFuture.completedFuture(
+                    new ItemEvent.ItemUpdated(item.getId(), item.getCreator(), item.getItemData().getTitle(),
+                            item.getItemData().getDescription(), ItemStatus.CREATED, item.getItemData().getCurrencyId()));
+        } else if (event instanceof PItemEvent.ItemUpdated) {
+            PItemEvent.ItemUpdated evt = (PItemEvent.ItemUpdated) event;
+            PItemData itemDetails = evt.getItemDetails();
+            return CompletableFuture.completedFuture(
+                    new ItemEvent.ItemUpdated(evt.getId(), evt.getCreator(), itemDetails.getTitle(),
+                            itemDetails.getDescription(), evt.getItemStatus().toItemStatus(), itemDetails.getCurrencyId()));
         } else {
             throw new IllegalArgumentException("Converting non public event");
         }

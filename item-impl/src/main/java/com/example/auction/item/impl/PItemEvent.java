@@ -37,12 +37,14 @@ public interface PItemEvent extends AggregateEvent<PItemEvent>, Jsonable {
         UUID id;
         UUID creator;
         PItemData itemDetails;
+        PItemStatus itemStatus;
 
         @JsonCreator
-        ItemUpdated(UUID id, UUID creator, PItemData itemDetails) {
+        ItemUpdated(UUID id, UUID creator, PItemData itemDetails, PItemStatus itemStatus) {
             this.id = id;
             this.creator = creator;
             this.itemDetails = itemDetails;
+            this.itemStatus = itemStatus;
         }
     }
 

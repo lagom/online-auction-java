@@ -77,8 +77,9 @@ public class IndexedItem {
         return new IndexedItem(itemId).withStatus(Optional.of(ItemStatus.COMPLETED));
     }
 
-    public static IndexedItem forItemDetails(UUID itemId, String title, String description, ItemStatus itemStatus, String currencyId) {
+    public static IndexedItem forItemDetails(UUID itemId, UUID creatorId , String title, String description, ItemStatus itemStatus, String currencyId) {
         return new IndexedItem(itemId)
+                .withCreatorId(Optional.of(creatorId))
                 .withTitle(Optional.of(title))
                 .withDescription(Optional.of(description))
                 .withStatus(Optional.of(itemStatus))
