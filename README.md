@@ -1,3 +1,29 @@
+# INTRO
+
+This is a sample app of the Lagom Framework.
+
+## Running: Prerequisites
+
+You will need to download and run an Elastisearch server:
+
+```
+curl -L -O https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-5.0.2.tar.gz
+tar -xvf elasticsearch-5.0.2.tar.gz
+cd elasticsearch-5.0.2/bin
+./elasticsearch
+```
+## Running
+
+On another terminal, clone this repo and run the sample app using the command `sbt runAll`:
+
+```
+git clone git@github.com:lagom/online-auction-java.git
+cd online-auction-java
+sbt runAll
+```
+
+
+
 # Auction system
 
 System architecture:

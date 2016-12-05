@@ -66,7 +66,7 @@ public class SearchServiceImplTest {
     private static Supplier<ActorRef> itemStub;
 
     @Test
-    public void shouldStoreInfoUpdatedFromBiddingAndItemServices() throws InterruptedException, ExecutionException, TimeoutException {
+    public void shouldReturnOnlyOpenAuctionsUnderGivenPrice() throws InterruptedException, ExecutionException, TimeoutException {
         UUID itemId = UUID.randomUUID();
         UUID creatorId = UUID.randomUUID();
         UUID bidder1 = UUID.randomUUID();
@@ -76,14 +76,32 @@ public class SearchServiceImplTest {
         int price = reservePrice + increment;
         int maximumPrice = reservePrice * 2;
 
+
         ItemEvent.ItemUpdated itemCreated = new ItemEvent.ItemUpdated(itemId, creatorId, "titles", "desc", ItemStatus.CREATED, "EUR");
         itemStub.get().tell(itemCreated, ActorRef.noSender());
+
+        PSequence<SearchItem> items = searchService
+                .getOpenAuctionsUnderPrice(price + 1100)
+                .invoke()
+                .toCompletableFuture()
+                .get(5, TimeUnit.SECONDS);
+        assertEquals(0, items.size());
+
         ItemEvent.AuctionStarted auctionStarted = new ItemEvent.AuctionStarted(itemId, creatorId, reservePrice, increment, Instant.now(), Instant.now().plusSeconds(50));
         itemStub.get().tell(auctionStarted, ActorRef.noSender());
         BidEvent.BidPlaced bidPlaced = new BidEvent.BidPlaced(itemId, new Bid(bidder1, Instant.now().plusMillis(10), price, maximumPrice));
         bidStub.get().tell(bidPlaced, ActorRef.noSender());
 
-        PSequence<SearchItem> items = searchService
+
+        items = searchService
+                .getOpenAuctionsUnderPrice(reservePrice - 1)
+                .invoke()
+                .toCompletableFuture()
+                .get(5, TimeUnit.SECONDS);
+        assertEquals(0, items.size());
+
+
+        items = searchService
                 .getOpenAuctionsUnderPrice(price + 1100)
                 .invoke()
                 .toCompletableFuture()

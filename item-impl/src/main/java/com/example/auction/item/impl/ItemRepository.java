@@ -34,7 +34,6 @@ public class ItemRepository {
     @Inject
     public ItemRepository(CassandraSession session, ReadSide readSide) {
         this.session = session;
-        session.underlying().thenAccept(s -> registerCodec(s, new EnumNameCodec<>(ItemStatus.class)));
         readSide.register(PItemEventProcessor.class);
     }
 
@@ -51,10 +50,6 @@ public class ItemRepository {
                             return items.thenApply(seq -> new PaginatedSequence<>(seq, page, pageSize, count));
                         }
                 );
-    }
-
-    private void registerCodec(Session session, TypeCodec<?> codec) {
-        session.getCluster().getConfiguration().getCodecRegistry().register(codec);
     }
 
     private CompletionStage<Integer> countItemsByCreatorInStatus(UUID creatorId, ItemStatus status) {
@@ -168,7 +163,12 @@ public class ItemRepository {
             );
         }
 
+        private void registerCodec(Session session, TypeCodec<?> codec) {
+            session.getCluster().getConfiguration().getCodecRegistry().register(codec);
+        }
+
         private CompletionStage<Done> prepareStatements() {
+            session.underlying().thenAccept(s -> registerCodec(s, new EnumNameCodec<>(ItemStatus.class)));
             return doAll(
                     prepareInsertItemCreatorStatement(),
                     prepareInsertItemSummaryByCreatorStatement(),
@@ -252,7 +252,7 @@ public class ItemRepository {
                             item.getItemDetails().getCurrencyId(),
                             item.getItemDetails().getReservePrice(),
                             item.getCreator(),
-                            item.getId()));
+                            item.getItemId()));
         }
 
         private CompletionStage<List<BoundStatement>> updateItemSummaryStatus(UUID itemId, ItemStatus status) {

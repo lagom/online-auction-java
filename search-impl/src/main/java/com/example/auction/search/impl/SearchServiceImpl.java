@@ -19,6 +19,7 @@ import com.example.auction.search.api.SearchService;
 import com.example.elasticsearch.ElasticSearch;
 import com.example.elasticsearch.IndexedItem;
 import com.example.elasticsearch.Queries;
+import com.example.elasticsearch.UpdateIndexItem;
 import com.lightbend.lagom.javadsl.api.ServiceCall;
 import org.pcollections.PSequence;
 import org.pcollections.TreePVector;
@@ -44,7 +45,6 @@ public class SearchServiceImpl implements SearchService {
             ItemService itemService,
             BiddingService biddingService) {
         this.elasticSearch = elasticSearch;
-// TODO: buffer incoming messages before pushing into ES ?
         itemService.itemEvents().subscribe().atLeastOnce(
                 Flow.<ItemEvent>create().map(this::toDocument).mapAsync(1, this::store));
         biddingService.bidEvents().subscribe().atLeastOnce(
@@ -66,7 +66,7 @@ public class SearchServiceImpl implements SearchService {
         return req -> elasticSearch
                 .search(indexName)
                 .invoke(Queries.getOpenAuctionsUnderPrice(maxPrice))
-                .thenApply(xs -> xs.stream())
+                .thenApply(result -> result.getIndexedItem())
                 .thenApply(xs -> xs.map(this::toApi))
                 .thenApply(xs -> xs.collect(Collectors.toList()))
                 .thenApply(TreePVector::from);
@@ -76,7 +76,7 @@ public class SearchServiceImpl implements SearchService {
 
     private CompletionStage<Done> store(Optional<IndexedItem> document) {
         return document
-                .map(doc -> elasticSearch.updateIndex(indexName, doc.getItemId()).invoke(doc))
+                .map(doc -> elasticSearch.updateIndex(indexName, doc.getItemId()).invoke(new UpdateIndexItem(doc)))
                 .orElse(CompletableFuture.completedFuture(Done.getInstance()));
     }
 
@@ -86,7 +86,7 @@ public class SearchServiceImpl implements SearchService {
             return Optional.of(IndexedItem.forAuctionStart(started.getItemId(), started.getStartDate(), started.getEndDate()));
         } else if (event instanceof AuctionFinished) {
             AuctionFinished finish = (AuctionFinished) event;
-            return Optional.of(IndexedItem.forAuctionFinish(finish.getItemId()));
+            return Optional.of(IndexedItem.forAuctionFinish(finish.getItemId(), finish.getItem()));
         } else if (event instanceof ItemUpdated) {
             ItemUpdated details = (ItemUpdated) event;
             return Optional.of(IndexedItem.forItemDetails(
@@ -118,7 +118,7 @@ public class SearchServiceImpl implements SearchService {
     private SearchItem toApi(IndexedItem indexedItem) {
         return new SearchItem(
                 indexedItem.getItemId(),
-                indexedItem.getCreatorId().get(),
+                indexedItem.getCreatorId().orElse(UUID.randomUUID()),
                 indexedItem.getTitle().get(),
                 indexedItem.getDescription().get(),
                 indexedItem.getCurrencyId().get(),

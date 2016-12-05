@@ -7,14 +7,15 @@ import lombok.Value;
 @Value
 public class QueryRoot {
 
-    BooleanQuery bool;
+    Query query;
 
     @JsonCreator
-    public QueryRoot(BooleanQuery bool) {
-        this.bool = bool;
+    public QueryRoot(Query query) {
+        this.query = query;
     }
 
     public boolean test(IndexedItem item){
-        return bool.test(item) ;
+        return query.test(item) ;
     }
+
 }

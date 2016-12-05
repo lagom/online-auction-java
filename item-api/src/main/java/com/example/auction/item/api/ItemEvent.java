@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import lombok.Value;
 
 import java.time.Instant;
+import java.util.Optional;
 import java.util.UUID;
 
 /**

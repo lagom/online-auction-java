@@ -170,27 +170,7 @@ lagomCassandraCleanOnStart in ThisBuild := false
 
 // ------------------------------------------------------------------------------------------------
 
-// 1)
 // register 'elastic-search' as an unmanaged service on the service locator so that at 'runAll' our code
 // will resolve 'elastic-search' and use it. See also com.example.com.ElasticSearch
 lagomUnmanagedServices in ThisBuild += ("elastic-search" -> "http://127.0.0.1:9200")
 
-// 2) Create a few tasks to start/stop elasticserach within SBT
-// See http://www.scala-sbt.org/0.13/docs/Faq.html#How+can+I+create+a+custom+run+task%2C+in+addition+to+%3F
-lazy val startElasticsearch = taskKey[Unit]("Start Elasticsearch")
-fullRunTask(startElasticsearch, Runtime, "com.example.elasticsearch.Starter")
-//fork in startElasticsearch := true
-javaOptions in startElasticsearch += "-Xmx1024m"
-libraryDependencies += "org.elasticsearch" % "elasticsearch" % "2.4.2"
-
-lazy val stopElasticsearch = taskKey[Unit]("Stop Elasticsearch")
-fullRunTask(stopElasticsearch, Runtime, "com.example.elasticsearch.Stopper")
-
-// 3)
-// Wrap runAll in your stop/start tasks
-runAll in ThisBuild <<= stopElasticsearch.in(Runtime)
-  .dependsOn(
-    runAll.in(ThisBuild).
-      dependsOn(startElasticsearch.in(Runtime)
-      )
-  )

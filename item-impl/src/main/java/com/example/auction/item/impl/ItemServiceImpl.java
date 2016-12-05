@@ -18,7 +18,6 @@ import com.lightbend.lagom.javadsl.api.transport.NotFound;
 import com.lightbend.lagom.javadsl.api.transport.TransportErrorCode;
 import com.lightbend.lagom.javadsl.api.transport.TransportException;
 import com.lightbend.lagom.javadsl.broker.TopicProducer;
-import com.lightbend.lagom.javadsl.persistence.Offset;
 import com.lightbend.lagom.javadsl.persistence.PersistentEntityRef;
 import com.lightbend.lagom.javadsl.persistence.PersistentEntityRegistry;
 
@@ -136,24 +135,27 @@ public class ItemServiceImpl implements ItemService {
     public Topic<ItemEvent> itemEvents() {
         return TopicProducer.taggedStreamWithOffset(PItemEvent.TAG.allTags(),
                 (tag, offset) -> registry.eventStream(tag, offset)
-                        .filter(this::filterEvent)
+                        .filter(p -> p.first().isPublic())
                         .mapAsync(1, eventAndOffset ->
                                 convertEvent(eventAndOffset.first()).thenApply(event ->
                                         Pair.create(event, eventAndOffset.second()))));
     }
 
-    private boolean filterEvent(Pair<PItemEvent, Offset> event) {
-        return event.first() instanceof PItemEvent.AuctionStarted;
-    }
-
     private CompletionStage<ItemEvent> convertEvent(PItemEvent event) {
         if (event instanceof PItemEvent.AuctionStarted) {
-            return entityRef(((PItemEvent.AuctionStarted) event).getItemId())
+            return entityRef(event.getItemId())
                     .ask(PItemCommand.GetItem.INSTANCE)
                     .thenApply(maybeItem -> {
                         PItem item = maybeItem.get();
                         return new ItemEvent.AuctionStarted(item.getId(), item.getCreator(), item.getItemData().getReservePrice(),
                                 item.getItemData().getIncrement(), item.getAuctionStart().get(), item.getAuctionEnd().get());
+                    });
+        } else if (event instanceof PItemEvent.AuctionFinished) {
+            return entityRef(event.getItemId())
+                    .ask(PItemCommand.GetItem.INSTANCE)
+                    .thenApply(maybeItem -> {
+                        Item item = Mappers.toApi(maybeItem.get());
+                        return new ItemEvent.AuctionFinished(event.getItemId(), item);
                     });
         } else if (event instanceof PItemEvent.ItemCreated) {
             PItem item = ((PItemEvent.ItemCreated) event).getItem();
@@ -164,7 +166,7 @@ public class ItemServiceImpl implements ItemService {
             PItemEvent.ItemUpdated evt = (PItemEvent.ItemUpdated) event;
             PItemData itemDetails = evt.getItemDetails();
             return CompletableFuture.completedFuture(
-                    new ItemEvent.ItemUpdated(evt.getId(), evt.getCreator(), itemDetails.getTitle(),
+                    new ItemEvent.ItemUpdated(evt.getItemId(), evt.getCreator(), itemDetails.getTitle(),
                             itemDetails.getDescription(), evt.getItemStatus().toItemStatus(), itemDetails.getCurrencyId()));
         } else {
             throw new IllegalArgumentException("Converting non public event");

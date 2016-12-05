@@ -28,6 +28,7 @@ import scala.concurrent.duration.FiniteDuration;
 import javax.inject.Inject;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletionStage;
@@ -179,6 +180,7 @@ public class ItemServiceImplIntegrationTest {
         Source<ItemEvent, ?> events = itemService.itemEvents().subscribe().atMostOnceSource();
         CompletionStage<ItemEvent> eventualHead = events
                 .dropWhile(event -> !event.getItemId().equals(createdItem.getId()))
+                .drop(1) // first event will be the item creation Event.ItemUpdated
                 .runWith(Sink.head(), testServer.materializer());
 
         // cause the event
@@ -187,6 +189,23 @@ public class ItemServiceImplIntegrationTest {
         // result on the stream's eventual head.
         ItemEvent itemEvent = Await.result(eventualHead);
         assertThat(itemEvent, instanceOf(ItemEvent.AuctionStarted.class));
+    }
+
+    @Test
+    public void shouldEmitItemUpdatedEvent() {
+        // build the stream and materialize it
+        Source<ItemEvent, ?> events = itemService.itemEvents().subscribe().atMostOnceSource();
+        CompletionStage<ItemEvent> emitted = events
+                .runWith(Sink.head(), testServer.materializer());
+
+        // cause the event
+        UUID creatorId = UUID.randomUUID();
+        ItemData createItem = sampleItem();
+        Item createdItem = createItem(creatorId, createItem);
+        startAuction(creatorId, createdItem);
+
+        ItemEvent result = Await.result(emitted);
+        assertThat(result, instanceOf(ItemEvent.ItemUpdated.class));
     }
 
 
