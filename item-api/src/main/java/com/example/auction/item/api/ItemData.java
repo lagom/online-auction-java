@@ -10,7 +10,7 @@ import java.util.UUID;
 
 
 /**
- * Data is different from Info in that Info can be inferred from data while data is source of truth. In this
+ * Data is different from info in that info can be inferred from data while data is source of truth. In this
  * case, ItemData is user generated and can't be restored or inferred from other sources.
  */
 @Value

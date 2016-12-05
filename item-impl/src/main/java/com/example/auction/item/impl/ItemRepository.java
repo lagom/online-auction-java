@@ -186,15 +186,15 @@ public class ItemRepository {
         private CompletionStage<Done> prepareInsertItemSummaryByCreatorStatement() {
             return session.
                     prepare("INSERT INTO itemSummaryByCreator(" +
-                            "itemId, " +
                             "creatorId, " +
+                            "itemId, " +
                             "title, " +
                             "currencyId, " +
                             "reservePrice, " +
                             "status" +
                             ") VALUES (" +
-                            "?, " + // itemId
                             "?, " + // creatorId
+                            "?, " + // itemId
                             "?, " + // title
                             "?, " + // currencyId
                             "?, " + // reservePrice
@@ -236,8 +236,8 @@ public class ItemRepository {
 
         private BoundStatement insertItemSummaryByCreator(PItem item) {
             return insertItemSummaryByCreatorStatement.bind(
-                    item.getId(),
                     item.getCreator(),
+                    item.getId(),
                     item.getItemData().getTitle(),
                     item.getItemData().getCurrencyId(),
                     item.getItemData().getReservePrice(),
