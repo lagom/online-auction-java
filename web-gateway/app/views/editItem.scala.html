@@ -1,47 +1,92 @@
 @import helper._
+@import java.util.Optional
 @import java.time.temporal.ChronoUnit
 @import controllers.{Currency => Currencies}
 
-@(itemForm: Form[ItemForm])(implicit nav: Nav)
+@import com.example.auction.item.api.ItemStatus
 
-@main(message("createItem")) {
+@(itemId: UUID, itemForm: Form[ItemForm], itemStatus: ItemStatus, errorMessage: Optional[String])(implicit nav: Nav)
 
-    <h2>@message("createItem")</h2>
 
-    @foundationForm(itemForm, routes.ItemController.createItem()) {
-        <div class="column row">
-            @inputText(itemForm("title"))
-        </div>
-        <div class="column row">
-            @textarea(itemForm("description"))
-        </div>
-        <div class="column row">
-            @select(
-                field = itemForm("currency"),
-                options = Currencies.values().toSeq.map(c => c.name() -> c.getDisplayName).sortBy(_._2)
-            )
-        @* todo set min and step according to the selected currency *@
-        </div>
-        <div class="row">
-            <div class="medium-6 columns">
-                @inputText(itemForm("increment"), 'type -> "number", 'min -> 0.5, 'step -> 0.5, '_help -> message("incrementHelp"))
+@main(message("editItem")) {
+
+    <h2>@message("editItem")</h2>
+
+    @foundationForm(itemForm, routes.ItemController.editItem(itemId.toString, itemStatus.name)) {
+
+        @if(errorMessage.isPresent) {
+            <div class="alert callout">
+                <i class="fi-alert"></i> @errorMessage.get()
             </div>
-            <div class="medium-6 columns">
-                @inputText(itemForm("reserve"), 'type -> "number", 'min -> 0, 'step -> 0.5, '_help -> message("reserveHelp"))
-            </div>
+        }
+
+        <div class="column row">
+            @if(itemStatus.equals(ItemStatus.CREATED)){
+                @inputText(itemForm("title"))
+            } else {
+                @inputText(itemForm("title"),'readonly->'readonly)
+            }
         </div>
-        <div class="row">
-            <div class="medium-6 columns">
-                @inputText(itemForm("duration"), 'type -> "number", 'min -> 1, 'step -> 1, '_columns -> 3)
-            </div>
-            <div class="medium-6 columns">
+
+        <div class="column row">
+            @if(itemStatus.equals(ItemStatus.CREATED) || itemStatus.equals(ItemStatus.AUCTION)){
+                @textarea(itemForm("description"))
+            } else {
+                @textarea(itemForm("description"), 'readonly -> 'readonly)
+            }
+        </div>
+        <div class="column row">
+            @if(itemStatus.equals(ItemStatus.CREATED)) {
                 @select(
-                    field = itemForm("durationUnits"),
-                    options = ChronoUnit.values().dropWhile(_ != ChronoUnit.SECONDS).takeWhile(_ != ChronoUnit.MONTHS).map(u => u.name() -> u.toString()),
-                    '_columns -> 3
-                )
+                    field = itemForm("currency"),
+                    options = Currencies.values().toSeq.map(c => c.name() -> c.getDisplayName).sortBy(_._2))
+            } else {
+                @inputText(field = itemForm("currency"),'readonly -> 'readonly)
+            }
+            @* todo set min and step according to the selected currency *@
+            @* todo format currencies (¿using to @currency.format?) *@
+        </div>
+        <div class="row">
+            <div class="medium-6 columns">
+                @if(itemStatus.equals(ItemStatus.CREATED)) {
+                    @inputText(itemForm("increment"), 'type -> "number", 'min -> 0.5, 'step -> 0.5, '_help -> message("incrementHelp"))
+                } else {
+                    @inputText(itemForm("increment"), 'type -> "number", 'min -> 0.5, 'step -> 0.5, '_help -> message("incrementHelp"), 'readonly -> 'readonly)
+                }
+            </div>
+            <div class="medium-6 columns">
+                @if(itemStatus.equals(ItemStatus.CREATED)) {
+                    @inputText(itemForm("reserve"), 'type -> "number", 'min -> 0, 'step -> 0.5, '_help -> message("reserveHelp"))
+                } else {
+                    @inputText(itemForm("reserve"), 'type -> "number", 'min -> 0, 'step -> 0.5, '_help -> message("reserveHelp"), 'readonly -> 'readonly)
+                }
             </div>
         </div>
-        <input type="submit" class="button" value="@message("createItem")"/>
+        <div class="row">
+                <div class="medium-6 columns">
+                @if(itemStatus.equals(ItemStatus.CREATED)) {
+                    @inputText(itemForm("duration"), 'type -> "number", 'min -> 1, 'step -> 1, '_columns -> 3)
+                } else {
+                    @inputText(itemForm("duration"), 'type -> "number", 'min -> 1, 'step -> 1, '_columns -> 3, 'readonly -> 'readonly)
+                }
+                </div>
+                <div class="medium-6 columns">
+                @if(itemStatus.equals(ItemStatus.CREATED)) {
+                    @select(
+                        field = itemForm("durationUnits"),
+                        options = ChronoUnit.values().dropWhile(_ != ChronoUnit.SECONDS).takeWhile(_ != ChronoUnit.MONTHS).map(u => u.name() -> u.toString()),
+                        '_columns -> 3
+                    )
+                } else {
+                    @inputText(
+                        itemForm("durationUnits"),
+                        'readonly -> 'readonly
+                    )
+                }
+                </div>
+        </div>
+        @if(itemStatus.equals(ItemStatus.CREATED) || itemStatus.equals(ItemStatus.AUCTION)) {
+            <input type="submit" class="button" value="@message("saveItem")"/>
+        }
     }
 }

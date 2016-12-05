@@ -2,12 +2,14 @@ package com.example.auction.item.impl;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.lightbend.lagom.serialization.Jsonable;
+import lombok.Value;
 
 import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
 
+@Value
 public class PItemState implements Jsonable {
 
     private final Optional<PItem> item;
@@ -25,11 +27,6 @@ public class PItemState implements Jsonable {
         return new PItemState(Optional.of(item));
     }
 
-    private PItemState update(Function<PItem, PItem> updateFunction) {
-        assert item.isPresent();
-        return new PItemState(item.map(updateFunction));
-    }
-
     public PItemState start(Instant startTime) {
         return update(i -> i.start(startTime));
     }
@@ -42,31 +39,23 @@ public class PItemState implements Jsonable {
         return update(i -> i.updatePrice(price));
     }
 
-    public PItemState cancel() {
-        return update(i -> i.cancel());
+    public PItemState updateDetails(PItemData details) {
+        return update(i -> i.withDetails(details));
     }
 
-    public Optional<PItem> getItem() {
-        return item;
+    public PItemState cancel() {
+        return update(i -> i.cancel());
     }
 
     public PItemStatus getStatus() {
         return item.map(PItem::getStatus).orElse(PItemStatus.NOT_CREATED);
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
 
-        PItemState that = (PItemState) o;
-
-        return item != null ? item.equals(that.item) : that.item == null;
-
+    // ----------------------------------------------------------------------------------------
+    private PItemState update(Function<PItem, PItem> updateFunction) {
+        assert item.isPresent();
+        return new PItemState(item.map(updateFunction));
     }
 
-    @Override
-    public int hashCode() {
-        return item != null ? item.hashCode() : 0;
-    }
 }

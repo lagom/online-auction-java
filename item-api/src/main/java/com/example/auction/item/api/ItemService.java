@@ -10,10 +10,15 @@ import com.lightbend.lagom.javadsl.api.Descriptor;
 import com.lightbend.lagom.javadsl.api.Service;
 import com.lightbend.lagom.javadsl.api.ServiceCall;
 import com.lightbend.lagom.javadsl.api.broker.Topic;
+import com.lightbend.lagom.javadsl.api.deser.ExceptionMessage;
+import com.lightbend.lagom.javadsl.api.deser.ExceptionSerializer;
 import com.lightbend.lagom.javadsl.api.deser.PathParamSerializers;
+import com.lightbend.lagom.javadsl.api.deser.RawExceptionMessage;
+import com.lightbend.lagom.javadsl.api.transport.MessageProtocol;
 import com.lightbend.lagom.javadsl.api.transport.Method;
-import org.pcollections.PSequence;
+import com.lightbend.lagom.javadsl.api.transport.TransportErrorCode;
 
+import java.util.Collection;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -30,7 +35,7 @@ public interface ItemService extends Service {
      *
      * @return The created item with its ID populated.
      */
-    ServiceCall<Item, Item> createItem();
+    ServiceCall<ItemData, Item> createItem();
 
     /**
      * Update an item.
@@ -38,7 +43,7 @@ public interface ItemService extends Service {
      * @param id The ID of the item to update.
      * @return Done.
      */
-    ServiceCall<Item, Done> updateItem(UUID id);
+    ServiceCall<ItemData, Item> updateItem(UUID id);
 
     /**
      * Start an auction for an item.
@@ -73,12 +78,15 @@ public interface ItemService extends Service {
      */
     Topic<ItemEvent> itemEvents();
 
+
+
     @Override
     default Descriptor descriptor() {
         return named("item").withCalls(
                 pathCall("/api/item", this::createItem),
                 restCall(Method.POST, "/api/item/:id/start", this::startAuction),
                 pathCall("/api/item/:id", this::getItem),
+                restCall(Method.PUT, "/api/item/:id", this::updateItem),
                 pathCall("/api/item?userId&status&pageNo&pageSize", this::getItemsForUser)
         ).publishing(
                 topic("item-ItemEvent", this::itemEvents)
@@ -88,4 +96,5 @@ public interface ItemService extends Service {
                 ItemStatus.class, PathParamSerializers.required("ItemStatus", ItemStatus::valueOf, ItemStatus::toString)
         ).withHeaderFilter(SecurityHeaderFilter.INSTANCE);
     }
+
 }

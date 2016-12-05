@@ -4,6 +4,7 @@
 @import com.example.auction.bidding.api.BidResult
 @import com.example.auction.bidding.api.BidResultStatus._
 @import java.util._
+
 @import controllers.{Currency => Currencies}
 
 @(item: Item, bidForm: Form[BidForm], biddingHistory: List[AnonymousBid], currentUser: UUID, currency: Currencies,
@@ -15,9 +16,16 @@
     </div>
 }
 
-@main(item.getTitle) {
+@main(item.getItemData.getTitle) {
 
-    <h1>@item.getTitle</h1>
+    <div >
+        <h1>@item.getItemData.getTitle</h1>
+    </div>
+
+    @if(currentUser == item.getCreator &&(item.getStatus == ItemStatus.CREATED || item.getStatus == ItemStatus.AUCTION )){
+        <a href="@routes.ItemController.editItemForm(item.getId.toString)" class="edit" >@message("editItem")</a>
+    }
+
 
     @if(bidResult.isPresent) {
 
@@ -47,7 +55,7 @@
     }
 
     <p>
-        @item.getDescription
+        @item.getItemData.getDescription
     </p>
 
     <dl>
@@ -58,15 +66,15 @@
         <dd>@currency.getDisplayName</dd>
 
         <dt>@message("increment")</dt>
-        <dd>@currency.format(item.getIncrement)</dd>
+        <dd>@currency.format(item.getItemData.getIncrement)</dd>
 
     @if(currentUser == item.getCreator) {
         <dt>@message("reserve")</dt>
-        <dd>@currency.format(item.getReservePrice)</dd>
+        <dd>@currency.format(item.getItemData.getReservePrice)</dd>
     }
 
         <dt>@message("duration")</dt>
-        <dd>@nav.formatDuration(item.getAuctionDuration)</dd>
+        <dd>@nav.formatDuration(item.getItemData.getAuctionDuration)</dd>
 
     @if(item.getStatus == ItemStatus.AUCTION || item.getStatus == ItemStatus.COMPLETED) {
         <dt>@message("auctionStart")</dt>
@@ -97,6 +105,7 @@
             <input class="button success" type="submit" value="@message("startAuction")"/>
         </form>
     }
+
     @if(currentUser != item.getCreator && item.getStatus == ItemStatus.AUCTION) {
         <h3>@message("placeBid")</h3>
         @if(currentMaximumBid.isPresent) {
@@ -105,9 +114,9 @@
             </div>
         }
         @foundationForm(bidForm, routes.ItemController.placeBid(item.getId.toString)) {
-            @helper.inputText(bidForm("bid"), 'type -> "number", 'step -> currency.formatDecimal(item.getIncrement),
-                'min -> currency.formatDecimal(item.getPrice + item.getIncrement))
-            <input type="hidden" name="currency" value="@item.getCurrencyId"/>
+            @helper.inputText(bidForm("bid"), 'type -> "number", 'step -> currency.formatDecimal(item.getItemData.getIncrement),
+                'min -> currency.formatDecimal(item.getPrice + item.getItemData.getIncrement))
+            <input type="hidden" name="currency" value="@item.getItemData.getCurrencyId"/>
             <input class="button success" type="submit" value="@message("placeBid")"/>
         }
     }

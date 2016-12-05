@@ -57,7 +57,8 @@ public class ItemEventProcessorTest {
 
     private UUID creatorId = UUID.randomUUID();
     private UUID itemId = UUIDs.timeBased();
-    private PItem item = new PItem(itemId, creatorId, "title", "desc", "USD", 10, 100, Duration.ofMinutes(10));
+    private PItemData itemData = new PItemData("title", "desc", "USD", 10, 100, Duration.ofMinutes(10));
+    private PItem item = new PItem(itemId, creatorId, itemData);
 
     private AtomicInteger offset;
 
@@ -73,8 +74,7 @@ public class ItemEventProcessorTest {
         ItemStatus itemStatus = ItemStatus.CREATED;
         PaginatedSequence<ItemSummary> items = getItems(creatorId, itemStatus);
         assertEquals(1, items.getCount());
-        ItemSummary expected =
-                new ItemSummary(itemId, item.getTitle(), item.getCurrencyId(), item.getReservePrice(), item.getStatus().toItemStatus());
+        ItemSummary expected = buildSummary(itemId, itemData, item.getStatus().toItemStatus());
         assertEquals(expected, items.getItems().get(0));
     }
 
@@ -88,7 +88,7 @@ public class ItemEventProcessorTest {
         PaginatedSequence<ItemSummary> ongoingItems = getItems(creatorId, ItemStatus.AUCTION);
         assertEquals(1, ongoingItems.getCount());
 
-        ItemSummary expected = new ItemSummary(itemId, item.getTitle(), item.getCurrencyId(), item.getReservePrice(), ItemStatus.AUCTION);
+        ItemSummary expected = buildSummary(itemId, itemData, ItemStatus.AUCTION);
         assertEquals(expected, ongoingItems.getItems().get(0));
     }
 
@@ -116,7 +116,7 @@ public class ItemEventProcessorTest {
         PaginatedSequence<ItemSummary> ongoingItems = getItems(creatorId, ItemStatus.COMPLETED);
         assertEquals(1, ongoingItems.getCount());
 
-        ItemSummary expected = new ItemSummary(itemId, item.getTitle(), item.getCurrencyId(), item.getReservePrice(), ItemStatus.COMPLETED);
+        ItemSummary expected = buildSummary(itemId, itemData, ItemStatus.COMPLETED);
         assertEquals(expected, ongoingItems.getItems().get(0));
     }
 
@@ -136,7 +136,8 @@ public class ItemEventProcessorTest {
 
 
     private PItem buildFixture(UUID itemId, int id) {
-        return new PItem(itemId, creatorId, "title" + id, "desc" + id, "USD", 10, 100, Duration.ofMinutes(10));
+        PItemData data = new PItemData("title" + id, "desc" + id, "USD", 10, 100, Duration.ofMinutes(10));
+        return new PItem(itemId, creatorId, data);
 
     }
 
@@ -150,6 +151,8 @@ public class ItemEventProcessorTest {
         Await.result(testDriver.feed(itemCreated, Offset.sequence(offset.getAndIncrement())));
     }
 
-
+    private ItemSummary buildSummary(UUID itemId, PItemData itemData, ItemStatus status) {
+        return new ItemSummary(itemId, itemData.getTitle(), itemData.getCurrencyId(), itemData.getReservePrice(), status);
+    }
 }
 

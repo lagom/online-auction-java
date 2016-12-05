@@ -107,6 +107,7 @@ public class ItemRepository {
 
         private PreparedStatement insertItemCreatorStatement;
         private PreparedStatement insertItemSummaryByCreatorStatement;
+        private PreparedStatement updateItemSummaryStatement;
         private PreparedStatement updateItemSummaryStatusStatement;
 
         @Inject
@@ -122,6 +123,8 @@ public class ItemRepository {
                     .setPrepare(tag -> prepareStatements())
                     .setEventHandler(PItemEvent.ItemCreated.class,
                             e -> insertItem(e.getItem()))
+                    .setEventHandler(PItemEvent.ItemUpdated.class,
+                            e -> updateItemSummary(e))
                     .setEventHandler(PItemEvent.AuctionStarted.class,
                             e -> updateItemSummaryStatus(e.getItemId(), ItemStatus.AUCTION))
                     .setEventHandler(PItemEvent.AuctionFinished.class,
@@ -169,7 +172,8 @@ public class ItemRepository {
             return doAll(
                     prepareInsertItemCreatorStatement(),
                     prepareInsertItemSummaryByCreatorStatement(),
-                    prepareUpdateItemStatusStatement()
+                    prepareUpdateItemStatusStatement(),
+                    prepareUpdateItemStatement()
             );
         }
 
@@ -200,6 +204,16 @@ public class ItemRepository {
                     .thenApply(accept(s -> insertItemSummaryByCreatorStatement = s));
         }
 
+        private CompletionStage<Done> prepareUpdateItemStatement() {
+            return session
+                    .prepare("UPDATE itemSummaryByCreator " +
+                            "SET title = ? " +
+                            ", currencyId = ? " +
+                            ", reservePrice = ? " +
+                            "WHERE creatorId = ? AND itemId = ?")
+                    .thenApply(accept(s -> updateItemSummaryStatement = s));
+        }
+
         private CompletionStage<Done> prepareUpdateItemStatusStatement() {
             return session
                     .prepare("UPDATE itemSummaryByCreator SET status = ? WHERE creatorId = ? AND itemId = ?")
@@ -224,11 +238,21 @@ public class ItemRepository {
             return insertItemSummaryByCreatorStatement.bind(
                     item.getCreator(),
                     item.getId(),
-                    item.getTitle(),
-                    item.getCurrencyId(),
-                    item.getReservePrice(),
+                    item.getItemData().getTitle(),
+                    item.getItemData().getCurrencyId(),
+                    item.getItemData().getReservePrice(),
                     item.getStatus().toItemStatus()
             );
+        }
+
+        private CompletionStage<List<BoundStatement>> updateItemSummary(PItemEvent.ItemUpdated item) {
+            return completedStatements(
+                    updateItemSummaryStatement.bind(
+                            item.getItemDetails().getTitle(),
+                            item.getItemDetails().getCurrencyId(),
+                            item.getItemDetails().getReservePrice(),
+                            item.getCreator(),
+                            item.getId()));
         }
 
         private CompletionStage<List<BoundStatement>> updateItemSummaryStatus(UUID itemId, ItemStatus status) {
@@ -240,6 +264,7 @@ public class ItemRepository {
                     .thenApply(creatorId -> updateItemSummaryStatusStatement.bind(status, creatorId, itemId))
                     .thenApply(Collections::singletonList);
         }
+
 
         private CompletionStage<Optional<Row>> selectItemCreator(UUID itemId) {
             return session.selectOne("SELECT * FROM itemCreator WHERE itemId = ?", itemId);
