@@ -9,9 +9,8 @@ import java.util.List;
 
 @Value
 public class Hits {
-    @JsonProperty("hits")
-    PSequence<HitResult> hits;
 
+    PSequence<HitResult> hits;
 
     @JsonCreator
     public Hits(PSequence<HitResult> hits) {

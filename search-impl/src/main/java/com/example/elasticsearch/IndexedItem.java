@@ -89,7 +89,7 @@ public class IndexedItem {
                 Optional.empty(),
                 OptionalInt.empty(),
                 OptionalInt.empty(),
-                Optional.of(ItemStatus.CREATED),
+                Optional.of(ItemStatus.AUCTION),
                 Optional.of(startDate),
                 Optional.of(endDate),
                 Optional.empty()

@@ -9,15 +9,11 @@ import lombok.Value;
  */
 @Value
 public class HitResult {
-    @JsonProperty("_source")
     IndexedItem item;
-    @JsonProperty("_type")
-    String type;
 
     @JsonCreator
-    public HitResult(IndexedItem source, String type) {
-        item = source;
-        this.type = type;
+    public HitResult(@JsonProperty("_source") IndexedItem item) {
+        this.item = item;
     }
 
     public IndexedItem getItem() {
