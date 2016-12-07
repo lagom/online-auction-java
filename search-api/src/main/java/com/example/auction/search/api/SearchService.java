@@ -8,6 +8,7 @@ import com.lightbend.lagom.javadsl.api.deser.PathParamSerializers;
 import com.lightbend.lagom.javadsl.api.transport.Method;
 import org.pcollections.PSequence;
 
+import java.util.Optional;
 import java.util.UUID;
 
 import static com.lightbend.lagom.javadsl.api.Service.named;
@@ -15,7 +16,7 @@ import static com.lightbend.lagom.javadsl.api.Service.named;
 public interface SearchService extends Service {
 
     // TODO: pagination
-    ServiceCall<SearchRequest, SearchResult> search();
+    ServiceCall<SearchRequest, SearchResult> search(int pageNo, int pageSize);
 
     // TODO: pagination
     ServiceCall<NotUsed, PSequence<SearchItem>> getUserAuctions(UUID userId);
@@ -28,9 +29,9 @@ public interface SearchService extends Service {
 
     @Override
     default Descriptor descriptor() {
-
+        // TODO: add authentication? I don't think searching needs authentication... Hmmm...
         return named("search").withCalls(
-                Service.restCall(Method.GET, "/search", this::search),
+                Service.restCall(Method.GET, "/search?pageNo&pageSize", this::search),
                 Service.restCall(Method.GET, "/auctions?userId", this::getUserAuctions),
                 Service.restCall(Method.GET, "/auctions/:maxPrice", this::getOpenAuctionsUnderPrice)
         ).withPathParamSerializer(

@@ -51,16 +51,18 @@ public class SearchServiceImpl implements SearchService {
     }
 
     @Override
-    public ServiceCall<SearchRequest, SearchResult> search() {
+    public ServiceCall<SearchRequest, SearchResult> search(int pageNo, int pageSize) {
         return req -> {
-            QueryRoot query = Queries.forKeywords(req.getKeywords());
+            QueryRoot query = Queries
+                    .forKeywords( req.getKeywords())
+                    .withPagination(pageNo, pageSize);
             return elasticsearch.search(indexName).invoke(query).thenApply(result -> {
                 TreePVector<SearchItem> items = TreePVector.from(
                         result.getIndexedItem()
                                 .map(this::toApi)
                                 .collect(Collectors.toList()));
 
-                return new SearchResult(items, -1, -1, -1);
+                return new SearchResult(items, query.getPageSize(), query.getPageNumber(), result.getHits().getTotal());
             });
         };
     }

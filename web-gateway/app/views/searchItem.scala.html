@@ -1,18 +1,17 @@
 @import helper._
-@import org.pcollections.PSequence
+@import com.example.auction.item.api.{ItemStatus, PaginatedSequence}
 @import com.example.auction.search.api.SearchItem
 @import routes.ItemController.getItem
+@import java.util.Optional
 @import controllers.Currency
 
-@import java.util.Optional
-@import com.example.auction.item.api.ItemStatus
-@(searchItemForm: Form[SearchItemForm], results: Optional[PSequence[SearchItem]])(implicit nav: Nav)
+@(searchItemForm: Form[SearchItemForm], results: Optional[PaginatedSequence[SearchItem]])(implicit nav: Nav)
 
 @main(message("searchItems")) {
 
     <h2>@message("searchItems")</h2>
 
-    @foundationForm(searchItemForm, routes.SearchController.search()) {
+    @foundationForm(searchItemForm, routes.SearchController.search(), 'id -> "searchForm") {
         <div class="column row">
         @inputText(searchItemForm("keywords"))
         </div>
@@ -20,11 +19,22 @@
         @* textarea(itesearchItemFormForm("maximumPrice"), 'type -> "number", 'min -> 0)*@
         @*</div>*@
         <input type="submit" class="button" value="@message("search")"/>
-    }
 
-    @if(results.isPresent) {
-        <div>@message("searchFoundCount", results.get.size)</div>
-        <table>
+        <input type="hidden" id="pageNumber" value="@searchItemForm("pageNumber").value" name="@searchItemForm("pageNumber").name"/>
+
+        @if(results.isPresent) {
+            <script>
+                var updatePage = function(pageNum){
+                    document.getElementById("pageNumber").value = pageNum;
+                    document.getElementById("searchForm").submit();
+                }
+            </script>
+            @if(results.get().getPageSize < results.get.getCount) {
+                <div>@message("searchFoundCountWithPagination", results.get().getPageSize, results.get.getCount)</div>
+            } else {
+                <div>@message("searchFoundCount", results.get.getCount)</div>
+            }
+            <table>
 
             <thead>
                 <tr>
@@ -34,29 +44,33 @@
                 </tr>
             </thead>
 
-            <tbody>
-            @for(item <- results.get) {
-                @defining(Currency.valueOf(item.getCurrencyId)) { currency =>
-                    <tr>
-                        <td>
-                            <a href="@getItem(item.getId.toString)">@item.getTitle</a>
-                        </td>
-                        <td>@item.getItemStatus</td>
-                        <td>
-                        @if(item.getItemStatus.equals(ItemStatus.AUCTION.name) && item.getPrice.isPresent) {
-                            @currency.format(item.getPrice.get)
-                        } else {
-                            -
-                        }
-                        </td>
-                    </tr>
-                    <tr>
-                        <td colspan="4">@item.getDescription</td>
-                    </tr>
+                <tbody>
+                @for(item <- results.get.getItems) {
+                    @defining(Currency.valueOf(item.getCurrencyId)) { currency =>
+                        <tr>
+                            <td>
+                                <a href="@getItem(item.getId.toString)">@item.getTitle</a>
+                            </td>
+                            <td>@item.getItemStatus</td>
+                            <td>
+                            @if(item.getItemStatus.equals(ItemStatus.AUCTION.name) && item.getPrice.isPresent) {
+                                @currency.format(item.getPrice.get)
+                            } else {
+                                -
+                            }
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="4">@item.getDescription</td>
+                        </tr>
+                    }
                 }
+                </tbody>
+            </table>
+            @paginate(results.get){ (pageNumber, label) =>
+                    <a onclick='updatePage(@pageNumber);' aria-label='@label'>@label</a>
             }
-            </tbody>
-        </table>
-    }
+        }
 
+    }
 }

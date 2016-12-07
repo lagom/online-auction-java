@@ -1,13 +1,10 @@
 package controllers;
 
-import com.example.auction.item.api.ItemService;
-import com.example.auction.item.api.ItemStatus;
+import com.example.auction.item.api.PaginatedSequence;
 import com.example.auction.search.api.SearchItem;
 import com.example.auction.search.api.SearchRequest;
 import com.example.auction.search.api.SearchService;
 import com.example.auction.user.api.UserService;
-import org.pcollections.PSequence;
-import org.pcollections.TreePVector;
 import play.data.Form;
 import play.data.FormFactory;
 import play.i18n.MessagesApi;
@@ -19,26 +16,24 @@ import javax.inject.Inject;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
-import java.util.stream.Collectors;
 
 /**
  *
  */
 public class SearchController extends AbstractController {
 
+    public static final int DEFAULT_PAGE_SIZE = 15;
+
     private final FormFactory formFactory;
-    private final ItemService itemService;
     private final SearchService searchService;
 
     @Inject
     public SearchController(MessagesApi messagesApi,
                             UserService userService,
                             FormFactory formFactory,
-                            ItemService itemService,
                             SearchService searchService) {
         super(messagesApi, userService);
         this.formFactory = formFactory;
-        this.itemService = itemService;
         this.searchService = searchService;
     }
 
@@ -61,10 +56,16 @@ public class SearchController extends AbstractController {
                             } else {
                                 SearchRequest searchRequest = new SearchRequest(Optional.of(form.get().getKeywords()));
                                 return searchService
-                                        .search()
+                                        .search(form.get().getPageNumber(), DEFAULT_PAGE_SIZE)
                                         .invoke(searchRequest)
-                                        .thenApply(searchResult -> ok(searchItem.render(form, Optional.of(searchResult
-                                                .getItems()), nav))
+                                        .thenApply(searchResult -> {
+                                                    PaginatedSequence<SearchItem> page =
+                                                            new PaginatedSequence<>(searchResult.getItems(),
+                                                                    searchResult.getPageNo(),
+                                                                    searchResult.getPageSize(),
+                                                                    searchResult.getNumResults());
+                                                    return ok(searchItem.render(form, Optional.of(page), nav));
+                                                }
                                         ).exceptionally(exception ->
                                                 ok(views.html.searchItem.render(form, Optional.empty(), nav))
                                         );

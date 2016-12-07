@@ -11,10 +11,12 @@ import java.util.List;
 public class Hits {
 
     PSequence<HitResult> hits;
+    int total;
 
     @JsonCreator
-    public Hits(PSequence<HitResult> hits) {
+    public Hits(PSequence<HitResult> hits, int total) {
         this.hits = hits;
+        this.total = total;
     }
 
     public List<HitResult> getHits() {

@@ -26,6 +26,7 @@ searchItems=Search Items
 keywords=Keywords
 maximumPrice=Maximum Price
 searchFoundCount={0} items found
+searchFoundCountWithPagination=Displaying {0} of {1} items found
 
 seller=Seller
 auctionStart=Auction start

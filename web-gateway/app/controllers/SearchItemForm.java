@@ -12,6 +12,8 @@ public class SearchItemForm {
 
     private String keywords;
 
+    private int pageNumber = 0;
+
     private String currency; // ???
     private int maximumPrice; // ???
     private String username; // ???
@@ -74,4 +76,13 @@ public class SearchItemForm {
     public void setUsername(String username) {
         this.username = username;
     }
+
+    public int getPageNumber() {
+        return pageNumber;
+    }
+
+    public void setPageNumber(int pageNumber) {
+        this.pageNumber = pageNumber;
+    }
+
 }

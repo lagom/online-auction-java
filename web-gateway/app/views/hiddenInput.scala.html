@@ -1,0 +1,8 @@
+@import views.html.helper.FieldElements
+
+@(elements: FieldElements)
+@defining(elements.args.getOrElse('_id, elements.id + "Field")) { id =>
+    @if(elements.args.get('type).exists(_.equals("hidden"))) {
+        @elements.input
+    }
+}

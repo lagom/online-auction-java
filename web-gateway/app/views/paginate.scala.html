@@ -1,13 +1,12 @@
 @import com.example.auction.item.api.PaginatedSequence
-@import play.mvc.Call
 
-@(pagination: PaginatedSequence[_])(route: (Int, Int) => Call)
+@(pagination: PaginatedSequence[_])(route: (Int, String) => Html )
 
-@paginationItem(href: => Call, label: String, isLinked: Boolean, disabledClass: String, otherClasses: String = "") = {
+@paginationItem(pageNumber: Int, label: String, isLinked: Boolean, disabledClass: String, otherClasses: String = "") = {
 @defining(otherClasses + (if(!isLinked) " " + disabledClass else "")) { liClasses =>
     <li class="@liClasses">
     @if(isLinked) {
-        <a href="@href" aria-label="@label">@label</a>
+        @route(pageNumber , label)
     } else {
         @label
     }
@@ -15,14 +14,11 @@
 }
 }
 
-@page(page: Int) = @{
-    route(page, pagination.getPageSize)
-}
 @prevPage() = @{
-    page(pagination.getPage - 1)
+    pagination.getPage - 1
 }
 @nextPage() = @{
-    page(pagination.getPage + 1)
+    pagination.getPage + 1
 }
 
 @if(pagination.isPaged) {
@@ -37,7 +33,7 @@
             )
             @for(pageNumber <- 0 until pagination.getPageCount) {
                 @paginationItem(
-                    page(pageNumber),
+                    pageNumber,
                     (pageNumber + 1).toString,
                     isLinked = pageNumber != pagination.getPage,
                     disabledClass = "current"
