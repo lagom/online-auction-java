@@ -28,7 +28,8 @@ public class Mappers {
                 details.getCurrencyId(),
                 details.getIncrement(),
                 details.getReservePrice(),
-                details.getAuctionDuration());
+                details.getAuctionDuration(),
+                details.getCategoryId());
     }
 
     public static PItemData fromApi(ItemData data) {
@@ -38,6 +39,7 @@ public class Mappers {
                 data.getCurrencyId(),
                 data.getIncrement(),
                 data.getReservePrice(),
-                data.getAuctionDuration());
+                data.getAuctionDuration(),
+                data.getCategoryId());
     }
 }

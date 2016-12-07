@@ -1,6 +1,11 @@
 lazy val root = (project in file("."))
   .settings(name := "online-auction-java")
-  .aggregate(itemApi, itemImpl, biddingApi, biddingImpl, userApi, userImpl, webGateway)
+  .aggregate(
+    itemApi, itemImpl,
+    biddingApi, biddingImpl,
+    userApi, userImpl,
+    searchApi, searchImpl,
+    webGateway)
   .settings(commonSettings: _*)
 
 organization in ThisBuild := "com.example"
@@ -132,7 +137,7 @@ lazy val userImpl = (project in file("user-impl"))
 lazy val webGateway = (project in file("web-gateway"))
   .settings(commonSettings: _*)
   .enablePlugins(PlayJava && LagomPlay)
-  .dependsOn(transactionApi, biddingApi, itemApi, searchApi, userApi)
+  .dependsOn(transactionApi, biddingApi, itemApi, searchApi, userApi, searchApi)
   .settings(
     version := "1.0-SNAPSHOT",
     libraryDependencies ++= Seq(

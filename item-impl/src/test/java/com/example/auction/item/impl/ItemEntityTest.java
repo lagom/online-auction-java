@@ -56,7 +56,8 @@ public class ItemEntityTest {
 
     private UUID itemId = UUID.randomUUID();
     private UUID creatorId = UUID.randomUUID();
-    private PItemData itemData = new PItemData("title", "desc", "EUR", 1, 10, Duration.ofMinutes(10));
+    private Optional<UUID> categoryId = Optional.empty();
+    private PItemData itemData = new PItemData("title", "desc", "EUR", 1, 10, Duration.ofMinutes(10), categoryId);
 
     private PItem pItem = new PItem(itemId, creatorId, itemData);
 
@@ -149,8 +150,8 @@ public class ItemEntityTest {
                         "CAD",
                         itemData.getIncrement() * 2,
                         itemData.getReservePrice() * 3,
-                        itemData.getAuctionDuration().plus(1, ChronoUnit.HOURS)
-                ));
+                        itemData.getAuctionDuration().plus(1, ChronoUnit.HOURS),
+                        categoryId));
 
         Outcome<PItemEvent, PItemState> outcome = driver.run(cmd);
         expectFailure(outcome);
@@ -301,8 +302,8 @@ public class ItemEntityTest {
                         newCurrency,
                         oldData.getIncrement() * 2,
                         oldData.getReservePrice() * 3,
-                        oldData.getAuctionDuration().plus(1, ChronoUnit.HOURS)
-                )
+                        oldData.getAuctionDuration().plus(1, ChronoUnit.HOURS),
+                        categoryId)
         );
     }
 }

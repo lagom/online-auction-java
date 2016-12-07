@@ -1,6 +1,5 @@
 package com.example.elasticsearch;
 
-import com.example.auction.item.api.ItemStatus;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Value;
@@ -10,15 +9,16 @@ import java.util.function.Predicate;
 /**
  *
  */
-interface MatchFilter extends Filter {
+interface MultiMatchFilter extends Filter {
 
     @Value
-    class ItemStatusFilter implements MatchFilter {
+    class KeywordsFilter implements MatchFilter {
+        @JsonProperty("multi_match")
         Match match;
 
         @JsonCreator
-        public ItemStatusFilter(ItemStatus itemStatus) {
-            match = new Match.ItemStatusMatch(itemStatus);
+        public KeywordsFilter(String keywords) {
+            match = new Match.KeywordsMatch(keywords);
         }
 
 
@@ -28,5 +28,3 @@ interface MatchFilter extends Filter {
         }
     }
 }
-
-

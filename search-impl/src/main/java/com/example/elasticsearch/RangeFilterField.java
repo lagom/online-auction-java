@@ -23,10 +23,8 @@ public interface RangeFilterField extends Filter {
         @Override
         public Predicate<? super IndexedItem> predicate() {
             return (ii) ->
-                    ii.getPrice().isPresent()
-                            &&
-                            ii.getPrice().getAsInt() <= price.getLte().orElse(Integer.MAX_VALUE) &&
-                            ii.getPrice().getAsInt() >= price.getGte().orElse(Integer.MIN_VALUE);
+                    ii.getPrice().map(i -> i.intValue() <= price.getLte().orElse(Integer.MAX_VALUE) &&
+                            i.intValue() >= price.getGte().orElse(Integer.MIN_VALUE)).orElse(false);
         }
     }
 }

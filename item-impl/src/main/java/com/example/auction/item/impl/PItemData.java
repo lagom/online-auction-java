@@ -6,6 +6,8 @@ import lombok.Value;
 import lombok.experimental.Wither;
 
 import java.time.Duration;
+import java.util.Optional;
+import java.util.UUID;
 
 /**
  * This class uses Lombok's '@Value' annotation to become immutable. See https://projectlombok.org/features/Value.html
@@ -23,15 +25,17 @@ public class PItemData implements Jsonable {
     int increment;
     int reservePrice;
     Duration auctionDuration;
+    Optional<UUID> categoryId;
 
     @JsonCreator
-    public PItemData(String title, String description, String currencyId, int increment, int reservePrice, Duration auctionDuration) {
+    public PItemData(String title, String description, String currencyId, int increment, int reservePrice, Duration auctionDuration, Optional<UUID> categoryId) {
         this.title = title;
         this.description = description;
         this.currencyId = currencyId;
         this.increment = increment;
         this.reservePrice = reservePrice;
         this.auctionDuration = auctionDuration;
+        this.categoryId = categoryId;
     }
 
     /**

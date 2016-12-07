@@ -28,12 +28,9 @@ import scala.concurrent.duration.FiniteDuration;
 import javax.inject.Inject;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletionStage;
-import java.util.concurrent.ExecutionException;
-import java.util.function.Supplier;
 
 import static com.example.auction.security.ClientSecurity.authenticate;
 import static com.lightbend.lagom.javadsl.testkit.ServiceTest.*;
@@ -179,8 +176,8 @@ public class ItemServiceImplIntegrationTest {
         // build the stream and materialize it
         Source<ItemEvent, ?> events = itemService.itemEvents().subscribe().atMostOnceSource();
         CompletionStage<ItemEvent> eventualHead = events
-                .dropWhile(event -> !event.getItemId().equals(createdItem.getId()))
-                .drop(1) // first event will be the item creation Event.ItemUpdated
+                .dropWhile(event -> !event.getItemId().equals(createdItem.getId())) // drop other users' events
+                .dropWhile(event -> !(event instanceof ItemEvent.AuctionStarted)) // drop events we don't care about right now
                 .runWith(Sink.head(), testServer.materializer());
 
         // cause the event
@@ -254,7 +251,8 @@ public class ItemServiceImplIntegrationTest {
     // --------------------------------------------------
 
     private ItemData sampleItem() {
-        return new ItemData("title", "description", "USD", 10, 10, Duration.ofMinutes(10));
+        Optional<UUID> categoryId = Optional.empty();
+        return new ItemData("title", "description", "USD", 10, 10, Duration.ofMinutes(10), categoryId);
     }
 
     private Item createItem(UUID creatorId, ItemData createItem) {

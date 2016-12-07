@@ -1,0 +1,62 @@
+@import helper._
+@import org.pcollections.PSequence
+@import com.example.auction.search.api.SearchItem
+@import routes.ItemController.getItem
+@import controllers.Currency
+
+@import java.util.Optional
+@import com.example.auction.item.api.ItemStatus
+@(searchItemForm: Form[SearchItemForm], results: Optional[PSequence[SearchItem]])(implicit nav: Nav)
+
+@main(message("searchItems")) {
+
+    <h2>@message("searchItems")</h2>
+
+    @foundationForm(searchItemForm, routes.SearchController.search()) {
+        <div class="column row">
+        @inputText(searchItemForm("keywords"))
+        </div>
+        @*<div class="column row">*@
+        @* textarea(itesearchItemFormForm("maximumPrice"), 'type -> "number", 'min -> 0)*@
+        @*</div>*@
+        <input type="submit" class="button" value="@message("search")"/>
+    }
+
+    @if(results.isPresent) {
+        <div>@message("searchFoundCount", results.get.size)</div>
+        <table>
+
+            <thead>
+                <tr>
+                    <th>@message("title")</th>
+                    <th>@message("status")</th>
+                    <th>@message("currentPrice")</th>
+                </tr>
+            </thead>
+
+            <tbody>
+            @for(item <- results.get) {
+                @defining(Currency.valueOf(item.getCurrencyId)) { currency =>
+                    <tr>
+                        <td>
+                            <a href="@getItem(item.getId.toString)">@item.getTitle</a>
+                        </td>
+                        <td>@item.getItemStatus</td>
+                        <td>
+                        @if(item.getItemStatus.equals(ItemStatus.AUCTION.name) && item.getPrice.isPresent) {
+                            @currency.format(item.getPrice.get)
+                        } else {
+                            -
+                        }
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="4">@item.getDescription</td>
+                    </tr>
+                }
+            }
+            </tbody>
+        </table>
+    }
+
+}

@@ -16,10 +16,7 @@ import com.example.auction.search.api.SearchItem;
 import com.example.auction.search.api.SearchRequest;
 import com.example.auction.search.api.SearchResult;
 import com.example.auction.search.api.SearchService;
-import com.example.elasticsearch.ElasticSearch;
-import com.example.elasticsearch.IndexedItem;
-import com.example.elasticsearch.Queries;
-import com.example.elasticsearch.UpdateIndexItem;
+import com.example.elasticsearch.*;
 import com.lightbend.lagom.javadsl.api.ServiceCall;
 import org.pcollections.PSequence;
 import org.pcollections.TreePVector;
@@ -45,15 +42,27 @@ public class SearchServiceImpl implements SearchService {
             ItemService itemService,
             BiddingService biddingService) {
         this.elasticSearch = elasticSearch;
+        // TODO: use ES' _bulk API
         itemService.itemEvents().subscribe().atLeastOnce(
                 Flow.<ItemEvent>create().map(this::toDocument).mapAsync(1, this::store));
+        // TODO: use ES' _bulk API
         biddingService.bidEvents().subscribe().atLeastOnce(
                 Flow.<BidEvent>create().map(this::toDocument).mapAsync(1, this::store));
     }
 
     @Override
     public ServiceCall<SearchRequest, SearchResult> search() {
-        return null;
+        return req -> {
+            QueryRoot query = Queries.forKeywords(req.getKeywords());
+            return elasticSearch.search(indexName).invoke(query).thenApply(result -> {
+                TreePVector<SearchItem> items = TreePVector.from(
+                        result.getIndexedItem()
+                                .map(this::toApi)
+                                .collect(Collectors.toList()));
+
+                return new SearchResult(items, -1, -1, -1);
+            });
+        };
     }
 
     @Override
@@ -121,6 +130,7 @@ public class SearchServiceImpl implements SearchService {
                 indexedItem.getCreatorId().orElse(UUID.randomUUID()),
                 indexedItem.getTitle().get(),
                 indexedItem.getDescription().get(),
+                indexedItem.getStatus().get().name(),
                 indexedItem.getCurrencyId().get(),
                 indexedItem.getPrice(),
                 indexedItem.getAuctionStart(),

@@ -1,15 +1,11 @@
 package com.example.auction.item.api;
 
-import com.example.auction.item.api.DeliveryOption;
-import com.example.auction.item.api.ItemStatus;
-import com.example.auction.item.api.Location;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import lombok.Builder;
 import lombok.Value;
 import lombok.experimental.Wither;
 import org.pcollections.PSet;
 
-import java.time.Duration;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
@@ -32,7 +28,6 @@ public class Item {
     Optional<UUID> auctionWinner;
 
     // null fields are temporarily null because they aren't implemented yet
-    private final UUID categoryId = null;
     private final Location location = null;
     private final PSet<DeliveryOption> deliveryOptions = null;
 

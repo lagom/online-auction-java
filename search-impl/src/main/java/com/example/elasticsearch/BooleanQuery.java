@@ -11,14 +11,14 @@ import java.util.Arrays;
 @Value
 class BooleanQuery {
 
-    Filter[] must;
+    Filter[] should;
 
     @JsonCreator
-    public BooleanQuery(Filter... must) {
-        this.must = must;
+    public BooleanQuery(Filter... should) {
+        this.should = should;
     }
 
     public boolean test(IndexedItem item) {
-        return Arrays.asList(must).stream().allMatch(f -> f.predicate().test(item));
+        return Arrays.asList(should).stream().allMatch(f -> f.predicate().test(item));
     }
 }

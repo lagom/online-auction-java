@@ -5,7 +5,6 @@ import com.example.auction.bidding.api.*;
 import com.example.auction.item.api.*;
 import com.example.auction.user.api.User;
 import com.example.auction.user.api.UserService;
-import com.lightbend.lagom.javadsl.api.transport.TransportErrorCode;
 import com.lightbend.lagom.javadsl.api.transport.TransportException;
 import org.pcollections.PSequence;
 import play.data.Form;
@@ -79,7 +78,8 @@ public class ItemController extends AbstractController {
                 itemForm.getCurrency(),
                 currency.toPriceUnits(itemForm.getIncrement().doubleValue()),
                 currency.toPriceUnits(itemForm.getReserve().doubleValue()),
-                duration);
+                duration,
+                Optional.empty()); // TODO: use categories on UI
     }
 
     public CompletionStage<Result> editItemForm(String itemId) {

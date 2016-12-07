@@ -8,8 +8,8 @@ import lombok.Value;
 
 import java.time.Instant;
 import java.util.Optional;
-import java.util.OptionalInt;
 import java.util.UUID;
+
 
 
 // when Optionals are empty, don't add the field on the JSON sent to ES. This is part of the partial update semantics.
@@ -21,8 +21,8 @@ public class IndexedItem {
     Optional<String> title;
     Optional<String> description;
     Optional<String> currencyId;
-    OptionalInt increment;
-    OptionalInt price;
+    Optional<Integer> increment;
+    Optional<Integer> price;
     Optional<ItemStatus> status;
     Optional<Instant> auctionStart;
     Optional<Instant> auctionEnd;
@@ -30,11 +30,12 @@ public class IndexedItem {
 //    private  Optional<UUID> auctionWinner = Optional.empty();
 //    private Optional<UUID> categoryId = null;
 
+
     @JsonCreator
-    private IndexedItem(UUID itemId, Optional<UUID> creatorId, Optional<String> title, Optional<String> description,
-                       Optional<String> currencyId, OptionalInt increment, OptionalInt price,
-                       Optional<ItemStatus> status, Optional<Instant> auctionStart, Optional<Instant> auctionEnd,
-                       Optional<UUID> winner) {
+    IndexedItem(UUID itemId, Optional<UUID> creatorId, Optional<String> title, Optional<String> description,
+                        Optional<String> currencyId, Optional<Integer> increment, Optional<Integer> price,
+                        Optional<ItemStatus> status, Optional<Instant> auctionStart, Optional<Instant> auctionEnd,
+                        Optional<UUID> winner) {
         this.itemId = itemId;
         this.creatorId = creatorId;
         this.title = title;
@@ -55,8 +56,8 @@ public class IndexedItem {
                 Optional.empty(),
                 Optional.empty(),
                 Optional.empty(),
-                OptionalInt.empty(),
-                OptionalInt.of(price),
+                Optional.empty(),
+                Optional.of(price),
                 Optional.empty(),
                 Optional.empty(),
                 Optional.empty(),
@@ -71,8 +72,8 @@ public class IndexedItem {
                 Optional.empty(),
                 Optional.empty(),
                 Optional.empty(),
-                OptionalInt.empty(),
-                OptionalInt.of(price),
+                Optional.empty(),
+                Optional.of(price),
                 Optional.empty(),
                 Optional.empty(),
                 Optional.empty(),
@@ -87,8 +88,8 @@ public class IndexedItem {
                 Optional.empty(),
                 Optional.empty(),
                 Optional.empty(),
-                OptionalInt.empty(),
-                OptionalInt.empty(),
+                Optional.empty(),
+                Optional.empty(),
                 Optional.of(ItemStatus.AUCTION),
                 Optional.of(startDate),
                 Optional.of(endDate),
@@ -102,8 +103,8 @@ public class IndexedItem {
                 Optional.of(item.getItemData().getTitle()),
                 Optional.of(item.getItemData().getDescription()),
                 Optional.of(item.getItemData().getCurrencyId()),
-                OptionalInt.of(item.getItemData().getIncrement()),
-                OptionalInt.of(item.getPrice()),
+                Optional.of(item.getItemData().getIncrement()),
+                Optional.of(item.getPrice()),
                 Optional.of(ItemStatus.COMPLETED),
                 item.getAuctionStart(),
                 item.getAuctionEnd(),
@@ -117,8 +118,8 @@ public class IndexedItem {
                 Optional.of(title),
                 Optional.of(description),
                 Optional.of(currencyId),
-                OptionalInt.empty(),
-                OptionalInt.empty(),
+                Optional.empty(),
+                Optional.empty(),
                 Optional.of(itemStatus),
                 Optional.empty(),
                 Optional.empty(),
@@ -126,4 +127,10 @@ public class IndexedItem {
         );
     }
 
+
+    public String getKeywords() {
+        return title.orElse("")+ "" + description.orElse("");
+    }
+
+    
 }

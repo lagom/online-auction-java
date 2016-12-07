@@ -14,11 +14,17 @@ import static com.lightbend.lagom.javadsl.api.Service.named;
 
 public interface SearchService extends Service {
 
+    // TODO: pagination
     ServiceCall<SearchRequest, SearchResult> search();
 
+    // TODO: pagination
     ServiceCall<NotUsed, PSequence<SearchItem>> getUserAuctions(UUID userId);
 
+    // TODO: pagination
     ServiceCall<NotUsed, PSequence<SearchItem>> getOpenAuctionsUnderPrice(Integer maxPrice);
+
+    // TODO: search by some-word, category, user, status and price.
+
 
     @Override
     default Descriptor descriptor() {

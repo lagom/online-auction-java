@@ -2,7 +2,6 @@ package com.example.elasticsearch;
 
 import akka.Done;
 import com.lightbend.lagom.javadsl.api.ServiceCall;
-import org.pcollections.PSequence;
 import org.pcollections.TreePVector;
 
 import java.util.*;
@@ -28,25 +27,28 @@ public class ElasticSearchInMem implements ElasticSearch {
     }
 
     @Override
-    public ServiceCall<QueryRoot, PSequence<IndexedItem>> search(String index) {
+    public ServiceCall<QueryRoot, SearchResult> search(String index) {
         return q -> CompletableFuture.completedFuture(itemsById.values().stream())
                 .thenApply(xs -> xs.filter(q::test))
+                .thenApply(xs -> xs.map(item -> new HitResult(item)))
                 .thenApply(xs -> xs.collect(Collectors.toList()))
-                .thenApply(TreePVector::from);
+                .thenApply(TreePVector::from)
+                .thenApply(seq -> new SearchResult(new Hits(seq)))
+                ;
     }
 
     private IndexedItem merge(IndexedItem before, IndexedItem after) {
-        return new IndexedItem(after.getItemId())
-                .withCreatorId(merge(before.getCreatorId(), after.getCreatorId()))
-                .withTitle(merge(before.getTitle(), after.getTitle()))
-                .withDescription(merge(before.getDescription(), after.getDescription()))
-                .withCurrencyId(merge(before.getCurrencyId(), after.getCurrencyId()))
-                .withIncrement((after.getIncrement().isPresent()) ? after.getIncrement() : before.getIncrement())
-                .withPrice((after.getPrice().isPresent()) ? after.getPrice() : before.getPrice())
-                .withStatus(merge(before.getStatus(), after.getStatus()))
-                .withAuctionStart(merge(before.getAuctionStart(), after.getAuctionStart()))
-                .withAuctionEnd(merge(before.getAuctionEnd(), after.getAuctionEnd()))
-                .withWinner(merge(before.getWinner(), after.getWinner()))
+        return new IndexedItem(after.getItemId(),
+                merge(before.getCreatorId(), after.getCreatorId()),
+                merge(before.getTitle(), after.getTitle()),
+                merge(before.getDescription(), after.getDescription()),
+                merge(before.getCurrencyId(), after.getCurrencyId()),
+                (after.getIncrement().isPresent()) ? after.getIncrement() : before.getIncrement(),
+                (after.getPrice().isPresent()) ? after.getPrice() : before.getPrice(),
+                merge(before.getStatus(), after.getStatus()),
+                merge(before.getAuctionStart(), after.getAuctionStart()),
+                merge(before.getAuctionEnd(), after.getAuctionEnd()),
+                merge(before.getWinner(), after.getWinner()))
                 ;
     }
 
