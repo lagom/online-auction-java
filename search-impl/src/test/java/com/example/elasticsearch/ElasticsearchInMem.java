@@ -2,14 +2,12 @@ package com.example.elasticsearch;
 
 import akka.Done;
 import com.lightbend.lagom.javadsl.api.ServiceCall;
-import org.pcollections.TreePVector;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 
 
-public class ElasticSearchInMem implements ElasticSearch {
+public class ElasticsearchInMem implements Elasticsearch {
 
     Map<UUID, IndexedItem> itemsById = new HashMap<>();
     Map<UUID, Set<UUID>> itemsByCreator = new HashMap<>();
@@ -28,13 +26,11 @@ public class ElasticSearchInMem implements ElasticSearch {
 
     @Override
     public ServiceCall<QueryRoot, SearchResult> search(String index) {
-        return q -> CompletableFuture.completedFuture(itemsById.values().stream())
-                .thenApply(xs -> xs.filter(q::test))
-                .thenApply(xs -> xs.map(item -> new HitResult(item)))
-                .thenApply(xs -> xs.collect(Collectors.toList()))
-                .thenApply(TreePVector::from)
-                .thenApply(seq -> new SearchResult(new Hits(seq)))
-                ;
+        return null ;
+    }
+
+    public Map<UUID, IndexedItem>   items(){
+        return itemsById;
     }
 
     private IndexedItem merge(IndexedItem before, IndexedItem after) {

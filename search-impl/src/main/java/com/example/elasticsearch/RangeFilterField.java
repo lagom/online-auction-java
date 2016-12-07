@@ -20,11 +20,5 @@ public interface RangeFilterField extends Filter {
             price = new RangeInt(OptionalInt.of(maxPrice), OptionalInt.empty());
         }
 
-        @Override
-        public Predicate<? super IndexedItem> predicate() {
-            return (ii) ->
-                    ii.getPrice().map(i -> i.intValue() <= price.getLte().orElse(Integer.MAX_VALUE) &&
-                            i.intValue() >= price.getGte().orElse(Integer.MIN_VALUE)).orElse(false);
-        }
     }
 }

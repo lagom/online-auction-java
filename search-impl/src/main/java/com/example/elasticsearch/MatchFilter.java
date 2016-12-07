@@ -21,11 +21,6 @@ interface MatchFilter extends Filter {
             match = new Match.ItemStatusMatch(itemStatus);
         }
 
-
-        @Override
-        public Predicate<? super IndexedItem> predicate() {
-            return match.predicate();
-        }
     }
 }
 

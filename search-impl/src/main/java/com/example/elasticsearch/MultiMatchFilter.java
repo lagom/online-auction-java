@@ -21,10 +21,5 @@ interface MultiMatchFilter extends Filter {
             match = new Match.KeywordsMatch(keywords);
         }
 
-
-        @Override
-        public Predicate<? super IndexedItem> predicate() {
-            return match.predicate();
-        }
     }
 }

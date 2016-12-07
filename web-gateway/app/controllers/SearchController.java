@@ -63,17 +63,8 @@ public class SearchController extends AbstractController {
                                 return searchService
                                         .search()
                                         .invoke(searchRequest)
-                                        .thenApply(searchResult -> {
-                                                    PSequence<SearchItem> items = TreePVector.from(searchResult
-                                                            .getItems()
-                                                            .stream()
-                                                            .filter(item ->
-                                                                    !item.getItemStatus().equals(ItemStatus.CREATED.name()) ||
-                                                                    (maybeUser.map(user -> item.getCreator().equals(user)).orElse(false))
-                                                            )
-                                                            .collect(Collectors.toList()));
-                                                    return ok(searchItem.render(form, Optional.of(items), nav));
-                                                }
+                                        .thenApply(searchResult -> ok(searchItem.render(form, Optional.of(searchResult
+                                                .getItems()), nav))
                                         ).exceptionally(exception ->
                                                 ok(views.html.searchItem.render(form, Optional.empty(), nav))
                                         );

@@ -15,8 +15,4 @@ public class Query {
         this.bool = bool;
     }
 
-    public boolean test(IndexedItem item){
-        return bool.test(item) ;
-    }
-
 }

@@ -16,7 +16,7 @@ import static com.lightbend.lagom.javadsl.api.Service.named;
 /**
  *
  */
-public interface ElasticSearch extends  Service {
+public interface Elasticsearch extends  Service {
 
     ServiceCall<UpdateIndexItem, Done> updateIndex(String index, UUID itemId);
 

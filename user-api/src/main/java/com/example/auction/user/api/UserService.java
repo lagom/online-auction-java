@@ -1,6 +1,5 @@
 package com.example.auction.user.api;
 
-import akka.Done;
 import akka.NotUsed;
 import com.lightbend.lagom.javadsl.api.Descriptor;
 import com.lightbend.lagom.javadsl.api.Service;
@@ -8,9 +7,9 @@ import com.lightbend.lagom.javadsl.api.ServiceCall;
 import com.lightbend.lagom.javadsl.api.deser.PathParamSerializers;
 import org.pcollections.PSequence;
 
-import static com.lightbend.lagom.javadsl.api.Service.*;
-
 import java.util.UUID;
+
+import static com.lightbend.lagom.javadsl.api.Service.*;
 
 public interface UserService extends Service {
 

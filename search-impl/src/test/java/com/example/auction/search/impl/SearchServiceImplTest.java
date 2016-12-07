@@ -9,8 +9,8 @@ import com.example.auction.item.api.*;
 import com.example.auction.search.api.SearchItem;
 import com.example.auction.search.api.SearchService;
 import com.example.auction.search.impl.core.TopicStub;
-import com.example.elasticsearch.ElasticSearch;
-import com.example.elasticsearch.ElasticSearchInMem;
+import com.example.elasticsearch.Elasticsearch;
+import com.example.elasticsearch.ElasticsearchInMem;
 import com.lightbend.lagom.javadsl.api.ServiceCall;
 import com.lightbend.lagom.javadsl.api.broker.Topic;
 import com.lightbend.lagom.javadsl.testkit.ServiceTest;
@@ -44,14 +44,15 @@ public class SearchServiceImplTest {
                     b.overrides(
                             bind(BiddingService.class).to(BiddingStub.class),
                             bind(ItemService.class).to(ItemStub.class),
-                            bind(ElasticSearch.class).to(ElasticSearchInMem.class)
+                            bind(Elasticsearch.class).to(ElasticsearchInMem.class)
                     )
             );
 
     @BeforeClass
     public static void beforeAll() {
         testServer = ServiceTest.startServer(setup);
-        searchService = testServer.client(SearchService.class);
+        searchService =  testServer.client(SearchService.class);
+        elasticsearch = ((ElasticsearchInMem)testServer.client(Elasticsearch.class));
     }
 
     @AfterClass
@@ -61,54 +62,10 @@ public class SearchServiceImplTest {
 
     private static ServiceTest.TestServer testServer;
     private static SearchService searchService;
+    private static ElasticsearchInMem elasticsearch;
 
     private static Supplier<ActorRef> bidStub;
     private static Supplier<ActorRef> itemStub;
-
-    @Test
-    public void shouldReturnOnlyOpenAuctionsUnderGivenPrice() throws InterruptedException, ExecutionException, TimeoutException {
-        UUID itemId = UUID.randomUUID();
-        UUID creatorId = UUID.randomUUID();
-        UUID bidder1 = UUID.randomUUID();
-
-        int reservePrice = 23;
-        int increment = 2;
-        int price = reservePrice + increment;
-        int maximumPrice = reservePrice * 2;
-
-
-        ItemEvent.ItemUpdated itemCreated = new ItemEvent.ItemUpdated(itemId, creatorId, "titles", "desc", ItemStatus.CREATED, "EUR");
-        itemStub.get().tell(itemCreated, ActorRef.noSender());
-
-        PSequence<SearchItem> items = searchService
-                .getOpenAuctionsUnderPrice(price + 1100)
-                .invoke()
-                .toCompletableFuture()
-                .get(5, TimeUnit.SECONDS);
-        assertEquals(0, items.size());
-
-        ItemEvent.AuctionStarted auctionStarted = new ItemEvent.AuctionStarted(itemId, creatorId, reservePrice, increment, Instant.now(), Instant.now().plusSeconds(50));
-        itemStub.get().tell(auctionStarted, ActorRef.noSender());
-        BidEvent.BidPlaced bidPlaced = new BidEvent.BidPlaced(itemId, new Bid(bidder1, Instant.now().plusMillis(10), price, maximumPrice));
-        bidStub.get().tell(bidPlaced, ActorRef.noSender());
-
-
-        items = searchService
-                .getOpenAuctionsUnderPrice(reservePrice - 1)
-                .invoke()
-                .toCompletableFuture()
-                .get(5, TimeUnit.SECONDS);
-        assertEquals(0, items.size());
-
-
-        items = searchService
-                .getOpenAuctionsUnderPrice(price + 1100)
-                .invoke()
-                .toCompletableFuture()
-                .get(5, TimeUnit.SECONDS);
-        assertEquals(itemId, items.get(0).getId());
-
-    }
 
 
     // ------------------------------------------------------------------

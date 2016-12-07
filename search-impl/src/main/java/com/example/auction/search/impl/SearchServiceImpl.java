@@ -34,14 +34,14 @@ import java.util.stream.Collectors;
 public class SearchServiceImpl implements SearchService {
 
     private static final String indexName = "auction-items";
-    private final ElasticSearch elasticSearch;
+    private final Elasticsearch elasticsearch;
 
     @Inject
     public SearchServiceImpl(
-            ElasticSearch elasticSearch,
+            Elasticsearch elasticsearch,
             ItemService itemService,
             BiddingService biddingService) {
-        this.elasticSearch = elasticSearch;
+        this.elasticsearch = elasticsearch;
         // TODO: use ES' _bulk API
         itemService.itemEvents().subscribe().atLeastOnce(
                 Flow.<ItemEvent>create().map(this::toDocument).mapAsync(1, this::store));
@@ -54,7 +54,7 @@ public class SearchServiceImpl implements SearchService {
     public ServiceCall<SearchRequest, SearchResult> search() {
         return req -> {
             QueryRoot query = Queries.forKeywords(req.getKeywords());
-            return elasticSearch.search(indexName).invoke(query).thenApply(result -> {
+            return elasticsearch.search(indexName).invoke(query).thenApply(result -> {
                 TreePVector<SearchItem> items = TreePVector.from(
                         result.getIndexedItem()
                                 .map(this::toApi)
@@ -72,7 +72,7 @@ public class SearchServiceImpl implements SearchService {
 
     @Override
     public ServiceCall<NotUsed, PSequence<SearchItem>> getOpenAuctionsUnderPrice(Integer maxPrice) {
-        return req -> elasticSearch
+        return req -> elasticsearch
                 .search(indexName)
                 .invoke(Queries.getOpenAuctionsUnderPrice(maxPrice))
                 .thenApply(result -> result.getIndexedItem())
@@ -85,7 +85,7 @@ public class SearchServiceImpl implements SearchService {
 
     private CompletionStage<Done> store(Optional<IndexedItem> document) {
         return document
-                .map(doc -> elasticSearch.updateIndex(indexName, doc.getItemId()).invoke(new UpdateIndexItem(doc)))
+                .map(doc -> elasticsearch.updateIndex(indexName, doc.getItemId()).invoke(new UpdateIndexItem(doc)))
                 .orElse(CompletableFuture.completedFuture(Done.getInstance()));
     }
 

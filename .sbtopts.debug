@@ -1,0 +1,6 @@
+-J-Xms1024M
+-J-Xmx4096M
+-J-Xss2M
+-J-XX:MaxMetaspaceSize=1024M
+-J-Xdebug
+-J-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=5005

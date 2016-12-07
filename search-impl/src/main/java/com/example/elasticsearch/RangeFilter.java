@@ -14,11 +14,5 @@ class RangeFilter implements  Filter {
     public RangeFilter(RangeFilterField range) {
         this.range = range;
     }
-
-
-    @Override
-    public Predicate<? super IndexedItem> predicate() {
-        return range.predicate();
-    }
 }
 

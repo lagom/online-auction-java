@@ -21,14 +21,6 @@ interface Match extends Filter {
             this.status = status;
         }
 
-        @Override
-        public Predicate<? super IndexedItem> predicate() {
-            return item -> item
-                    .getStatus()
-                    .map(
-                            st -> st.equals(status)
-                    ).orElse(false);
-        }
     }
 
 
@@ -40,11 +32,6 @@ interface Match extends Filter {
         @JsonCreator
         public KeywordsMatch(String keywords) {
             this.query = keywords;
-        }
-
-        @Override
-        public Predicate<? super IndexedItem> predicate() {
-            return item -> item.getKeywords().contains(query);
         }
     }
 

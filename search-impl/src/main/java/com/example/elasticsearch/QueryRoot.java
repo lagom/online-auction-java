@@ -14,8 +14,4 @@ public class QueryRoot {
         this.query = query;
     }
 
-    public boolean test(IndexedItem item){
-        return query.test(item) ;
-    }
-
 }

@@ -23,7 +23,7 @@ public interface SearchService extends Service {
     // TODO: pagination
     ServiceCall<NotUsed, PSequence<SearchItem>> getOpenAuctionsUnderPrice(Integer maxPrice);
 
-    // TODO: search by some-word, category, user, status and price.
+    // TODO: search by category, price.
 
 
     @Override
