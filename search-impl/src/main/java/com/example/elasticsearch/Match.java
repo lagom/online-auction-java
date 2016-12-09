@@ -23,6 +23,17 @@ interface Match extends Filter {
 
     }
 
+    @Value
+    class CurrencyMatch implements Match {
+        String currencyId;
+
+        @JsonCreator
+        public CurrencyMatch(String currencyId) {
+            this.currencyId = currencyId;
+        }
+
+    }
+
 
     @Value
     class KeywordsMatch implements Match {

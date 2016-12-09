@@ -23,8 +23,9 @@ editItem=Edit
 saveItem=Save
 searchItems=Search Items
 
-keywords=Keywords
-maximumPrice=Maximum Price
+keywords=Exact terms: 
+maximumPrice=Maximum Price (set to '0' to disable filter)
+maximumPriceCurrency=
 searchFoundCount={0} items found
 searchFoundCountWithPagination=Displaying {0} of {1} items found
 

@@ -54,10 +54,14 @@ public class SearchController extends AbstractController {
                             if (form.hasErrors()) {
                                 return CompletableFuture.completedFuture(ok(views.html.searchItem.render(form, Optional.empty(), nav)));
                             } else {
-                                SearchRequest searchRequest = new SearchRequest(Optional.of(form.get().getKeywords()));
+
+                                SearchItemForm searchItemForm = form.get();
+
+                                int pageNumber = searchItemForm.getPageNumber();
+
                                 return searchService
-                                        .search(form.get().getPageNumber(), DEFAULT_PAGE_SIZE)
-                                        .invoke(searchRequest)
+                                        .search(pageNumber, DEFAULT_PAGE_SIZE)
+                                        .invoke(buildSearchRequest(searchItemForm))
                                         .thenApply(searchResult -> {
                                                     PaginatedSequence<SearchItem> page =
                                                             new PaginatedSequence<>(searchResult.getItems(),
@@ -73,5 +77,26 @@ public class SearchController extends AbstractController {
                         }
                 )
         );
+    }
+
+    private SearchRequest buildSearchRequest(SearchItemForm searchItemForm) {
+
+        // keywords
+        String trimmedKw = searchItemForm.getKeywords().trim();
+        Optional<String> keywords = Optional.empty();
+        if (!trimmedKw.isEmpty()) {
+            keywords = Optional.of(trimmedKw);
+        }
+
+        // max Price
+        double maxPriceInput = searchItemForm.getMaximumPrice().doubleValue();
+        Optional<Integer> maxPrice = Optional.empty();
+        Currency currency = Currency.valueOf(searchItemForm.getMaximumPriceCurrency());
+        if (maxPriceInput > 0) {
+            maxPrice = Optional.of(currency.toPriceUnits(maxPriceInput));
+        }
+
+
+        return new SearchRequest(keywords, maxPrice, maxPrice.map(i -> currency.name()));
     }
 }

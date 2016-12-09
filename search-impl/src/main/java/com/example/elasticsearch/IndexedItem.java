@@ -89,7 +89,9 @@ public class IndexedItem {
                 Optional.empty(),
                 Optional.empty(),
                 Optional.empty(),
-                Optional.empty(),
+                // when starting the auction, the price is indexed at '0' so that this
+                // field exists and hence is searchable. Otherwise, non-bid auction can't be searched.
+                Optional.of(0),
                 Optional.of(ItemStatus.AUCTION),
                 Optional.of(startDate),
                 Optional.of(endDate),

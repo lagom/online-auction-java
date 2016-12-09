@@ -95,6 +95,7 @@ public class ItemServiceImpl implements ItemService {
             return entityRef(itemId)
                     .ask(updateItem)
                     .handle((pitem, updateException) -> {
+                                // TODO: if the exception is caused by a authorization failure it must be mapped to 403
                                 if (updateException != null) {
                                     throw new TransportException(TransportErrorCode.fromHttp(409),
                                             new ExceptionMessage("UpdateFailed", updateException.getMessage()));

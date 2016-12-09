@@ -22,6 +22,16 @@ interface MatchFilter extends Filter {
         }
 
     }
+    @Value
+    class CurrencyFilter implements MatchFilter {
+        Match match;
+
+        @JsonCreator
+        public CurrencyFilter(String currencyId) {
+            match = new Match.CurrencyMatch(currencyId);
+        }
+
+    }
 }
 
 

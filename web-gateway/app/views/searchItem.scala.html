@@ -4,6 +4,7 @@
 @import routes.ItemController.getItem
 @import java.util.Optional
 @import controllers.Currency
+@import controllers.{Currency => Currencies}
 
 @(searchItemForm: Form[SearchItemForm], results: Optional[PaginatedSequence[SearchItem]])(implicit nav: Nav)
 
@@ -13,11 +14,15 @@
 
     @foundationForm(searchItemForm, routes.SearchController.search(), 'id -> "searchForm") {
         <div class="column row">
-        @inputText(searchItemForm("keywords"))
+            @inputText(searchItemForm("keywords"), 'placeholder -> "laptop")
         </div>
-        @*<div class="column row">*@
-        @* textarea(itesearchItemFormForm("maximumPrice"), 'type -> "number", 'min -> 0)*@
-        @*</div>*@
+        <div class="column row">
+            @inputText(searchItemForm("maximumPrice"), 'type -> "number", 'min -> 0)
+            @select(
+                field = searchItemForm("maximumPriceCurrency"),
+                options = Currencies.values().toSeq.map(c => c.name() -> c.getDisplayName).sortBy(_._2)
+            )
+        </div>
         <input type="submit" class="button" value="@message("search")"/>
 
         <input type="hidden" id="pageNumber" value="@searchItemForm("pageNumber").value" name="@searchItemForm("pageNumber").name"/>
@@ -53,7 +58,10 @@
                             </td>
                             <td>@item.getItemStatus</td>
                             <td>
-                            @if(item.getItemStatus.equals(ItemStatus.AUCTION.name) && item.getPrice.isPresent) {
+                            @if(
+                                item.getItemStatus.equals(ItemStatus.AUCTION.name)
+                                        && item.getPrice.isPresent
+                                        && item.getPrice.get > 0) {
                                 @currency.format(item.getPrice.get)
                             } else {
                                 -

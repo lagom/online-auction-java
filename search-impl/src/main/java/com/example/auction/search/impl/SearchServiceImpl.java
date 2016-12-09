@@ -53,9 +53,10 @@ public class SearchServiceImpl implements SearchService {
     @Override
     public ServiceCall<SearchRequest, SearchResult> search(int pageNo, int pageSize) {
         return req -> {
-            QueryRoot query = Queries
-                    .forKeywords( req.getKeywords())
-                    .withPagination(pageNo, pageSize);
+            QueryRoot query = new QueryBuilder(pageNo, pageSize)
+                    .withKeywords(req.getKeywords())
+                    .withMaxPrice(req.getMaxPrice(), req.getCurrency())
+                    .build();
             return elasticsearch.search(indexName).invoke(query).thenApply(result -> {
                 TreePVector<SearchItem> items = TreePVector.from(
                         result.getIndexedItem()
@@ -65,22 +66,6 @@ public class SearchServiceImpl implements SearchService {
                 return new SearchResult(items, query.getPageSize(), query.getPageNumber(), result.getHits().getTotal());
             });
         };
-    }
-
-    @Override
-    public ServiceCall<NotUsed, PSequence<SearchItem>> getUserAuctions(UUID userId) {
-        return null;
-    }
-
-    @Override
-    public ServiceCall<NotUsed, PSequence<SearchItem>> getOpenAuctionsUnderPrice(Integer maxPrice) {
-        return req -> elasticsearch
-                .search(indexName)
-                .invoke(Queries.getOpenAuctionsUnderPrice(maxPrice))
-                .thenApply(result -> result.getIndexedItem())
-                .thenApply(xs -> xs.map(this::toApi))
-                .thenApply(xs -> xs.collect(Collectors.toList()))
-                .thenApply(TreePVector::from);
     }
 
     // ------------------------------------------------------------------------------------------

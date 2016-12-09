@@ -5,6 +5,8 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Value;
 
+import java.util.Optional;
+
 @Value
 public class QueryRoot {
 
@@ -13,6 +15,13 @@ public class QueryRoot {
     int pageNumber;
     @JsonProperty("size")
     int pageSize;
+
+    @JsonProperty("sort")
+    SortField[] sort = new SortField[]{
+//            SortField.status, // keyword ES datatype.
+            SortField.auctionEndDescending,
+            SortField.priceAscending
+    };
 
     @JsonCreator
     QueryRoot(Query query, int pageNumber, int pageSize) {
@@ -25,7 +34,6 @@ public class QueryRoot {
         this(query, 0, 15);
     }
 
-    public QueryRoot withPagination(int pageNumber, int pageSize) {
-        return new QueryRoot(this.query, pageNumber, pageSize);
-    }
+
+
 }
