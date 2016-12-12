@@ -12,11 +12,7 @@ import static com.lightbend.lagom.javadsl.api.Service.named;
 
 public interface SearchService extends Service {
 
-    // TODO: pagination
     ServiceCall<SearchRequest, SearchResult> search(int pageNo, int pageSize);
-
-    // TODO: search by category, price, checkboxes -> status.
-
 
     @Override
     default Descriptor descriptor() {

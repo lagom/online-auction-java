@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
+
 public interface SortField {
 
     SortField score = new ScoreSort();
@@ -13,7 +14,8 @@ public interface SortField {
     SortField priceAscending = new PriceSort();
     SortField status = new StatusSort();
 
-    @JsonSerialize(as=String.class)
+
+    @JsonSerialize(as = String.class)
     class ScoreSort implements SortField {
         @JsonUnwrapped
         String key = "_score";
@@ -21,10 +23,15 @@ public interface SortField {
 
     class AuctionEndSort implements SortField {
         @JsonProperty("auctionEnd")
-        String auctionEnd = "desc";
-
+        Value auctionEnd = new Value();
         @JsonCreator
         AuctionEndSort() {
+        }
+        static class Value{
+            @JsonProperty("order")
+            String order= "desc";
+            @JsonProperty("unmapped_type")
+            String safety = "boolean";
         }
     }
 

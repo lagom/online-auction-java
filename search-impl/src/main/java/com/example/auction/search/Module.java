@@ -1,3 +1,5 @@
+package com.example.auction.search;
+
 import com.example.auction.bidding.api.BiddingService;
 import com.example.auction.item.api.ItemService;
 import com.example.auction.search.api.SearchService;

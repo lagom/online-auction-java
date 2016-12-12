@@ -1,7 +1,6 @@
 package com.example.auction.search.impl;
 
 import akka.Done;
-import akka.NotUsed;
 import akka.stream.javadsl.Flow;
 import com.example.auction.bidding.api.BidEvent;
 import com.example.auction.bidding.api.BidEvent.BidPlaced;
@@ -18,7 +17,6 @@ import com.example.auction.search.api.SearchResult;
 import com.example.auction.search.api.SearchService;
 import com.example.elasticsearch.*;
 import com.lightbend.lagom.javadsl.api.ServiceCall;
-import org.pcollections.PSequence;
 import org.pcollections.TreePVector;
 
 import javax.inject.Inject;
@@ -33,7 +31,7 @@ import java.util.stream.Collectors;
  */
 public class SearchServiceImpl implements SearchService {
 
-    private static final String indexName = "auction-items";
+    public static final String INDEX_NAME = "auction-items";
     private final Elasticsearch elasticsearch;
 
     @Inject
@@ -42,12 +40,10 @@ public class SearchServiceImpl implements SearchService {
             ItemService itemService,
             BiddingService biddingService) {
         this.elasticsearch = elasticsearch;
+
         // TODO: use ES' _bulk API
-        itemService.itemEvents().subscribe().atLeastOnce(
-                Flow.<ItemEvent>create().map(this::toDocument).mapAsync(1, this::store));
-        // TODO: use ES' _bulk API
-        biddingService.bidEvents().subscribe().atLeastOnce(
-                Flow.<BidEvent>create().map(this::toDocument).mapAsync(1, this::store));
+        itemService.itemEvents().subscribe().atLeastOnce(Flow.<ItemEvent>create().map(this::toDocument).mapAsync(1, this::store));
+        biddingService.bidEvents().subscribe().atLeastOnce(Flow.<BidEvent>create().map(this::toDocument).mapAsync(1, this::store));
     }
 
     @Override
@@ -57,9 +53,16 @@ public class SearchServiceImpl implements SearchService {
                     .withKeywords(req.getKeywords())
                     .withMaxPrice(req.getMaxPrice(), req.getCurrency())
                     .build();
-            return elasticsearch.search(indexName).invoke(query).thenApply(result -> {
+            return elasticsearch.search(INDEX_NAME).invoke(query).thenApply(result -> {
                 TreePVector<SearchItem> items = TreePVector.from(
                         result.getIndexedItem()
+                                // only return results with user provided data. We may have indexedItem's without
+                                // user defined data because sometimes bid service events will arrive before the
+                                // item service events.
+                                .filter(ii -> ii.getCreatorId().isPresent() &&
+                                        ii.getTitle().isPresent() &&
+                                        ii.getDescription().isPresent() &&
+                                        ii.getCurrencyId().isPresent())
                                 .map(this::toApi)
                                 .collect(Collectors.toList()));
 
@@ -72,7 +75,7 @@ public class SearchServiceImpl implements SearchService {
 
     private CompletionStage<Done> store(Optional<IndexedItem> document) {
         return document
-                .map(doc -> elasticsearch.updateIndex(indexName, doc.getItemId()).invoke(new UpdateIndexItem(doc)))
+                .map(doc -> elasticsearch.updateIndex(INDEX_NAME, doc.getItemId()).invoke(new UpdateIndexItem(doc)))
                 .orElse(CompletableFuture.completedFuture(Done.getInstance()));
     }
 

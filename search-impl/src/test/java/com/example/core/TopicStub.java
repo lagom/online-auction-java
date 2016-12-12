@@ -1,4 +1,4 @@
-package com.example.auction.search.impl.core;
+package com.example.core;
 
 import akka.Done;
 import akka.actor.ActorRef;
