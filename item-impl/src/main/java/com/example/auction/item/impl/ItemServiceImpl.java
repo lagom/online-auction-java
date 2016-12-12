@@ -14,6 +14,7 @@ import com.example.auction.item.impl.PItemCommand.*;
 import com.lightbend.lagom.javadsl.api.ServiceCall;
 import com.lightbend.lagom.javadsl.api.broker.Topic;
 import com.lightbend.lagom.javadsl.api.deser.ExceptionMessage;
+import com.lightbend.lagom.javadsl.api.transport.Forbidden;
 import com.lightbend.lagom.javadsl.api.transport.NotFound;
 import com.lightbend.lagom.javadsl.api.transport.TransportErrorCode;
 import com.lightbend.lagom.javadsl.api.transport.TransportException;
@@ -95,10 +96,14 @@ public class ItemServiceImpl implements ItemService {
             return entityRef(itemId)
                     .ask(updateItem)
                     .handle((pitem, updateException) -> {
-                                // TODO: if the exception is caused by a authorization failure it must be mapped to 403
                                 if (updateException != null) {
-                                    throw new TransportException(TransportErrorCode.fromHttp(409),
-                                            new ExceptionMessage("UpdateFailed", updateException.getMessage()));
+                                    if (updateException.equals(UpdateFailureException.CANT_EDIT_ITEM_OF_ANOTHER_USER)) {
+                                        // don't disclose cause of error.
+                                        throw new Forbidden("UpdateFailed");
+                                    } else {
+                                        throw new TransportException(TransportErrorCode.fromHttp(409),
+                                                new ExceptionMessage("UpdateFailed", updateException.getMessage()));
+                                    }
                                 } else {
                                     return Mappers.toApi((PItem) pitem);
                                 }
