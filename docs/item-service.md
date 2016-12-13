@@ -1,4 +1,4 @@
-# Item Service
+# [Item Service](../item-api/src/main/java/com/example/auction/item/api/ItemService.java)
 
 
 Manages the description and auction status (created, auction, completed, cancelled) of an item.

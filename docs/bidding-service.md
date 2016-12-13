@@ -1,4 +1,4 @@
-# Bidding service
+# [Bidding service](../bidding-api/src/main/java/com/example/auction/bidding/api/BiddingService.java)
 
 Manages bids on items.
 

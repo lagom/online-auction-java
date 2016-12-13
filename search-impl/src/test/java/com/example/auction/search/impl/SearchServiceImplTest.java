@@ -65,7 +65,7 @@ public class SearchServiceImplTest {
     public void cleanIndex() {
         try {
             // TODO: locate all documents and delete those instead of dropping the index.
-            testServer.client(ElasticsearchTestUtils.class).deleteIndex(SearchServiceImpl.INDEX_NAME).invoke().toCompletableFuture().get(5, SECONDS);
+            testServer.client(ElasticsearchTestUtils.class).deleteIndex().invoke().toCompletableFuture().get(5, SECONDS);
             TimeUnit.SECONDS.sleep(1);
         } catch (Throwable t) {
             // ignore failures

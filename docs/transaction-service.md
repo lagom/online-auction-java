@@ -1,8 +1,9 @@
 
-# Transaction service
+# [Transaction service](../transaction-api/src/main/java/com/example/auction/transaction/api/TransactionService.java)
 
 Handles the transaction of negotiating delivery info and making payment of an item that has completed an auction.
 
+ATTENTION: _This service is Work In Progress._
 
 ## Commands handled
 

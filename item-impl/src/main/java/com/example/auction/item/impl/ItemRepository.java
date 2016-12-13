@@ -168,8 +168,10 @@ public class ItemRepository {
         }
 
         private CompletionStage<Done> prepareStatements() {
-            session.underlying().thenAccept(s -> registerCodec(s, new EnumNameCodec<>(ItemStatus.class)));
             return doAll(
+                    session.underlying()
+                            .thenAccept(s -> registerCodec(s, new EnumNameCodec<>(ItemStatus.class)))
+                            .thenApply(x -> Done.getInstance()),
                     prepareInsertItemCreatorStatement(),
                     prepareInsertItemSummaryByCreatorStatement(),
                     prepareUpdateItemStatusStatement(),
