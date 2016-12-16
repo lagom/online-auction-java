@@ -1,5 +1,6 @@
 lagomAuction=Lagom Auction
 logInAs=Log in as...
+search=Search
 
 formErrors=There are some errors in your form.
 
@@ -9,6 +10,7 @@ createUser=Create user
 title=Title
 description=Description
 currency=Currency
+category=Category
 increment=Minimum bid increment
 incrementHelp=When someone makes a bid, their bid must be at least this much more than the current winning bid.
 reserve=Reserve price
@@ -19,8 +21,13 @@ durationUnits=Units
 createItem=Create item
 editItem=Edit
 saveItem=Save
-canOnlyEditDescription=Can only edit Description.
-cantUpdateClosedAuction=Can''t edit a finished Auction.
+searchItems=Search Items
+
+keywords=Exact terms: 
+maximumPrice=Maximum Price (set to '0' to disable filter)
+maximumPriceCurrency=
+searchFoundCount={0} items found
+searchFoundCountWithPagination=Displaying {0} of {1} items found
 
 seller=Seller
 auctionStart=Auction start

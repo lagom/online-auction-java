@@ -20,6 +20,7 @@
             </div>
             <div class="top-bar-right">
                 <ul class="menu dropdown" data-dropdown-menu>
+                    <li><a href="@routes.SearchController.searchForm()">@message("search")</a></li>
                     <li>
                         <a href="@ProfileController.defaultProfilePage">@if(nav.getUser.isPresent) {
                             @nav.getUser.get.getName

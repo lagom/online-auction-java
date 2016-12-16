@@ -6,6 +6,7 @@ import lombok.Value;
 import lombok.experimental.Wither;
 
 import java.time.Duration;
+import java.util.Optional;
 import java.util.UUID;
 
 
@@ -23,14 +24,16 @@ public class ItemData {
     int increment;
     int reservePrice;
     Duration auctionDuration;
+    Optional<UUID> categoryId;
 
     @JsonCreator
-    public ItemData(String title, String description, String currencyId, int increment, int reservePrice, Duration auctionDuration) {
+    public ItemData(String title, String description, String currencyId, int increment, int reservePrice, Duration auctionDuration, Optional<UUID> categoryId) {
         this.title = title;
         this.description = description;
         this.currencyId = currencyId;
         this.increment = increment;
         this.reservePrice = reservePrice;
         this.auctionDuration = auctionDuration;
+        this.categoryId = categoryId;
     }
 }

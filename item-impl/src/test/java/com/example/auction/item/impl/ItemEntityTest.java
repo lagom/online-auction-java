@@ -7,6 +7,7 @@ import com.example.auction.item.impl.PItemEvent.AuctionFinished;
 import com.example.auction.item.impl.PItemEvent.AuctionStarted;
 import com.example.auction.item.impl.PItemEvent.ItemCreated;
 import com.example.auction.item.impl.PItemEvent.PriceUpdated;
+import com.lightbend.lagom.javadsl.api.transport.Forbidden;
 import com.lightbend.lagom.javadsl.api.transport.NotFound;
 import com.lightbend.lagom.javadsl.persistence.PersistentEntity;
 import com.lightbend.lagom.javadsl.testkit.PersistentEntityTestDriver;
@@ -45,9 +46,6 @@ public class ItemEntityTest {
 
     @After
     public void issues() {
-        assertTrue(new UpdateFailureException("asdf").equals(
-        new UpdateFailureException("asdf")));
-
         if (!driver.getAllIssues().isEmpty()) {
             driver.getAllIssues().forEach(System.out::println);
             fail("There were issues.");
@@ -56,7 +54,8 @@ public class ItemEntityTest {
 
     private UUID itemId = UUID.randomUUID();
     private UUID creatorId = UUID.randomUUID();
-    private PItemData itemData = new PItemData("title", "desc", "EUR", 1, 10, Duration.ofMinutes(10));
+    private Optional<UUID> categoryId = Optional.empty();
+    private PItemData itemData = new PItemData("title", "desc", "EUR", 1, 10, Duration.ofMinutes(10), categoryId);
 
     private PItem pItem = new PItem(itemId, creatorId, itemData);
 
@@ -84,7 +83,7 @@ public class ItemEntityTest {
         assertEquals(PItemStatus.AUCTION, outcome.state().getStatus());
     }
 
-    @Test(expected = PersistentEntity.InvalidCommandException.class)
+    @Test(expected = UpdateFailureException.class)
     public void shouldForbidCommandWhenStartAuctionIsCommandedByADifferentUser() throws Throwable {
         driver.run(createItem);
 
@@ -92,7 +91,7 @@ public class ItemEntityTest {
         PItemCommand invalidStartAuction = new StartAuction(hackerId);
         Outcome<PItemEvent, PItemState> outcome = driver.run(invalidStartAuction);
 
-        expectFailure(outcome);
+        expectRethrows(outcome);
     }
 
     @Test
@@ -132,10 +131,11 @@ public class ItemEntityTest {
         expectEvents(outcome, new PItemEvent.ItemUpdated(
                 itemId,
                 creatorId,
-                cmd.getItemData()));
+                cmd.getItemData(),
+                PItemStatus.CREATED));
     }
 
-    @Test(expected = PersistentEntity.InvalidCommandException.class)
+    @Test(expected = UpdateFailureException.class)
     public void shouldFailWhenUpdatingAnTheItemCreatedBySomeoneElse() throws Throwable {
         driver.run(createItem); //arrange
 
@@ -148,11 +148,11 @@ public class ItemEntityTest {
                         "CAD",
                         itemData.getIncrement() * 2,
                         itemData.getReservePrice() * 3,
-                        itemData.getAuctionDuration().plus(1, ChronoUnit.HOURS)
-                ));
+                        itemData.getAuctionDuration().plus(1, ChronoUnit.HOURS),
+                        categoryId));
 
         Outcome<PItemEvent, PItemState> outcome = driver.run(cmd);
-        expectFailure(outcome);
+        expectRethrows(outcome);
     }
 
     @Test
@@ -165,7 +165,7 @@ public class ItemEntityTest {
         UpdateItem cmd = new UpdateItem(creatorId, newData);
 
         Outcome<PItemEvent, PItemState> outcome = driver.run(cmd);
-        expectEvents(outcome, new PItemEvent.ItemUpdated(itemId, creatorId, newData));
+        expectEvents(outcome, new PItemEvent.ItemUpdated(itemId, creatorId, newData, PItemStatus.AUCTION));
     }
 
     @Test(expected = NotFound.class)
@@ -174,8 +174,7 @@ public class ItemEntityTest {
         UpdateItem cmd = editAllFields(pItem);
 
         Outcome<PItemEvent, PItemState> outcome = driver.run(cmd);
-        expectFailure(outcome);
-        expectFailure(outcome);
+        expectRethrows(outcome);
     }
 
     @Test(expected = UpdateFailureException.class)
@@ -186,7 +185,7 @@ public class ItemEntityTest {
         UpdateItem cmd = editAllFields(currentPItem);
 
         Outcome<PItemEvent, PItemState> outcome = driver.run(cmd);
-        expectFailure(outcome);
+        expectRethrows(outcome);
     }
 
     @Test(expected = UpdateFailureException.class)
@@ -200,7 +199,7 @@ public class ItemEntityTest {
         UpdateItem updateItem = new UpdateItem(creatorId, newData);
 
         Outcome<PItemEvent, PItemState> outcome = driver.run(updateItem);
-        expectFailure(outcome);
+        expectRethrows(outcome);
     }
 
 
@@ -230,7 +229,7 @@ public class ItemEntityTest {
         driver.run(createItem, startAuction, updatePrice1, finish);
         Outcome<PItemEvent, PItemState> outcome = driver.run(restart);
 
-        expectFailure(outcome);
+        expectRethrows(outcome);
     }
 
     @Test
@@ -281,9 +280,17 @@ public class ItemEntityTest {
         }
     }
 
-    private void expectFailure(Outcome<PItemEvent, PItemState> outcome) throws Throwable {
+
+    // This method rethrows the side effected exception
+    private void expectRethrows(Outcome<PItemEvent, PItemState> outcome) throws Throwable {
         PersistentEntityTestDriver.Reply sideEffect = (PersistentEntityTestDriver.Reply) outcome.sideEffects().get(0);
         throw (Throwable) sideEffect.msg();
+    }
+
+    // This method returns the side effected exception
+    private <E extends Throwable> E expectException(Outcome<PItemEvent, PItemState> outcome)  {
+        PersistentEntityTestDriver.Reply sideEffect = (PersistentEntityTestDriver.Reply) outcome.sideEffects().get(0);
+        return (E) sideEffect.msg();
     }
 
     /**
@@ -300,8 +307,8 @@ public class ItemEntityTest {
                         newCurrency,
                         oldData.getIncrement() * 2,
                         oldData.getReservePrice() * 3,
-                        oldData.getAuctionDuration().plus(1, ChronoUnit.HOURS)
-                )
+                        oldData.getAuctionDuration().plus(1, ChronoUnit.HOURS),
+                        categoryId)
         );
     }
 }

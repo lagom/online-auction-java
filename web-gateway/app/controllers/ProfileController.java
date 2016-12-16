@@ -18,7 +18,7 @@ import java.util.concurrent.CompletionStage;
 public class ProfileController extends AbstractController {
 
     public static final int DEFAULT_PAGE = 0;
-    public static final int DEFAULT_PAGE_SIZE = 10;
+    public static final int DEFAULT_PAGE_SIZE = 15;
 
     private final ItemService itemService;
 

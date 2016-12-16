@@ -1,6 +1,7 @@
 package com.example.auction.item.impl;
 
 import akka.Done;
+import com.lightbend.lagom.javadsl.api.transport.Forbidden;
 import com.lightbend.lagom.javadsl.api.transport.NotFound;
 import com.lightbend.lagom.javadsl.persistence.PersistentEntity;
 
@@ -67,11 +68,13 @@ public class PItemEntity extends PersistentEntity<PItemCommand, PItemEvent, PIte
         builder.setEventHandler(ItemUpdated.class, updateItemData());
 
 
-        builder.setCommandHandler(StartAuction.class, (start, ctx) -> {
-            if (start.getUserId().equals(state().getItem().get().getCreator())) {
+        builder.setCommandHandler(StartAuction.class, (startCmd, ctx) -> {
+            if (startCmd.getUserId().equals(state().getItem().get().getCreator())) {
                 return ctx.thenPersist(new AuctionStarted(entityUuid(), Instant.now()), alreadyDone(ctx));
             } else {
-                ctx.invalidCommand("User " + start.getUserId() + " is not allowed to start this auction");
+                // TODO: use a `Forbidden` instance instead of `UpdateFailureException`. See https://github.com/lagom/lagom/issues/325
+                // User startCmd.getUserId() is not allowed to start this auction
+                ctx.commandFailed(UpdateFailureException.CANT_EDIT_ITEM_OF_ANOTHER_USER);
                 return ctx.done();
             }
         });
@@ -129,7 +132,7 @@ public class PItemEntity extends PersistentEntity<PItemCommand, PItemEvent, PIte
 
         // a completed auction's item can't be edited.
         builder.setReadOnlyCommandHandler(UpdateItem.class, (updateItem, ctx) ->
-                ctx.commandFailed(new UpdateFailureException("Can't update an item of a completed Auction." ))
+                ctx.commandFailed(new UpdateFailureException("Can't update an item of a completed Auction."))
         );
         // a completed auction can't be restarted.
         builder.setReadOnlyCommandHandler(StartAuction.class, (updateItem, ctx) ->
@@ -164,7 +167,7 @@ public class PItemEntity extends PersistentEntity<PItemCommand, PItemEvent, PIte
      */
     private Persist updateItem(UpdateItem cmd, CommandContext ctx, PItem pItem, Supplier<Persist> onSuccess) {
         if (!pItem.getCreator().equals(cmd.getCommander())) {
-            ctx.invalidCommand("User " + cmd.getCommander() + " is not allowed to edit this auction");
+            ctx.commandFailed(UpdateFailureException.CANT_EDIT_ITEM_OF_ANOTHER_USER);
             return ctx.done();
         } else if (!pItem.getItemData().equals(cmd.getItemData())) {
             return onSuccess.get();
@@ -176,7 +179,7 @@ public class PItemEntity extends PersistentEntity<PItemCommand, PItemEvent, PIte
 
     private Persist emitUpdatedEvent(UpdateItem cmd, CommandContext ctx, PItem pItem) {
         return ctx.thenPersist(
-                new ItemUpdated(pItem.getId(), pItem.getCreator(), cmd.getItemData()),
+                new ItemUpdated(pItem.getId(), pItem.getCreator(), cmd.getItemData(), pItem.getStatus()),
                 // when the command is accepted for processing we return a copy of the
                 // state with the updates applied.
                 evt -> ctx.reply(pItem.withDetails(cmd.getItemData())));

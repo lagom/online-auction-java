@@ -1,6 +1,11 @@
 lazy val root = (project in file("."))
   .settings(name := "online-auction-java")
-  .aggregate(itemApi, itemImpl, biddingApi, biddingImpl, userApi, userImpl, webGateway)
+  .aggregate(
+    itemApi, itemImpl,
+    biddingApi, biddingImpl,
+    userApi, userImpl,
+    searchApi, searchImpl,
+    webGateway)
   .settings(commonSettings: _*)
 
 organization in ThisBuild := "com.example"
@@ -71,19 +76,24 @@ lazy val searchApi = (project in file("search-api"))
   .settings(commonSettings: _*)
   .settings(
     version := "1.0-SNAPSHOT",
-    libraryDependencies += lagomJavadslApi
+    libraryDependencies ++= Seq(
+      lagomJavadslApi,
+      lombok
+    )
   )
   .dependsOn(security)
 
 lazy val searchImpl = (project in file("search-impl"))
   .settings(commonSettings: _*)
-  // .enablePlugins(LagomJava)
+  .enablePlugins(LagomJava)
   .dependsOn(searchApi, itemApi, biddingApi)
   .settings(
     version := "1.0-SNAPSHOT",
     libraryDependencies ++= Seq(
       lagomJavadslPersistenceCassandra,
-      lagomJavadslTestKit
+      lagomJavadslTestKit,
+      lagomJavadslKafkaClient,
+      lombok
     )
   )
 
@@ -128,25 +138,22 @@ lazy val userImpl = (project in file("user-impl"))
 lazy val webGateway = (project in file("web-gateway"))
   .settings(commonSettings: _*)
   .enablePlugins(PlayJava && LagomPlay)
-  .dependsOn(transactionApi, biddingApi, itemApi, searchApi, userApi)
+  .dependsOn(transactionApi, biddingApi, itemApi, searchApi, userApi, searchApi)
   .settings(
     version := "1.0-SNAPSHOT",
     libraryDependencies ++= Seq(
       lagomJavadslClient,
-
       "org.ocpsoft.prettytime" % "prettytime" % "3.2.7.Final",
-
       "org.webjars" % "foundation" % "6.2.3",
       "org.webjars" % "foundation-icon-fonts" % "d596a3cfb3"
     )
   )
 
-
 val lombok = "org.projectlombok" % "lombok" % "1.16.10"
 
 
 def commonSettings: Seq[Setting[_]] = eclipseSettings ++ Seq(
-    javacOptions ++= Seq("-encoding", "UTF-8", "-source", "1.8", "-target", "1.8", "-Xlint:unchecked", "-Xlint:deprecation", "-parameters")
+  javacOptions ++= Seq("-encoding", "UTF-8", "-source", "1.8", "-target", "1.8", "-Xlint:unchecked", "-Xlint:deprecation", "-parameters")
 )
 
 // Configuration of sbteclipse
@@ -164,3 +171,10 @@ lazy val eclipseSettings = Seq(
 )
 
 lagomCassandraCleanOnStart in ThisBuild := false
+
+// ------------------------------------------------------------------------------------------------
+
+// register 'elastic-search' as an unmanaged service on the service locator so that at 'runAll' our code
+// will resolve 'elastic-search' and use it. See also com.example.com.ElasticSearch
+lagomUnmanagedServices in ThisBuild += ("elastic-search" -> "http://127.0.0.1:9200")
+

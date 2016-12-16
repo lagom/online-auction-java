@@ -31,8 +31,6 @@ import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletionStage;
-import java.util.concurrent.ExecutionException;
-import java.util.function.Supplier;
 
 import static com.example.auction.security.ClientSecurity.authenticate;
 import static com.lightbend.lagom.javadsl.testkit.ServiceTest.*;
@@ -178,7 +176,8 @@ public class ItemServiceImplIntegrationTest {
         // build the stream and materialize it
         Source<ItemEvent, ?> events = itemService.itemEvents().subscribe().atMostOnceSource();
         CompletionStage<ItemEvent> eventualHead = events
-                .dropWhile(event -> !event.getItemId().equals(createdItem.getId()))
+                .dropWhile(event -> !event.getItemId().equals(createdItem.getId())) // drop other users' events
+                .dropWhile(event -> !(event instanceof ItemEvent.AuctionStarted)) // drop events we don't care about right now
                 .runWith(Sink.head(), testServer.materializer());
 
         // cause the event
@@ -187,6 +186,23 @@ public class ItemServiceImplIntegrationTest {
         // result on the stream's eventual head.
         ItemEvent itemEvent = Await.result(eventualHead);
         assertThat(itemEvent, instanceOf(ItemEvent.AuctionStarted.class));
+    }
+
+    @Test
+    public void shouldEmitItemUpdatedEvent() {
+        // build the stream and materialize it
+        Source<ItemEvent, ?> events = itemService.itemEvents().subscribe().atMostOnceSource();
+        CompletionStage<ItemEvent> emitted = events
+                .runWith(Sink.head(), testServer.materializer());
+
+        // cause the event
+        UUID creatorId = UUID.randomUUID();
+        ItemData createItem = sampleItem();
+        Item createdItem = createItem(creatorId, createItem);
+        startAuction(creatorId, createdItem);
+
+        ItemEvent result = Await.result(emitted);
+        assertThat(result, instanceOf(ItemEvent.ItemUpdated.class));
     }
 
 
@@ -235,7 +251,8 @@ public class ItemServiceImplIntegrationTest {
     // --------------------------------------------------
 
     private ItemData sampleItem() {
-        return new ItemData("title", "description", "USD", 10, 10, Duration.ofMinutes(10));
+        Optional<UUID> categoryId = Optional.empty();
+        return new ItemData("title", "description", "USD", 10, 10, Duration.ofMinutes(10), categoryId);
     }
 
     private Item createItem(UUID creatorId, ItemData createItem) {

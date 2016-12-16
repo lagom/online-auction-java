@@ -57,7 +57,8 @@ public class ItemEventProcessorTest {
 
     private UUID creatorId = UUID.randomUUID();
     private UUID itemId = UUIDs.timeBased();
-    private PItemData itemData = new PItemData("title", "desc", "USD", 10, 100, Duration.ofMinutes(10));
+    private Optional<UUID> categoryId = Optional.empty();
+    private PItemData itemData = new PItemData("title", "desc", "USD", 10, 100, Duration.ofMinutes(10), categoryId);
     private PItem item = new PItem(itemId, creatorId, itemData);
 
     private AtomicInteger offset;
@@ -136,7 +137,7 @@ public class ItemEventProcessorTest {
 
 
     private PItem buildFixture(UUID itemId, int id) {
-        PItemData data = new PItemData("title" + id, "desc" + id, "USD", 10, 100, Duration.ofMinutes(10));
+        PItemData data = new PItemData("title" + id, "desc" + id, "USD", 10, 100, Duration.ofMinutes(10), categoryId);
         return new PItem(itemId, creatorId, data);
 
     }

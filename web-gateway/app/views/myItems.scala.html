@@ -1,6 +1,6 @@
 @import ProfileController.profilePage
-@import com.example.auction.item.api.{ItemStatus, ItemSummary, PaginatedSequence}
 @import controllers.Currency
+@import com.example.auction.item.api.{ItemStatus, ItemSummary, PaginatedSequence}
 @import routes.ItemController.{getItem, startAuction}
 
 @(status: ItemStatus, paginatedItems: PaginatedSequence[ItemSummary])(implicit nav: Nav)
@@ -58,7 +58,9 @@
                     </tbody>
                 </table>
 
-                @paginate(paginatedItems)((pageNumber, pageSize) => profilePage(status, pageNumber, pageSize))
+                @paginate(paginatedItems){ (pageNumber,  label) =>
+                        <a href="@profilePage(status, pageNumber, paginatedItems.getPageSize)" aria-label="@label">@label</a>
+                }
             }
             </div>
         </div>

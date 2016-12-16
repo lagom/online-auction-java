@@ -13,6 +13,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+// TODO: move to a common project/module?
 public final class CompletionStageUtils {
     private CompletionStageUtils() {
         throw new Error("no instances");

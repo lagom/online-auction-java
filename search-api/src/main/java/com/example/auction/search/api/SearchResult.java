@@ -1,18 +1,24 @@
 package com.example.auction.search.api;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import lombok.Value;
 import org.pcollections.PSequence;
 
+// TODO: migrate to PaginatedSequence and reuse code. Needs moving PaginatedSequence to a shared project.
+@Value
 public final class SearchResult {
 
-    private final PSequence<SearchItem> items;
-    private final int pageSize;
-    private final int pageNo;
-    private final int numPages;
+    PSequence<SearchItem> items;
+    int pageSize;
+    int pageNo;
+    int numResults;
 
-    public SearchResult(PSequence<SearchItem> items, int pageSize, int pageNo, int numPages) {
+    @JsonCreator
+    public SearchResult(PSequence<SearchItem> items, int pageSize, int pageNo, int numResults) {
         this.items = items;
         this.pageSize = pageSize;
         this.pageNo = pageNo;
-        this.numPages = numPages;
+        this.numResults = numResults;
     }
+
 }

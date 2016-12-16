@@ -22,6 +22,11 @@ public interface PItemEvent extends AggregateEvent<PItemEvent>, Jsonable {
         return TAG;
     }
 
+    UUID getItemId();
+    default boolean isPublic() {
+        return true;
+    }
+
     @Value
     class ItemCreated implements PItemEvent {
         PItem item;
@@ -30,19 +35,26 @@ public interface PItemEvent extends AggregateEvent<PItemEvent>, Jsonable {
         ItemCreated(PItem item) {
             this.item = item;
         }
+
+        @Override
+        public UUID getItemId() {
+            return item.getId();
+        }
     }
 
     @Value
     class ItemUpdated implements PItemEvent {
-        UUID id;
+        UUID itemId;
         UUID creator;
         PItemData itemDetails;
+        PItemStatus itemStatus;
 
         @JsonCreator
-        ItemUpdated(UUID id, UUID creator, PItemData itemDetails) {
-            this.id = id;
+        ItemUpdated(UUID itemId, UUID creator, PItemData itemDetails, PItemStatus itemStatus) {
+            this.itemId = itemId;
             this.creator = creator;
             this.itemDetails = itemDetails;
+            this.itemStatus = itemStatus;
         }
     }
 
@@ -67,6 +79,11 @@ public interface PItemEvent extends AggregateEvent<PItemEvent>, Jsonable {
         PriceUpdated(UUID itemId, int price) {
             this.itemId = itemId;
             this.price = price;
+        }
+
+        @Override
+        public boolean isPublic() {
+            return false;
         }
     }
 
