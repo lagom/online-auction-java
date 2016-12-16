@@ -8,7 +8,7 @@ import com.lightbend.lagom.javadsl.server.ServiceGuiceSupport;
 public class Module extends AbstractModule implements ServiceGuiceSupport {
     @Override
     protected void configure() {
-        bindServices(serviceBinding(ItemService.class, ItemServiceImpl.class));
+        bindServices(ItemService.SERVICE_ID, serviceBinding(ItemService.class, ItemServiceImpl.class));
         bindClient(BiddingService.class);
         bind(ItemRepository.class);
     }

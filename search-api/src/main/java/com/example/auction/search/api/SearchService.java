@@ -12,12 +12,14 @@ import static com.lightbend.lagom.javadsl.api.Service.named;
 
 public interface SearchService extends Service {
 
+    String SERVICE_ID = "search";
+
     ServiceCall<SearchRequest, SearchResult> search(int pageNo, int pageSize);
 
     @Override
     default Descriptor descriptor() {
         // TODO: add authentication? I don't think searching needs authentication... Hmmm...
-        return named("search").withCalls(
+        return named(SERVICE_ID).withCalls(
                 Service.restCall(Method.GET, "/search?pageNo&pageSize", this::search)
         ).withPathParamSerializer(
                 UUID.class, PathParamSerializers.optional("UUID", UUID::fromString, UUID::toString)

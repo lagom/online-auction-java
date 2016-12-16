@@ -24,6 +24,8 @@ import static com.lightbend.lagom.javadsl.api.Service.*;
  */
 public interface ItemService extends Service {
 
+    String SERVICE_ID = "item";
+
     /**
      * Create an item.
      *
@@ -76,7 +78,7 @@ public interface ItemService extends Service {
 
     @Override
     default Descriptor descriptor() {
-        return named("item").withCalls(
+        return named(SERVICE_ID).withCalls(
                 pathCall("/api/item", this::createItem),
                 restCall(Method.POST, "/api/item/:id/start", this::startAuction),
                 pathCall("/api/item/:id", this::getItem),

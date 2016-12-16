@@ -16,7 +16,7 @@ import com.lightbend.lagom.javadsl.server.ServiceGuiceSupport;
 public class Module extends AbstractModule implements ServiceGuiceSupport {
     @Override
     protected void configure() {
-        bindServices(serviceBinding(SearchService.class, SearchServiceImpl.class));
+        bindServices(SearchService.SERVICE_ID, serviceBinding(SearchService.class, SearchServiceImpl.class));
 
         bindClient(BiddingService.class);
         bindClient(ItemService.class);

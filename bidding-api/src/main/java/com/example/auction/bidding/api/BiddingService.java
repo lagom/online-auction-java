@@ -29,6 +29,8 @@ import java.util.UUID;
  */
 public interface BiddingService extends Service {
 
+  String SERVICE_ID = "bidding";
+
   /**
    * A place a bid.
    *
@@ -50,7 +52,7 @@ public interface BiddingService extends Service {
 
   @Override
   default Descriptor descriptor() {
-    return named("bidding").withCalls(
+    return named(SERVICE_ID).withCalls(
             pathCall("/api/item/:id/bids", this::placeBid),
             pathCall("/api/item/:id/bids", this::getBids)
     ).publishing(

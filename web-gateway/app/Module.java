@@ -8,6 +8,7 @@ import com.lightbend.lagom.javadsl.client.ServiceClientGuiceSupport;
 public class Module extends AbstractModule implements ServiceClientGuiceSupport {
     @Override
     protected void configure() {
+        identifyModule("web-gateway");
         bindClient(UserService.class);
         bindClient(ItemService.class);
         bindClient(BiddingService.class);
