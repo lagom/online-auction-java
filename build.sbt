@@ -1,3 +1,5 @@
+import sbt.Keys.javacOptions
+
 lazy val root = (project in file("."))
   .settings(name := "online-auction-java")
   .aggregate(
@@ -151,9 +153,9 @@ lazy val webGateway = (project in file("web-gateway"))
 
 val lombok = "org.projectlombok" % "lombok" % "1.16.10"
 
-
 def commonSettings: Seq[Setting[_]] = eclipseSettings ++ Seq(
-  javacOptions ++= Seq("-encoding", "UTF-8", "-source", "1.8", "-target", "1.8", "-Xlint:unchecked", "-Xlint:deprecation", "-parameters")
+  javacOptions ++= Seq("-encoding", "UTF-8", "-source", "1.8", "-target", "1.8", "-Xlint:unchecked", "-Xlint:deprecation", "-parameters"),
+  javacOptions in (Compile, doc) := Seq("-noqualifier", "java.lang", "-encoding", "UTF-8", "-source", "1.8")
 )
 
 // Configuration of sbteclipse
