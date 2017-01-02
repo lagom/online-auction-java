@@ -24,6 +24,8 @@ import static com.lightbend.lagom.javadsl.api.Service.*;
  */
 public interface ItemService extends Service {
 
+    String TOPIC_ID = "item-ItemEvent";
+
     /**
      * Create an item.
      *
@@ -83,7 +85,7 @@ public interface ItemService extends Service {
                 restCall(Method.PUT, "/api/item/:id", this::updateItem),
                 pathCall("/api/item?userId&status&pageNo&pageSize", this::getItemsForUser)
         ).publishing(
-                topic("item-ItemEvent", this::itemEvents)
+                topic(TOPIC_ID, this::itemEvents)
         ).withPathParamSerializer(
                 UUID.class, PathParamSerializers.required("UUID", UUID::fromString, UUID::toString)
         ).withPathParamSerializer(

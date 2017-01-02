@@ -3,7 +3,7 @@ package com.example.auction.item.impl.testkit;
 import akka.Done;
 import akka.stream.javadsl.Flow;
 import akka.stream.javadsl.Source;
-import com.lightbend.lagom.internal.api.broker.TopicFactory;
+import com.lightbend.lagom.internal.javadsl.api.broker.TopicFactory;
 import com.lightbend.lagom.javadsl.api.Descriptor;
 import com.lightbend.lagom.javadsl.api.broker.Subscriber;
 import com.lightbend.lagom.javadsl.api.broker.Topic;
