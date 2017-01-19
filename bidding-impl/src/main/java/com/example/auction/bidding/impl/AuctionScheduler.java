@@ -22,7 +22,6 @@ import scala.concurrent.duration.FiniteDuration;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;

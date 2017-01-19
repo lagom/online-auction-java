@@ -12,6 +12,8 @@ import java.util.Optional;
  */
 public final class AuctionState implements Jsonable {
 
+    private static final long serialVersionUID = 1L;
+
     /**
      * The auction details.
      */
