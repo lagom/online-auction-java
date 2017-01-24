@@ -26,6 +26,9 @@ public interface AuctionEvent extends Jsonable, AggregateEvent<AuctionEvent> {
      * The auction started.
      */
     final class AuctionStarted implements AuctionEvent {
+
+        private static final long serialVersionUID = 1L;
+
         /**
          * The item that the auction started on.
          */
@@ -81,6 +84,9 @@ public interface AuctionEvent extends Jsonable, AggregateEvent<AuctionEvent> {
      * A bid was placed.
      */
     final class BidPlaced implements AuctionEvent {
+
+        private static final long serialVersionUID = 1L;
+
         /**
          * The item that the bid was placed on.
          */
@@ -136,6 +142,9 @@ public interface AuctionEvent extends Jsonable, AggregateEvent<AuctionEvent> {
      * Bidding finished.
      */
     final class BiddingFinished implements AuctionEvent {
+
+        private static final long serialVersionUID = 1L;
+
         /**
          * The item that bidding finished for.
          */
@@ -178,6 +187,9 @@ public interface AuctionEvent extends Jsonable, AggregateEvent<AuctionEvent> {
      * The auction was cancelled.
      */
     final class AuctionCancelled implements AuctionEvent {
+
+        private static final long serialVersionUID = 1L;
+
         /**
          * The item that the auction was cancelled for.
          */

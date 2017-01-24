@@ -1,3 +1,10 @@
+organization in ThisBuild := "com.example"
+
+// the Scala version that will be used for cross-compiled libraries
+scalaVersion in ThisBuild := "2.11.8"
+
+EclipseKeys.projectFlavor in Global := EclipseProjectFlavor.Java
+
 lazy val root = (project in file("."))
   .settings(name := "online-auction-java")
   .aggregate(
@@ -7,11 +14,6 @@ lazy val root = (project in file("."))
     searchApi, searchImpl,
     webGateway)
   .settings(commonSettings: _*)
-
-organization in ThisBuild := "com.example"
-
-// the Scala version that will be used for cross-compiled libraries
-scalaVersion in ThisBuild := "2.11.8"
 
 lazy val security = (project in file("security"))
   .settings(commonSettings: _*)
@@ -146,7 +148,11 @@ lazy val webGateway = (project in file("web-gateway"))
       "org.ocpsoft.prettytime" % "prettytime" % "3.2.7.Final",
       "org.webjars" % "foundation" % "6.2.3",
       "org.webjars" % "foundation-icon-fonts" % "d596a3cfb3"
-    )
+    ),
+    // Workaround for https://github.com/lagom/online-auction-java/issues/22
+    // Uncomment the commented out line and remove the Scala line when issue #22 is fixed
+    EclipseKeys.projectFlavor in Global := EclipseProjectFlavor.Scala
+    // EclipseKeys.createSrc := EclipseCreateSrc.ValueSet(EclipseCreateSrc.ManagedClasses, EclipseCreateSrc.ManagedResources)
   )
 
 val lombok = "org.projectlombok" % "lombok" % "1.16.10"
@@ -156,20 +162,6 @@ def commonSettings: Seq[Setting[_]] = eclipseSettings ++ Seq(
   javacOptions ++= Seq("-encoding", "UTF-8", "-source", "1.8", "-target", "1.8", "-Xlint:unchecked", "-Xlint:deprecation", "-parameters")
 )
 
-// Configuration of sbteclipse
-// Needed for importing the project into Eclipse
-lazy val eclipseSettings = Seq(
-  EclipseKeys.projectFlavor := EclipseProjectFlavor.Java,
-  EclipseKeys.withBundledScalaContainers := false,
-  EclipseKeys.createSrc := EclipseCreateSrc.Default + EclipseCreateSrc.Resource,
-  EclipseKeys.eclipseOutput := Some(".target"),
-  EclipseKeys.withSource := true,
-  EclipseKeys.withJavadoc := true,
-  // avoid some scala specific source directories
-  unmanagedSourceDirectories in Compile := Seq((javaSource in Compile).value),
-  unmanagedSourceDirectories in Test := Seq((javaSource in Test).value)
-)
-
 lagomCassandraCleanOnStart in ThisBuild := false
 
 // ------------------------------------------------------------------------------------------------
@@ -177,4 +169,3 @@ lagomCassandraCleanOnStart in ThisBuild := false
 // register 'elastic-search' as an unmanaged service on the service locator so that at 'runAll' our code
 // will resolve 'elastic-search' and use it. See also com.example.com.ElasticSearch
 lagomUnmanagedServices in ThisBuild += ("elastic-search" -> "http://127.0.0.1:9200")
-

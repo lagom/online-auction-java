@@ -5,7 +5,6 @@ import com.example.auction.bidding.api.BidResultStatus;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.lightbend.lagom.javadsl.persistence.PersistentEntity.ReplyType;
 import com.lightbend.lagom.serialization.Jsonable;
-import org.pcollections.PSequence;
 
 import java.util.UUID;
 
@@ -18,6 +17,9 @@ public interface AuctionCommand extends Jsonable {
      * Start the auction.
      */
     final class StartAuction implements AuctionCommand, ReplyType<Done> {
+
+        private static final long serialVersionUID = 1L;
+
         /**
          * The auction to start.
          */
@@ -67,6 +69,9 @@ public interface AuctionCommand extends Jsonable {
      * Place a bid on the auction.
      */
     final class PlaceBid implements AuctionCommand, ReplyType<PlaceBidResult> {
+
+        private static final long serialVersionUID = 1L;
+
         private final int bidPrice;
         private final UUID bidder;
 
@@ -176,6 +181,9 @@ public interface AuctionCommand extends Jsonable {
      * The result of placing a bid.
      */
     final class PlaceBidResult implements Jsonable {
+
+        private static final long serialVersionUID = 1L;
+
         /**
          * The current price of the auction.
          */
