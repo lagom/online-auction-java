@@ -30,6 +30,7 @@ import static org.junit.Assert.fail;
  */
 public class ItemEntityTest {
 
+
     private static ActorSystem system;
 
     @BeforeClass
@@ -43,6 +44,12 @@ public class ItemEntityTest {
         system = null;
     }
 
+    private PersistentEntityTestDriver<PItemCommand, PItemEvent, PItemState> driver ;
+
+    @Before
+    public void createTestDriver() {
+        driver = new PersistentEntityTestDriver<>(system, new PItemEntity(), itemId.toString());
+    }
 
     @After
     public void issues() {
@@ -59,11 +66,9 @@ public class ItemEntityTest {
 
     private PItem pItem = new PItem(itemId, creatorId, itemData);
 
-    private PersistentEntityTestDriver<PItemCommand, PItemEvent, PItemState> driver =
-            new PersistentEntityTestDriver<>(system, new PItemEntity(), itemId.toString());
-
     private PItemCommand createItem = new CreateItem(pItem);
     private PItemCommand startAuction = new StartAuction(creatorId);
+
 
     @Test
     public void shouldEmitEventWhenCreatingItem() {
@@ -288,7 +293,7 @@ public class ItemEntityTest {
     }
 
     // This method returns the side effected exception
-    private <E extends Throwable> E expectException(Outcome<PItemEvent, PItemState> outcome)  {
+    private <E extends Throwable> E expectException(Outcome<PItemEvent, PItemState> outcome) {
         PersistentEntityTestDriver.Reply sideEffect = (PersistentEntityTestDriver.Reply) outcome.sideEffects().get(0);
         return (E) sideEffect.msg();
     }
