@@ -41,8 +41,8 @@ public class QueryBuilder {
 
 
     private <T> QueryBuilder withFilter(Optional<T> requestField, Function<T, Filter> filterBuilder) {
-        return requestField.map(price -> {
-            PSequence<Filter> newFilters = filters.plus( filterBuilder.apply(price));
+        return requestField.map(fieldValue -> {
+            PSequence<Filter> newFilters = filters.plus( filterBuilder.apply(fieldValue));
             return new QueryBuilder(pageNumber, pageSize, newFilters);
         }).orElse(this);
     }
@@ -51,7 +51,11 @@ public class QueryBuilder {
     private final Filter FORBID_CREATED = new MatchFilter.ItemStatusFilter(ItemStatus.CREATED);
 
     public QueryRoot build() {
-        return new QueryRoot(new Query(new BooleanQuery(FORBID_CREATED, filters)));
+        return new QueryRoot(
+                new Query(new BooleanQuery(FORBID_CREATED, filters)),
+                pageNumber,
+                pageSize
+        );
     }
 
 }

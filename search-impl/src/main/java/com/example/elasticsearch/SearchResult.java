@@ -17,7 +17,7 @@ public class SearchResult {
         this.hits = hits;
     }
 
-    public Stream<IndexedItem> getIndexedItem() {
+    public Stream<IndexedItem> getIndexedItems() {
         return hits.getHits().stream().map(hr -> hr.getItem());
     }
 

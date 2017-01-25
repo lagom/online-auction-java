@@ -21,7 +21,6 @@ public class IndexedItem {
     Optional<String> title;
     Optional<String> description;
     Optional<String> currencyId;
-    Optional<Integer> increment;
     Optional<Integer> price;
     Optional<ItemStatus> status;
     Optional<Instant> auctionStart;
@@ -33,15 +32,14 @@ public class IndexedItem {
 
     @JsonCreator
     IndexedItem(UUID itemId, Optional<UUID> creatorId, Optional<String> title, Optional<String> description,
-                        Optional<String> currencyId, Optional<Integer> increment, Optional<Integer> price,
-                        Optional<ItemStatus> status, Optional<Instant> auctionStart, Optional<Instant> auctionEnd,
-                        Optional<UUID> winner) {
+                Optional<String> currencyId, Optional<Integer> price,
+                Optional<ItemStatus> status, Optional<Instant> auctionStart, Optional<Instant> auctionEnd,
+                Optional<UUID> winner) {
         this.itemId = itemId;
         this.creatorId = creatorId;
         this.title = title;
         this.description = description;
         this.currencyId = currencyId;
-        this.increment = increment;
         this.price = price;
         this.status = status;
         this.auctionStart = auctionStart;
@@ -52,7 +50,6 @@ public class IndexedItem {
     public static IndexedItem forPrice(UUID itemId, int price) {
         return new IndexedItem(
                 itemId,
-                Optional.empty(),
                 Optional.empty(),
                 Optional.empty(),
                 Optional.empty(),
@@ -72,7 +69,6 @@ public class IndexedItem {
                 Optional.empty(),
                 Optional.empty(),
                 Optional.empty(),
-                Optional.empty(),
                 Optional.of(price),
                 Optional.empty(),
                 Optional.empty(),
@@ -84,7 +80,6 @@ public class IndexedItem {
     public static IndexedItem forAuctionStart(UUID itemId, Instant startDate, Instant endDate) {
         return new IndexedItem(
                 itemId,
-                Optional.empty(),
                 Optional.empty(),
                 Optional.empty(),
                 Optional.empty(),
@@ -105,7 +100,6 @@ public class IndexedItem {
                 Optional.of(item.getItemData().getTitle()),
                 Optional.of(item.getItemData().getDescription()),
                 Optional.of(item.getItemData().getCurrencyId()),
-                Optional.of(item.getItemData().getIncrement()),
                 Optional.of(item.getPrice()),
                 Optional.of(ItemStatus.COMPLETED),
                 item.getAuctionStart(),
@@ -120,7 +114,6 @@ public class IndexedItem {
                 Optional.of(title),
                 Optional.of(description),
                 Optional.of(currencyId),
-                Optional.empty(),
                 Optional.empty(),
                 Optional.of(itemStatus),
                 Optional.empty(),
