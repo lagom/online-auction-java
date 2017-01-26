@@ -35,7 +35,7 @@ public class SearchServiceImpl implements SearchService {
                     .build();
             return indexedStore.search(query).thenApply(result -> {
                 TreePVector<SearchItem> items = TreePVector.from(
-                        result.getIndexedItem()
+                        result.getIndexedItems()
                                 // only return results with user provided data. We may have indexedItem's without
                                 // user defined data because sometimes bid service events will arrive before the
                                 // item service events.

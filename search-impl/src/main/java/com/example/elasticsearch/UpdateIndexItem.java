@@ -7,8 +7,7 @@ import lombok.Value;
  *
  */
 @Value
-public class
-UpdateIndexItem {
+public class UpdateIndexItem {
     // Use partial update semantics on ES
     IndexedItem doc;
     // Use partial update semantics on ES

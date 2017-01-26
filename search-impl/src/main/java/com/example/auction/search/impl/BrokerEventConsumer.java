@@ -16,15 +16,8 @@ import java.util.Optional;
 @Singleton
 public class BrokerEventConsumer {
 
-    private IndexedStore indexedStore;
-    private ItemService itemService;
-    private BiddingService biddingService;
-
     @Inject
     public BrokerEventConsumer(IndexedStore indexedStore, ItemService itemService, BiddingService biddingService) {
-        this.indexedStore = indexedStore;
-        this.itemService = itemService;
-        this.biddingService = biddingService;
 
         // TODO: use ES' _bulk API
         Topic<ItemEvent> itemEventTopic = itemService.itemEvents();
