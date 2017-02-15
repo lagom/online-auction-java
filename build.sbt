@@ -1,4 +1,9 @@
-import com.lightbend.lagom.sbt.LagomImport.lagomJavadslApi
+organization in ThisBuild := "com.example"
+
+scalaVersion in ThisBuild := "2.11.8"
+
+EclipseKeys.projectFlavor in Global := EclipseProjectFlavor.Java
+
 
 lazy val root = (project in file("."))
   .settings(name := "online-auction-java")
