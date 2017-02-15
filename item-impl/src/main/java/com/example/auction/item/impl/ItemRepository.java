@@ -24,7 +24,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.stream.Collectors;
 
-import static com.example.auction.item.impl.CompletionStageUtils.*;
+import static com.example.auction.item.impl.CassandraReadSideUtils.*;
+import static com.example.core.CompletionStageUtils.*;
 
 @Singleton
 public class ItemRepository {

@@ -26,7 +26,6 @@ public interface Elasticsearch extends  Service {
     @Override
     default public Descriptor descriptor() {
         return named("elastic-search")
-                //  .withCircuitBreaker()
                 .withCalls(
                         Service.restCall(Method.GET, "/:index/items/_search", this::search),
                         // we are using the ES endpoint for partial updates because the events we index don't

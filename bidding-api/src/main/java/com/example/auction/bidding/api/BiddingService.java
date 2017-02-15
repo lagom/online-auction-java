@@ -29,6 +29,8 @@ import java.util.UUID;
  */
 public interface BiddingService extends Service {
 
+  String TOPIC_ID = "bidding-BidEvent";
+
   /**
    * A place a bid.
    *
@@ -54,7 +56,7 @@ public interface BiddingService extends Service {
             pathCall("/api/item/:id/bids", this::placeBid),
             pathCall("/api/item/:id/bids", this::getBids)
     ).publishing(
-            topic("bidding-BidEvent", this::bidEvents)
+            topic(TOPIC_ID, this::bidEvents)
     ).withPathParamSerializer(UUID.class, PathParamSerializers.required("UUID", UUID::fromString, UUID::toString))
             .withHeaderFilter(SecurityHeaderFilter.INSTANCE);
   }

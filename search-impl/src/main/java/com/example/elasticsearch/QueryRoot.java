@@ -30,10 +30,5 @@ public class QueryRoot {
         this.pageSize = pageSize;
     }
 
-    QueryRoot(Query query) {
-        this(query, 0, 15);
-    }
-
-
 
 }
