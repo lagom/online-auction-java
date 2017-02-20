@@ -76,7 +76,7 @@ public interface ItemService extends Service {
 
     @Override
     default Descriptor descriptor() {
-        return named("item").withCalls(
+        return named("item-api").withCalls(
                 pathCall("/api/item", this::createItem),
                 restCall(Method.POST, "/api/item/:id/start", this::startAuction),
                 pathCall("/api/item/:id", this::getItem),

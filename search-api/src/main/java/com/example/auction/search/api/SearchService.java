@@ -17,8 +17,8 @@ public interface SearchService extends Service {
     @Override
     default Descriptor descriptor() {
         // TODO: add authentication? I don't think searching needs authentication... Hmmm...
-        return named("search").withCalls(
-                Service.restCall(Method.GET, "/search?pageNo&pageSize", this::search)
+        return named("search-api").withCalls(
+                Service.restCall(Method.GET, "/api/search?pageNo&pageSize", this::search)
         ).withPathParamSerializer(
                 UUID.class, PathParamSerializers.optional("UUID", UUID::fromString, UUID::toString)
         ).withAutoAcl(true);

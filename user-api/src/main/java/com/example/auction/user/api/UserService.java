@@ -22,7 +22,7 @@ public interface UserService extends Service {
 
     @Override
     default Descriptor descriptor() {
-        return named("user").withCalls(
+        return named("user-api").withCalls(
                 pathCall("/api/user", this::createUser),
                 pathCall("/api/user/:id", this::getUser),
                 pathCall("/api/user", this::getUsers)
