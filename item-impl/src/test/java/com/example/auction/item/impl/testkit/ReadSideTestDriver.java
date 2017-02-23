@@ -6,7 +6,7 @@ import akka.stream.Materializer;
 import akka.stream.javadsl.Flow;
 import akka.stream.javadsl.Sink;
 import akka.stream.javadsl.Source;
-import com.example.auction.item.impl.CompletionStageUtils;
+import com.example.core.CompletionStageUtils;
 import com.google.inject.Injector;
 import com.google.inject.Singleton;
 import com.lightbend.lagom.javadsl.persistence.*;

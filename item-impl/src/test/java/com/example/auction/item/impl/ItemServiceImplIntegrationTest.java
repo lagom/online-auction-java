@@ -2,12 +2,6 @@ package com.example.auction.item.impl;
 
 import akka.Done;
 import akka.NotUsed;
-import akka.actor.ActorRef;
-import akka.japi.Pair;
-import akka.stream.Materializer;
-import akka.stream.OverflowStrategy;
-import akka.stream.javadsl.Flow;
-import akka.stream.javadsl.Keep;
 import akka.stream.javadsl.Sink;
 import akka.stream.javadsl.Source;
 import com.example.auction.bidding.api.*;
@@ -15,9 +9,10 @@ import com.example.auction.item.api.*;
 import com.example.auction.item.api.Item;
 import com.example.auction.item.impl.testkit.Await;
 import com.lightbend.lagom.javadsl.api.ServiceCall;
-import com.lightbend.lagom.javadsl.api.broker.Subscriber;
 import com.lightbend.lagom.javadsl.api.broker.Topic;
 import com.lightbend.lagom.javadsl.api.transport.TransportException;
+import com.lightbend.lagom.javadsl.testkit.ProducerStub;
+import com.lightbend.lagom.javadsl.testkit.ProducerStubFactory;
 import com.lightbend.lagom.javadsl.testkit.ServiceTest;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -71,7 +66,7 @@ public class ItemServiceImplIntegrationTest {
      * Stubs BiddingService#Tipc("bidding-BidEvent") so a test can tell messages into this actor to simulate
      * BiddingService behavior.
      */
-    private static ActorRef bidEventActor;
+    private static ProducerStub<BidEvent> bidProducerStub;
 
     @Test
     public void shouldCreate() {
@@ -119,7 +114,7 @@ public class ItemServiceImplIntegrationTest {
 
         Bid bid = new Bid(UUID.randomUUID(), Instant.now(), 100, 100);
         BidEvent bidEvent = new BidEvent.BidPlaced(createdItem.getId(), bid);
-        bidEventActor.tell(bidEvent, ActorRef.noSender());
+        bidProducerStub.send(bidEvent);
 
         eventually(new FiniteDuration(10, SECONDS), () -> {
             Item retrievedItem = retrieveItem(createdItem);
@@ -152,7 +147,7 @@ public class ItemServiceImplIntegrationTest {
         UUID bidder1 = UUID.randomUUID();
         Bid bid1 = new Bid(bidder1, Instant.now(), 10, 12);
         BidEvent biddingFinished = new BidEvent.BiddingFinished(createdItem.getId(), Optional.of(bid1));
-        bidEventActor.tell(biddingFinished, ActorRef.noSender());
+        bidProducerStub.send(biddingFinished);
 
         String newDescription = "the new description";
         ItemData newData = createdItem.getItemData().withDescription(newDescription);
@@ -218,7 +213,7 @@ public class ItemServiceImplIntegrationTest {
         UUID bidder1 = UUID.randomUUID();
         Bid bid1 = new Bid(bidder1, Instant.now(), 10, 12);
         BidEvent biddingFinished = new BidEvent.BiddingFinished(createdItem.getId(), Optional.of(bid1));
-        bidEventActor.tell(biddingFinished, ActorRef.noSender());
+        bidProducerStub.send(biddingFinished);
 
         eventually(new FiniteDuration(10, SECONDS), () -> {
             Item retrievedItem = retrieveItem(createdItem);
@@ -238,9 +233,9 @@ public class ItemServiceImplIntegrationTest {
         UUID bidder1 = UUID.randomUUID();
         Bid bid1 = new Bid(bidder1, Instant.now(), 10, 12);
         BidEvent biddingFinished = new BidEvent.BiddingFinished(createdItem.getId(), Optional.of(bid1));
-        bidEventActor.tell(biddingFinished, ActorRef.noSender());
-        bidEventActor.tell(biddingFinished, ActorRef.noSender());
-        bidEventActor.tell(biddingFinished, ActorRef.noSender());
+        bidProducerStub.send(biddingFinished);
+        bidProducerStub.send(biddingFinished);
+        bidProducerStub.send(biddingFinished);
 
         eventually(new FiniteDuration(10, SECONDS), () -> {
             Item retrievedItem = retrieveItem(createdItem);
@@ -275,11 +270,9 @@ public class ItemServiceImplIntegrationTest {
 
     private static class BiddingStub implements BiddingService {
 
-        private final Materializer materializer;
-
         @Inject
-        BiddingStub(Materializer materializer) {
-            this.materializer = materializer;
+        public BiddingStub(ProducerStubFactory topicFactory) {
+            bidProducerStub = topicFactory.producer(TOPIC_ID);
         }
 
         @Override
@@ -294,37 +287,7 @@ public class ItemServiceImplIntegrationTest {
 
         @Override
         public Topic<BidEvent> bidEvents() {
-            return new Topic<BidEvent>() {
-                @Override
-                public TopicId topicId() {
-                    return null;
-                }
-
-                @Override
-                public Subscriber<BidEvent> subscribe() {
-                    return new Subscriber<BidEvent>() {
-                        @Override
-                        public Subscriber<BidEvent> withGroupId(String groupId) throws IllegalArgumentException {
-                            return null;
-                        }
-
-                        @Override
-                        public Source<BidEvent, ?> atMostOnceSource() {
-                            return null;
-                        }
-
-                        @Override
-                        public CompletionStage<Done> atLeastOnce(Flow<BidEvent, Done, ?> flow) {
-                            Pair<ActorRef, CompletionStage<Done>> pair = Source.<BidEvent>actorRef(1, OverflowStrategy.fail())
-                                    .via(flow)
-                                    .toMat(Sink.ignore(), Keep.both())
-                                    .run(materializer);
-                            bidEventActor = pair.first();
-                            return pair.second();
-                        }
-                    };
-                }
-            };
+            return bidProducerStub.topic();
         }
     }
 }

@@ -15,19 +15,30 @@ import java.util.UUID;
 import static com.lightbend.lagom.javadsl.api.Service.named;
 
 
-/**
- *
- */
 public interface ElasticsearchTestUtils extends Service {
 
     ServiceCall<NotUsed, Done> deleteIndex();
+    ServiceCall<NotUsed, Done> deleteOne(UUID id);
+    ServiceCall<QueryRoot, Done> delete();
+    ServiceCall<NotUsed, Done> refresh();
+    ServiceCall<NotUsed, Done> flush();
+    ServiceCall<NotUsed, Done> merge();
+    ServiceCall<NotUsed, Done> clearCache();
 
     @Override
     default Descriptor descriptor() {
         return named("elastic-search-test-utils")
                 .withCalls(
-                        Service.restCall(Method.DELETE, "/"+ IndexedStoreImpl.INDEX_NAME, this::deleteIndex)
-                )
-                .withAutoAcl(true);
+                        Service.restCall(Method.DELETE, "/" + IndexedStoreImpl.INDEX_NAME , this::deleteIndex),
+                        Service.restCall(Method.DELETE, "/" + IndexedStoreImpl.INDEX_NAME + "/items/:id", this::deleteOne),
+                        Service.restCall(Method.POST, "/" + IndexedStoreImpl.INDEX_NAME + "/items/_delete_by_query", this::delete),
+                        Service.restCall(Method.POST, "/" + IndexedStoreImpl.INDEX_NAME + "/_refresh", this::refresh),
+                        Service.restCall(Method.POST, "/" + IndexedStoreImpl.INDEX_NAME + "/_flush", this::flush),
+                        Service.restCall(Method.POST, "/" + IndexedStoreImpl.INDEX_NAME + "/_cache/clear", this::clearCache),
+                        Service.restCall(Method.POST, "/" + IndexedStoreImpl.INDEX_NAME + "/_forcemerge", this::merge)
+                ).withPathParamSerializer(
+                        UUID.class, PathParamSerializers.required("UUID", UUID::fromString, UUID::toString)
+                ).withAutoAcl(true);
     }
+
 }

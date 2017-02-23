@@ -1,13 +1,14 @@
 organization in ThisBuild := "com.example"
 
-// the Scala version that will be used for cross-compiled libraries
 scalaVersion in ThisBuild := "2.11.8"
 
 EclipseKeys.projectFlavor in Global := EclipseProjectFlavor.Java
 
+
 lazy val root = (project in file("."))
   .settings(name := "online-auction-java")
   .aggregate(
+    tools,
     itemApi, itemImpl,
     biddingApi, biddingImpl,
     userApi, userImpl,
@@ -49,7 +50,7 @@ lazy val itemImpl = (project in file("item-impl"))
     )
   )
   .settings(lagomForkedTestSettings: _*)
-  .dependsOn(itemApi, biddingApi)
+  .dependsOn(tools, itemApi, biddingApi)
 
 lazy val biddingApi = (project in file("bidding-api"))
   .settings(commonSettings: _*)
@@ -88,7 +89,6 @@ lazy val searchApi = (project in file("search-api"))
 lazy val searchImpl = (project in file("search-impl"))
   .settings(commonSettings: _*)
   .enablePlugins(LagomJava)
-  .dependsOn(searchApi, itemApi, biddingApi)
   .settings(
     version := "1.0-SNAPSHOT",
     libraryDependencies ++= Seq(
@@ -98,6 +98,18 @@ lazy val searchImpl = (project in file("search-impl"))
       lombok
     )
   )
+  .dependsOn(tools, searchApi, itemApi, biddingApi)
+
+lazy val tools = (project in file("tools"))
+  .settings(commonSettings: _*)
+  .settings(
+    version := "1.0-SNAPSHOT",
+    libraryDependencies ++= Seq(
+      lagomJavadslApi,
+      lagomJavadslTestKit
+    ) ++ lagomJUnitDeps
+  )
+
 
 lazy val transactionApi = (project in file("transaction-api"))
   .settings(commonSettings: _*)
@@ -169,3 +181,4 @@ lagomCassandraCleanOnStart in ThisBuild := false
 // register 'elastic-search' as an unmanaged service on the service locator so that at 'runAll' our code
 // will resolve 'elastic-search' and use it. See also com.example.com.ElasticSearch
 lagomUnmanagedServices in ThisBuild += ("elastic-search" -> "http://127.0.0.1:9200")
+
