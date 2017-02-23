@@ -488,10 +488,10 @@ public class AuctionEntityTest {
 
 
     @Test
-    public void testIncrementBidOverReserveFromBellowReserve() {
-	driver.run(new StartAuction(auction), new PlaceBid(500, bidder1));
-	
-	Outcome<AuctionEvent, AuctionState> outcome = driver.run(new PlaceBid(4000, bidder1));
+    public void testIncrementBidOverReserveFromBelowReserve() {
+        driver.run(new StartAuction(auction), new PlaceBid(500, bidder1));
+
+        Outcome<AuctionEvent, AuctionState> outcome = driver.run(new PlaceBid(4000, bidder1));
 
         assertThat(outcome.events(), allOf(
                 hasItem(bidPlaced(bidder1, 2000, 4000)),
@@ -506,10 +506,10 @@ public class AuctionEntityTest {
 
 
     @Test
-    public void testIncrementBidBellowReserveFromBellowReserve() {
+    public void testIncrementBidBelowReserveFromBelowReserve() {
         driver.run(new StartAuction(auction), new PlaceBid(500, bidder1));
-	
-	Outcome<AuctionEvent, AuctionState> outcome = driver.run(new PlaceBid(900, bidder1));
+
+        Outcome<AuctionEvent, AuctionState> outcome = driver.run(new PlaceBid(900, bidder1));
 
         assertThat(outcome.events(), allOf(
                 hasItem(bidPlaced(bidder1, 900, 900)),
@@ -519,15 +519,15 @@ public class AuctionEntityTest {
                 hasItem(bid(bidder1, 900, 900)),
                 hasSize(1)
         ));
-        assertThat(outcome.getReplies(), hasItem(reply(PlaceBidStatus.ACCEPTED, 900, bidder1)));
+        assertThat(outcome.getReplies(), hasItem(reply(PlaceBidStatus.ACCEPTED_BELOW_RESERVE, 900, bidder1)));
     }
 
 
     @Test
     public void testIncrementBidOverReserveFromOverReserve() {
         driver.run(new StartAuction(auction), new PlaceBid(3000, bidder1));
-	
-	Outcome<AuctionEvent, AuctionState> outcome = driver.run(new PlaceBid(4000, bidder1));
+
+        Outcome<AuctionEvent, AuctionState> outcome = driver.run(new PlaceBid(4000, bidder1));
 
         assertThat(outcome.events(), allOf(
                 hasItem(bidPlaced(bidder1, 2000, 4000)),
