@@ -190,12 +190,19 @@ public class AuctionEntity extends PersistentEntity<AuctionCommand, AuctionEvent
 
         boolean bidderIsCurrentBidder = currentBid.filter(b -> b.getBidder().equals(bid.getBidder())).isPresent();
 
+
         if (bidderIsCurrentBidder && bid.getBidPrice() >= currentBidPrice) {
             // Allow the current bidder to update their bid
-            return ctx.thenPersist(new BidPlaced(entityUUID(),
-                    new Bid(bid.getBidder(), now, currentBidPrice, bid.getBidPrice())), (e) ->
-                    ctx.reply(new PlaceBidResult(PlaceBidStatus.ACCEPTED, currentBidPrice, bid.getBidder()))
+		if (auction.getReservePrice()>currentBidPrice) {
+			return ctx.thenPersist(new BidPlaced(entityUUID(),
+                	    new Bid(bid.getBidder(), now, Math.min(auction.getReservePrice(), bid.getBidPrice()), bid.getBidPrice())), (e) ->
+                	    ctx.reply(new PlaceBidResult(PlaceBidStatus.ACCEPTED, Math.min(auction.getReservePrice(), bid.getBidPrice()) , bid.getBidder()))
             );
+	}
+           	 return ctx.thenPersist(new BidPlaced(entityUUID(),
+                	    new Bid(bid.getBidder(), now, currentBidPrice, bid.getBidPrice())), (e) ->
+               		    ctx.reply(new PlaceBidResult(PlaceBidStatus.ACCEPTED, currentBidPrice, bid.getBidder()))
+            	);
         }
         if (bid.getBidPrice() < currentBidPrice + auction.getIncrement()) {
             return reply(ctx, createResult(PlaceBidStatus.TOO_LOW));
