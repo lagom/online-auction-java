@@ -77,4 +77,9 @@ public enum Currency {
         int price = toPriceUnits(value);
         return price % step == 0;
     }
+    
+    public boolean isValidIncrement(double value) {
+    	int price = toPriceUnits(value);
+    	return price > 0 && price < 100 * this.step;
+    }
 }
