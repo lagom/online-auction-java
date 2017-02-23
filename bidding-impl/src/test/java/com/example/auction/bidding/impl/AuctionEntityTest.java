@@ -216,6 +216,7 @@ public class AuctionEntityTest {
         assertThat(outcome.getReplies(), hasItem(reply(PlaceBidStatus.ACCEPTED, 2000, bidder1)));
     }
 
+
     @Test
     public void testLowerCurrentBidToCurrentPrice() {
         driver.run(new StartAuction(auction), new PlaceBid(3000, bidder1), new PlaceBid(2500, bidder2));
@@ -484,6 +485,61 @@ public class AuctionEntityTest {
 
         assertThat(outcome2.getReplies(), hasItem(reply(PlaceBidStatus.CANCELLED, 2000, bidder1)));
     }
+
+
+    @Test
+    public void testIncrementBidOverReserveFromBellowReserve() {
+	driver.run(new StartAuction(auction), new PlaceBid(500, bidder1));
+	
+	Outcome<AuctionEvent, AuctionState> outcome = driver.run(new PlaceBid(4000, bidder1));
+
+        assertThat(outcome.events(), allOf(
+                hasItem(bidPlaced(bidder1, 2000, 4000)),
+                hasSize(1)
+        ));
+        assertThat(outcome.state().getBiddingHistory(), allOf(
+                hasItem(bid(bidder1, 2000, 4000)),
+                hasSize(1)
+        ));
+        assertThat(outcome.getReplies(), hasItem(reply(PlaceBidStatus.ACCEPTED, 2000, bidder1)));
+    }
+
+
+    @Test
+    public void testIncrementBidBellowReserveFromBellowReserve() {
+        driver.run(new StartAuction(auction), new PlaceBid(500, bidder1));
+	
+	Outcome<AuctionEvent, AuctionState> outcome = driver.run(new PlaceBid(900, bidder1));
+
+        assertThat(outcome.events(), allOf(
+                hasItem(bidPlaced(bidder1, 900, 900)),
+                hasSize(1)
+        ));
+        assertThat(outcome.state().getBiddingHistory(), allOf(
+                hasItem(bid(bidder1, 900, 900)),
+                hasSize(1)
+        ));
+        assertThat(outcome.getReplies(), hasItem(reply(PlaceBidStatus.ACCEPTED, 900, bidder1)));
+    }
+
+
+    @Test
+    public void testIncrementBidOverReserveFromOverReserve() {
+        driver.run(new StartAuction(auction), new PlaceBid(3000, bidder1));
+	
+	Outcome<AuctionEvent, AuctionState> outcome = driver.run(new PlaceBid(4000, bidder1));
+
+        assertThat(outcome.events(), allOf(
+                hasItem(bidPlaced(bidder1, 2000, 4000)),
+                hasSize(1)
+        ));
+        assertThat(outcome.state().getBiddingHistory(), allOf(
+                hasItem(bid(bidder1, 2000, 4000)),
+                hasSize(1)
+        ));
+        assertThat(outcome.getReplies(), hasItem(reply(PlaceBidStatus.ACCEPTED, 2000, bidder1)));
+    }
+
 
     private Matcher<Bid> bid(UUID bidder, int bidPrice, int maximumBid) {
         return allOf(

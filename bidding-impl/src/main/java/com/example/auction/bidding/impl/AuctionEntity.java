@@ -197,7 +197,7 @@ public class AuctionEntity extends PersistentEntity<AuctionCommand, AuctionEvent
 			return ctx.thenPersist(new BidPlaced(entityUUID(),
                 	    new Bid(bid.getBidder(), now, Math.min(auction.getReservePrice(), bid.getBidPrice()), bid.getBidPrice())), (e) ->
                 	    ctx.reply(new PlaceBidResult(PlaceBidStatus.ACCEPTED, Math.min(auction.getReservePrice(), bid.getBidPrice()) , bid.getBidder()))
-            );
+                );
 	}
            	 return ctx.thenPersist(new BidPlaced(entityUUID(),
                 	    new Bid(bid.getBidder(), now, currentBidPrice, bid.getBidPrice())), (e) ->
