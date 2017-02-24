@@ -21,6 +21,11 @@ git clone git@github.com:lagom/online-auction-java.git
 cd online-auction-java
 sbt runAll
 ```
+## Importing into IDEs
+
+* To import the online-auction-javaproject into IntellijIDEA you can have a look at [The Lagom Documentation for IDEA](http://www.lagomframework.com/documentation/1.3.x/java/IntellijSbtJava.html)
+* To import the online-auction-javaproject into Eclipse you can have a look at [The Lagom Documentation for Eclipse](http://www.lagomframework.com/documentation/1.3.x/java/EclipseSbt.html)
+* You will also need to add Lambok plugin in your IDE for annotations. Take a look at [The Lagom Documentation for Lambok](http://www.lagomframework.com/documentation/1.3.x/java/Immutable.html#Lombok)
 
 # Auction system - System architecture
 
