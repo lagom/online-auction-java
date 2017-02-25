@@ -79,3 +79,7 @@ pagination.next=Next
 
 invalid.step=Please put valid step
 invalid.increment=Please put a valid increment
+invalid.currency=Please enter a valid currency
+invalid.reserve=Please enter a valid reserve
+invalid.duration=Please enter a valid duration
+invalid.units=Please enter a valid unit
