@@ -1,7 +1,9 @@
 package com.example.auction.transaction.api;
 
 import com.example.auction.item.api.DeliveryOption;
+import lombok.Value;
 
+@Value
 public final class DeliveryInfo {
 
     private final String addressLine1;
