@@ -76,3 +76,6 @@ items.caption={0} ({1})
 
 pagination.prev=Previous
 pagination.next=Next
+
+invalid.step=Please put valid step
+invalid.increment=Please put a valid increment
