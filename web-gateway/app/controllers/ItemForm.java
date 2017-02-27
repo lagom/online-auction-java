@@ -31,16 +31,13 @@ public class ItemForm {
         List<ValidationError> errors = new ArrayList<>();
         
         try {
-        	Currency c = Currency.valueOf(currency);
+            Currency c = Currency.valueOf(currency);
             if (!c.isValidStep(increment.doubleValue())) {
                 errors.add(new ValidationError("increment", "invalid.step"));
             }
-
             if (!c.isValidStep(reserve.doubleValue())) {
                 errors.add(new ValidationError("reserve", "invalid.step"));
             }
-            // Make sure that the increment and reserve are multiples of 50c - in a real app, this would be more complex
-            // and based on currency specific rules, for now we'll assume currencies that have cents.
             if (!c.isValidIncrement(increment.doubleValue())) {
                 errors.add(new ValidationError("increment", "invalid.increment"));
             }
