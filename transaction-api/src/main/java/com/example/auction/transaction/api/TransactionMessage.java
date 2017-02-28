@@ -2,9 +2,7 @@ package com.example.auction.transaction.api;
 
 import java.time.Instant;
 import java.util.UUID;
-import lombok.Value;
 
-@Value
 public final class TransactionMessage {
 
     private final UUID author;

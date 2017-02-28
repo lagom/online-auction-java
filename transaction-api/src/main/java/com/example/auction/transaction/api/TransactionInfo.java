@@ -2,9 +2,7 @@ package com.example.auction.transaction.api;
 
 import com.example.auction.item.api.Item;
 import org.pcollections.PSequence;
-import lombok.Value;
 
-@Value
 public final class TransactionInfo {
 
     private final Item item;

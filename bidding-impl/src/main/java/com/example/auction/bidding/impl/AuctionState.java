@@ -2,7 +2,6 @@ package com.example.auction.bidding.impl;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import lombok.Value;
-import lombok.experimental.Wither;
 import com.lightbend.lagom.serialization.Jsonable;
 import org.pcollections.PSequence;
 import org.pcollections.TreePVector;
@@ -13,7 +12,6 @@ import java.util.Optional;
  * The auction state.
  */
 @Value
-@Wither
 public final class AuctionState implements Jsonable {
 
     private static final long serialVersionUID = 1L;
@@ -44,6 +42,10 @@ public final class AuctionState implements Jsonable {
 
     public static AuctionState start(Auction auction) {
         return new AuctionState(Optional.of(auction), AuctionStatus.UNDER_AUCTION, TreePVector.empty());
+    }
+    
+    public AuctionState withStatus(AuctionStatus status) {
+        return new AuctionState(auction, status, biddingHistory);
     }
 
     public AuctionState bid(Bid bid) {
