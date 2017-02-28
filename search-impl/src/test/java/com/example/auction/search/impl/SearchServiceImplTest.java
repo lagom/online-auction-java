@@ -2,39 +2,36 @@ package com.example.auction.search.impl;
 
 import akka.Done;
 import akka.NotUsed;
-import akka.actor.ActorRef;
-import akka.stream.Materializer;
 import com.example.auction.bidding.api.*;
 import com.example.auction.item.api.*;
 import com.example.auction.search.api.SearchRequest;
 import com.example.auction.search.api.SearchResult;
 import com.example.auction.search.api.SearchService;
+import com.example.core.InMemServiceLocator;
 import com.example.elasticsearch.ElasticsearchTestUtils;
 import com.lightbend.lagom.javadsl.api.ServiceCall;
 import com.lightbend.lagom.javadsl.api.ServiceLocator;
 import com.lightbend.lagom.javadsl.api.broker.Topic;
+import com.lightbend.lagom.javadsl.testkit.ProducerStub;
+import com.lightbend.lagom.javadsl.testkit.ProducerStubFactory;
 import com.lightbend.lagom.javadsl.testkit.ServiceTest;
-import com.lightbend.lagom.javadsl.testkit.ServiceTest.Setup;
+import com.lightbend.lagom.javadsl.testkit.ServiceTest.*;
 import org.junit.*;
 import org.pcollections.PSequence;
+import scala.concurrent.duration.FiniteDuration;
 
 import javax.inject.Inject;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.function.Supplier;
 
-import static com.lightbend.lagom.javadsl.testkit.ServiceTest.bind;
-import static com.lightbend.lagom.javadsl.testkit.ServiceTest.defaultSetup;
-import static com.lightbend.lagom.javadsl.testkit.ServiceTest.eventually;
+import static com.lightbend.lagom.javadsl.testkit.ServiceTest.*;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.junit.Assert.assertEquals;
-
-import com.example.core.*;
-import scala.concurrent.duration.FiniteDuration;
 
 // This TestCase puts a lot of pressure on elasticserach destroying and rebuilding indices on each run. Currently all
 // tests are ignored but can be run on a freshly installed elasticserach 5.0.x individually.
@@ -64,7 +61,6 @@ public class SearchServiceImplTest {
     @Before
     public void cleanIndex() {
         try {
-            // TODO: locate all documents and delete those instead of dropping the index.
             testServer.client(ElasticsearchTestUtils.class).deleteIndex().invoke().toCompletableFuture().get(5, SECONDS);
             TimeUnit.SECONDS.sleep(1);
         } catch (Throwable t) {
@@ -79,9 +75,8 @@ public class SearchServiceImplTest {
 
     private static ServiceTest.TestServer testServer;
     private static SearchService searchService;
-
-    private static Supplier<ActorRef> bidStub;
-    private static Supplier<ActorRef> itemStub;
+    private static ProducerStub<BidEvent> bidProducerStub;
+    private static ProducerStub<ItemEvent> itemProducerStub;
 
     @Test
     @Ignore
@@ -120,12 +115,11 @@ public class SearchServiceImplTest {
         startAuction(itemId1, creatorId, reservePrice, increment);
 
 
-        TimeUnit.SECONDS.sleep(1);
         // await until the item is indexed and available.
         assertCountOfResults(1, itemId1);
         // once we grant the item is in the index, then we bid.
         BidEvent.BidPlaced bidPlaced = new BidEvent.BidPlaced(itemId1, new Bid(bidder1, Instant.now().plusMillis(10), price, maximumPrice));
-        bidStub.get().tell(bidPlaced, ActorRef.noSender());
+        bidProducerStub.send(bidPlaced);
 
         // a high max Price is equivalent to no filtering
         Optional<Integer> oneMillion = Optional.of(100_000_000); // one Million = 100M cents
@@ -154,7 +148,7 @@ public class SearchServiceImplTest {
 
         // Bid over an Item that was still not reported from the Item Service
         BidEvent.BidPlaced bidPlaced = new BidEvent.BidPlaced(itemId1, new Bid(bidder1, Instant.now().plusMillis(10), price, maximumPrice));
-        bidStub.get().tell(bidPlaced, ActorRef.noSender());
+        bidProducerStub.send(bidPlaced);
 
         // Later the events of item creation and auction start arrive.
         updateItem(itemId1, creatorId, currency);
@@ -172,12 +166,12 @@ public class SearchServiceImplTest {
 
     private void updateItem(UUID itemId1, UUID creatorId, String currency) {
         ItemEvent.ItemUpdated itemCreated1 = new ItemEvent.ItemUpdated(itemId1, creatorId, "titles", "desc", ItemStatus.CREATED, currency);
-        itemStub.get().tell(itemCreated1, ActorRef.noSender());
+        itemProducerStub.send(itemCreated1);
     }
 
     private void startAuction(UUID itemId1, UUID creatorId, int reservePrice, int increment) {
         ItemEvent.AuctionStarted auctionStarted1 = new ItemEvent.AuctionStarted(itemId1, creatorId, reservePrice, increment, Instant.now(), Instant.now().plusSeconds(50));
-        itemStub.get().tell(auctionStarted1, ActorRef.noSender());
+        itemProducerStub.send(auctionStarted1);
     }
 
     private void assertCountOfResults(int expectedCount, UUID itemId1) {
@@ -185,12 +179,13 @@ public class SearchServiceImplTest {
     }
 
     private void assertCountOfResults(int expectedCount, UUID itemId1, SearchRequest request) {
-        eventually(new FiniteDuration(10, TimeUnit.SECONDS), new FiniteDuration(1, TimeUnit.SECONDS), () -> {
-            SearchResult items = searchService
-                    .search(0, 15)
-                    .invoke(request)
-                    .toCompletableFuture()
-                    .get(10, SECONDS);
+        eventually(new FiniteDuration(8, TimeUnit.SECONDS), new FiniteDuration(100, TimeUnit.MILLISECONDS), () -> {
+            SearchResult items =
+                    flushIndex()
+                            .thenCompose(done ->
+                                    searchService.search(0, 100).invoke(request))
+                            .toCompletableFuture().get(5, SECONDS);
+
             assertEquals(expectedCount, items.getItems().size());
             if (expectedCount > 0) {
                 assertEquals(itemId1, items.getItems().get(0).getId());
@@ -198,21 +193,24 @@ public class SearchServiceImplTest {
         });
     }
 
+
+    private CompletionStage<Done> flushIndex() {
+        ElasticsearchTestUtils client = testServer.client(ElasticsearchTestUtils.class);
+        return client.refresh().invoke();
+    }
+
+
     // ------------------------------------------------------------------
 
     public static class ItemStub implements ItemService {
-
-        private final TopicStub<ItemEvent> topicStub;
-
         @Inject
-        public ItemStub(Materializer materializer) {
-            topicStub = new TopicStub<>(materializer);
-            itemStub = topicStub.actorSupplier();
+        public ItemStub(ProducerStubFactory topicFactory) {
+            itemProducerStub = topicFactory.producer(TOPIC_ID);
         }
 
         @Override
         public Topic<ItemEvent> itemEvents() {
-            return topicStub;
+            return itemProducerStub.topic();
         }
 
         @Override
@@ -244,18 +242,14 @@ public class SearchServiceImplTest {
     // -----------------------------------------------------------------
 
     public static class BiddingStub implements BiddingService {
-        private final TopicStub<BidEvent> topicStub;
-
         @Inject
-        public BiddingStub(Materializer materializer) {
-            topicStub = new TopicStub<>(materializer);
-            bidStub = topicStub.actorSupplier();
+        public BiddingStub(ProducerStubFactory topicFactory) {
+            bidProducerStub = topicFactory.producer(TOPIC_ID);
         }
-
 
         @Override
         public Topic<BidEvent> bidEvents() {
-            return topicStub;
+            return bidProducerStub.topic();
         }
 
         @Override
