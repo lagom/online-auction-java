@@ -46,8 +46,7 @@ lazy val itemImpl = (project in file("item-impl"))
       lagomJavadslTestKit,
       lagomJavadslKafkaBroker,
       "com.datastax.cassandra" % "cassandra-driver-extras" % "3.0.0"
-    ),
-    BundleKeys.conductrTargetVersion := ConductrVersion.V2
+    )
   )
   .settings(lagomForkedTestSettings: _*)
   .dependsOn(itemApi, biddingApi)
@@ -71,8 +70,7 @@ lazy val biddingImpl = (project in file("bidding-impl"))
       lagomJavadslTestKit,
       lagomJavadslKafkaBroker
     ),
-    maxErrors := 10000,
-    BundleKeys.conductrTargetVersion := ConductrVersion.V2
+    maxErrors := 10000
   )
 
 lazy val searchApi = (project in file("search-api"))
@@ -97,8 +95,7 @@ lazy val searchImpl = (project in file("search-impl"))
       lagomJavadslTestKit,
       lagomJavadslKafkaClient,
       lombok
-    ),
-    BundleKeys.conductrTargetVersion := ConductrVersion.V2
+    )
   )
 
 lazy val transactionApi = (project in file("transaction-api"))
@@ -119,8 +116,7 @@ lazy val transactionImpl = (project in file("transaction-impl"))
     libraryDependencies ++= Seq(
       lagomJavadslPersistenceCassandra,
       lagomJavadslTestKit
-    ),
-    BundleKeys.conductrTargetVersion := ConductrVersion.V2
+    )
   )
 
 lazy val userApi = (project in file("user-api"))
@@ -137,8 +133,7 @@ lazy val userImpl = (project in file("user-impl"))
   .dependsOn(userApi)
   .settings(
     version := "1.0-SNAPSHOT",
-    libraryDependencies += lagomJavadslPersistenceCassandra,
-    BundleKeys.conductrTargetVersion := ConductrVersion.V2
+    libraryDependencies += lagomJavadslPersistenceCassandra
   )
 
 lazy val webGateway = (project in file("web-gateway"))
@@ -152,8 +147,7 @@ lazy val webGateway = (project in file("web-gateway"))
       "org.ocpsoft.prettytime" % "prettytime" % "3.2.7.Final",
       "org.webjars" % "foundation" % "6.2.3",
       "org.webjars" % "foundation-icon-fonts" % "d596a3cfb3"
-    ),
-    BundleKeys.conductrTargetVersion := ConductrVersion.V2
+    )
   )
 
 val lombok = "org.projectlombok" % "lombok" % "1.16.10"
