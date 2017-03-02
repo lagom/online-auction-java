@@ -32,29 +32,17 @@ public class ItemForm {
         
         try {
             Currency c = Currency.valueOf(currency);
-
             if (!c.isValidStep(increment.doubleValue())) {
                 errors.add(new ValidationError("increment", "invalid.step"));
             }
-
             if (!c.isValidStep(reserve.doubleValue())) {
                 errors.add(new ValidationError("reserve", "invalid.step"));
             }
-        } catch (IllegalArgumentException e) {
-            errors.add(new ValidationError("currency", "invalid.currency"));
-        }
-
-        // Make sure that the increment and reserve are multiples of 50c - in a real app, this would be more complex
-        // and based on currency specific rules, for now we'll assume currencies that have cents.
-        try {
-            int incrementInt = increment.multiply(BigDecimal.valueOf(2)).intValueExact();
-            if (incrementInt <= 0) {
-                errors.add(new ValidationError("increment", "invalid.increment"));
-            } else if (incrementInt >= 100) {
+            if (!c.isValidIncrement(increment.doubleValue())) {
                 errors.add(new ValidationError("increment", "invalid.increment"));
             }
-        } catch (ArithmeticException e) {
-            errors.add(new ValidationError("increment", "invalid.increment"));
+        } catch (IllegalArgumentException e) {
+            errors.add(new ValidationError("currency", "invalid.currency"));
         }
 
         try {
