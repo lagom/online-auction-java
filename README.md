@@ -4,6 +4,12 @@ This is a sample app of the Lagom Framework.
 
 ## Running: Prerequisites
 
+You will need to install sbt:
+
+* To install sbt on Mac you can have a look at [The SBT Documentation for Mac](http://www.scala-sbt.org/0.13/docs/Installing-sbt-on-Mac.html)
+* To install sbt on Windows you can have a look at [The SBT Documentation for Windows](http://www.scala-sbt.org/0.13/docs/Installing-sbt-on-Windows.html)
+* To install sbt on Linux you can have a look at [The SBT Documentation for Linux](http://www.scala-sbt.org/0.13/docs/Installing-sbt-on-Linux.html)
+
 You will need to download and run an Elastisearch server:
 
 ```
