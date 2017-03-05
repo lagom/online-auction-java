@@ -1,8 +1,18 @@
+[<img src="docs/logo.png" alt="Lagom" width="50%">](https://github.com/lagom/lagom)
+
+[![Gitter](https://img.shields.io/gitter/room/gitterHQ/gitter.svg)](https://gitter.im/lagom/lagom?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) [<img src="https://img.shields.io/travis/lagom/lagom.svg"/>](https://travis-ci.org/lagom/lagom)
+
 # INTRO
 
-This is a sample app of the Lagom Framework.
+Lagom is a Swedish word meaning just right, sufficient. Microservices are about creating services that are just the right size, that is, they have just the right level of functionality and isolation to be able to adequately implement a scalable and resilient system.
 
-## Running: Prerequisites
+This is a **sample Java auction system** using the Lagom Framework. A [Scala version](https://github.com/lagom/online-auction-scala) of the auction system is also available.
+
+## Getting started
+
+To get started make sure you have sbt and git installed on your system. You will also need an active internet connection.
+
+### Running: Prerequisites
 
 You will need to install sbt:
 
@@ -18,7 +28,7 @@ tar -xvf elasticsearch-5.0.2.tar.gz
 cd elasticsearch-5.0.2/bin
 ./elasticsearch
 ```
-## Running
+### Running
 
 On another terminal, clone this repo and run the sample app using the command `sbt runAll`:
 
@@ -27,7 +37,7 @@ git clone git@github.com:lagom/online-auction-java.git
 cd online-auction-java
 sbt runAll
 ```
-## Importing into IDEs
+### Importing into IDEs
 
 * To import the online-auction-javaproject into IntellijIDEA you can have a look at [The Lagom Documentation for IDEA](http://www.lagomframework.com/documentation/1.3.x/java/IntellijSbtJava.html)
 * To import the online-auction-javaproject into Eclipse you can have a look at [The Lagom Documentation for Eclipse](http://www.lagomframework.com/documentation/1.3.x/java/EclipseSbt.html)
@@ -45,3 +55,10 @@ The auction system is the sum of 5 micro-services and a web gateway:
 * **web-gateway**: a [Play](https://www.playframework.com/) application providing web UI and acting as gateway to all previously described services.
 
 Check the docs for each service for details on the **commands** and **queries** it serves as well as events the service **emits** and events it **consumes** from the [Message Broker](http://www.lagomframework.com/documentation/1.2.x/java/MessageBroker.html#Message-Broker-Support).
+
+## Good to know
+
+- Hello World Giter8 seed
+For a simple, gentler, introduction to Lagom with Java, have a look at the Hello World giter8 seed project using [Maven](http://www.lagomframework.com/documentation/1.3.x/java/GettingStartedMaven.html) or [sbt](http://www.lagomframework.com/documentation/1.3.x/java/GettingStartedSbt.html).
+- Getting help
+If you have any troubles and need help, feel free to ask in the [Gitter channel](https://gitter.im/lagom/lagom)
