@@ -56,7 +56,10 @@ lazy val biddingApi = (project in file("bidding-api"))
   .settings(commonSettings: _*)
   .settings(
     version := "1.0-SNAPSHOT",
-    libraryDependencies += lagomJavadslApi
+    libraryDependencies ++= Seq(
+      lagomJavadslApi,
+      lombok
+    )
   )
   .dependsOn(security)
 
@@ -69,7 +72,8 @@ lazy val biddingImpl = (project in file("bidding-impl"))
     libraryDependencies ++= Seq(
       lagomJavadslPersistenceCassandra,
       lagomJavadslTestKit,
-      lagomJavadslKafkaBroker
+      lagomJavadslKafkaBroker,
+      lombok
     ),
     maxErrors := 10000
 
@@ -136,7 +140,10 @@ lazy val userApi = (project in file("user-api"))
   .settings(commonSettings: _*)
   .settings(
     version := "1.0-SNAPSHOT",
-    libraryDependencies += lagomJavadslApi
+    libraryDependencies ++= Seq(
+      lagomJavadslApi,
+      lombok
+    )
   )
   .dependsOn(security)
 
@@ -146,7 +153,10 @@ lazy val userImpl = (project in file("user-impl"))
   .dependsOn(userApi)
   .settings(
     version := "1.0-SNAPSHOT",
-    libraryDependencies += lagomJavadslPersistenceCassandra
+    libraryDependencies ++= Seq(
+      lagomJavadslPersistenceCassandra,
+      lombok
+    )
   )
 
 lazy val webGateway = (project in file("web-gateway"))

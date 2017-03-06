@@ -2,6 +2,7 @@ package com.example.auction.bidding.impl;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.lightbend.lagom.serialization.Jsonable;
+import lombok.Value;
 import org.pcollections.PSequence;
 import org.pcollections.TreePVector;
 
@@ -10,6 +11,7 @@ import java.util.Optional;
 /**
  * The auction state.
  */
+@Value
 public final class AuctionState implements Jsonable {
 
     private static final long serialVersionUID = 1L;
@@ -62,47 +64,5 @@ public final class AuctionState implements Jsonable {
         } else {
             return Optional.of(biddingHistory.get(biddingHistory.size() - 1));
         }
-    }
-
-    public Optional<Auction> getAuction() {
-        return auction;
-    }
-
-    public AuctionStatus getStatus() {
-        return status;
-    }
-
-    public PSequence<Bid> getBiddingHistory() {
-        return biddingHistory;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        AuctionState that = (AuctionState) o;
-
-        if (!auction.equals(that.auction)) return false;
-        if (status != that.status) return false;
-        return biddingHistory.equals(that.biddingHistory);
-
-    }
-
-    @Override
-    public int hashCode() {
-        int result = auction.hashCode();
-        result = 31 * result + status.hashCode();
-        result = 31 * result + biddingHistory.hashCode();
-        return result;
-    }
-
-    @Override
-    public String toString() {
-        return "AuctionState{" +
-                "auction=" + auction +
-                ", status=" + status +
-                ", biddingHistory=" + biddingHistory +
-                '}';
     }
 }

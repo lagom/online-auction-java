@@ -5,7 +5,8 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 
-import java.time.Instant;
+import lombok.Value;
+
 import java.util.Optional;
 import java.util.UUID;
 
@@ -14,8 +15,8 @@ import java.util.UUID;
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type", defaultImpl = Void.class)
 @JsonSubTypes({
-                @JsonSubTypes.Type(BidEvent.BidPlaced.class),
-                @JsonSubTypes.Type(BidEvent.BiddingFinished.class)
+        @JsonSubTypes.Type(BidEvent.BidPlaced.class),
+        @JsonSubTypes.Type(BidEvent.BiddingFinished.class)
 })
 public interface BidEvent {
 
@@ -23,6 +24,7 @@ public interface BidEvent {
     /**
      * A bid was placed.
      */
+    @Value
     @JsonTypeName("bid-placed")
     final class BidPlaced implements BidEvent {
 
@@ -40,46 +42,12 @@ public interface BidEvent {
             this.itemId = itemId;
             this.bid = bid;
         }
-
-        public UUID getItemId() {
-            return itemId;
-        }
-
-        public Bid getBid() {
-            return bid;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-
-            BidPlaced bidPlaced = (BidPlaced) o;
-
-            if (!itemId.equals(bidPlaced.itemId)) return false;
-            return bid.equals(bidPlaced.bid);
-
-        }
-
-        @Override
-        public int hashCode() {
-            int result = itemId.hashCode();
-            result = 31 * result + bid.hashCode();
-            return result;
-        }
-
-        @Override
-        public String toString() {
-            return "BidPlaced{" +
-                    "itemId=" + itemId +
-                    ", bid=" + bid +
-                    '}';
-        }
     }
 
     /**
      * Bidding finished.
      */
+    @Value
     @JsonTypeName("bidding-finished")
     final class BiddingFinished implements BidEvent {
 
@@ -96,41 +64,6 @@ public interface BidEvent {
         public BiddingFinished(UUID itemId, Optional<Bid> winningBid) {
             this.itemId = itemId;
             this.winningBid = winningBid;
-        }
-
-        public UUID getItemId() {
-            return itemId;
-        }
-
-        public Optional<Bid> getWinningBid() {
-            return winningBid;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-
-            BiddingFinished that = (BiddingFinished) o;
-
-            if (!itemId.equals(that.itemId)) return false;
-            return winningBid.equals(that.winningBid);
-
-        }
-
-        @Override
-        public int hashCode() {
-            int result = itemId.hashCode();
-            result = 31 * result + winningBid.hashCode();
-            return result;
-        }
-
-        @Override
-        public String toString() {
-            return "BiddingFinished{" +
-                    "itemId=" + itemId +
-                    ", winningBid=" + winningBid +
-                    '}';
         }
     }
 

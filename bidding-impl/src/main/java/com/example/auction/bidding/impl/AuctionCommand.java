@@ -5,6 +5,7 @@ import com.example.auction.bidding.api.BidResultStatus;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.lightbend.lagom.javadsl.persistence.PersistentEntity.ReplyType;
 import com.lightbend.lagom.serialization.Jsonable;
+import lombok.Value;
 
 import java.util.UUID;
 
@@ -16,6 +17,7 @@ public interface AuctionCommand extends Jsonable {
     /**
      * Start the auction.
      */
+    @Value
     final class StartAuction implements AuctionCommand, ReplyType<Done> {
 
         private static final long serialVersionUID = 1L;
@@ -29,33 +31,6 @@ public interface AuctionCommand extends Jsonable {
         public StartAuction(Auction auction) {
             this.auction = auction;
         }
-
-        public Auction getAuction() {
-            return auction;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-
-            StartAuction that = (StartAuction) o;
-
-            return auction.equals(that.auction);
-
-        }
-
-        @Override
-        public int hashCode() {
-            return auction.hashCode();
-        }
-
-        @Override
-        public String toString() {
-            return "StartAuction{" +
-                    "auction=" + auction +
-                    '}';
-        }
     }
 
     /**
@@ -68,6 +43,7 @@ public interface AuctionCommand extends Jsonable {
     /**
      * Place a bid on the auction.
      */
+    @Value
     final class PlaceBid implements AuctionCommand, ReplyType<PlaceBidResult> {
 
         private static final long serialVersionUID = 1L;
@@ -78,41 +54,6 @@ public interface AuctionCommand extends Jsonable {
         public PlaceBid(int bidPrice, UUID bidder) {
             this.bidPrice = bidPrice;
             this.bidder = bidder;
-        }
-
-        public int getBidPrice() {
-            return bidPrice;
-        }
-
-        public UUID getBidder() {
-            return bidder;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-
-            PlaceBid placeBid = (PlaceBid) o;
-
-            if (bidPrice != placeBid.bidPrice) return false;
-            return bidder.equals(placeBid.bidder);
-
-        }
-
-        @Override
-        public int hashCode() {
-            int result = bidPrice;
-            result = 31 * result + bidder.hashCode();
-            return result;
-        }
-
-        @Override
-        public String toString() {
-            return "PlaceBid{" +
-                    "bidPrice=" + bidPrice +
-                    ", bidder=" + bidder +
-                    '}';
         }
     }
 
@@ -180,6 +121,7 @@ public interface AuctionCommand extends Jsonable {
     /**
      * The result of placing a bid.
      */
+    @Value
     final class PlaceBidResult implements Jsonable {
 
         private static final long serialVersionUID = 1L;
@@ -202,48 +144,6 @@ public interface AuctionCommand extends Jsonable {
             this.currentPrice = currentPrice;
             this.status = status;
             this.currentBidder = currentBidder;
-        }
-
-        public int getCurrentPrice() {
-            return currentPrice;
-        }
-
-        public PlaceBidStatus getStatus() {
-            return status;
-        }
-
-        public UUID getCurrentBidder() {
-            return currentBidder;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-
-            PlaceBidResult that = (PlaceBidResult) o;
-
-            if (currentPrice != that.currentPrice) return false;
-            if (status != that.status) return false;
-            return currentBidder != null ? currentBidder.equals(that.currentBidder) : that.currentBidder == null;
-
-        }
-
-        @Override
-        public int hashCode() {
-            int result = currentPrice;
-            result = 31 * result + status.hashCode();
-            result = 31 * result + (currentBidder != null ? currentBidder.hashCode() : 0);
-            return result;
-        }
-
-        @Override
-        public String toString() {
-            return "PlaceBidResult{" +
-                    "currentPrice=" + currentPrice +
-                    ", status=" + status +
-                    ", currentBidder=" + currentBidder +
-                    '}';
         }
     }
 
