@@ -20,7 +20,7 @@ You will need to install sbt:
 * To install sbt on Windows you can have a look at [The SBT Documentation for Windows](http://www.scala-sbt.org/0.13/docs/Installing-sbt-on-Windows.html)
 * To install sbt on Linux you can have a look at [The SBT Documentation for Linux](http://www.scala-sbt.org/0.13/docs/Installing-sbt-on-Linux.html)
 
-You will need to download and run an Elastisearch server:
+You will need to download and run an Elastisearch server: (optional)
 
 ```
 curl -L -O https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-5.0.2.tar.gz
@@ -28,7 +28,8 @@ tar -xvf elasticsearch-5.0.2.tar.gz
 cd elasticsearch-5.0.2/bin
 ./elasticsearch
 ```
-### Running
+
+## Running
 
 On another terminal, clone this repo and run the sample app using the command `sbt runAll`:
 
@@ -37,7 +38,7 @@ git clone git@github.com:lagom/online-auction-java.git
 cd online-auction-java
 sbt runAll
 ```
-### Importing into IDEs
+### Importing into IDEs (optional)
 
 * To import the online-auction-javaproject into IntellijIDEA you can have a look at [The Lagom Documentation for IDEA](http://www.lagomframework.com/documentation/1.3.x/java/IntellijSbtJava.html)
 * To import the online-auction-javaproject into Eclipse you can have a look at [The Lagom Documentation for Eclipse](http://www.lagomframework.com/documentation/1.3.x/java/EclipseSbt.html)
