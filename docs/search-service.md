@@ -3,7 +3,7 @@
 
 Handles all item searching.
 
-The implementation is leveraging an Elasticsearch server to store and then search Items. To access Elasticsearch this service uses the [HTTP API](https://www.elastic.co/guide/en/elasticsearch/reference/current/docs.html) so this is an example of wrapping a 3rd party HTTP API on a [Lagom Descriptor](http://www.lagomframework.com/documentation/1.2.x/java/ServiceDescriptors.html).
+The implementation is leveraging an Elasticsearch server to store and then search Items. To access Elasticsearch this service uses the [HTTP API](https://www.elastic.co/guide/en/elasticsearch/reference/current/docs.html) so this is an example of wrapping a 3rd party HTTP API on a [Lagom Descriptor](http://www.lagomframework.com/documentation/1.3.x/java/ServiceDescriptors.html).
 
 ## Queries handled
 

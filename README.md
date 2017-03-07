@@ -55,7 +55,7 @@ The auction system is the sum of 5 micro-services and a web gateway:
 * **user-service**: a convenience service to stub user management. Don't use any code in `user-service` as reference on how to create a secure user management micro-service.
 * **web-gateway**: a [Play](https://www.playframework.com/) application providing web UI and acting as gateway to all previously described services.
 
-Check the docs for each service for details on the **commands** and **queries** it serves as well as events the service **emits** and events it **consumes** from the [Message Broker](http://www.lagomframework.com/documentation/1.2.x/java/MessageBroker.html#Message-Broker-Support).
+Check the docs for each service for details on the **commands** and **queries** it serves as well as events the service **emits** and events it **consumes** from the [Message Broker](http://www.lagomframework.com/documentation/1.3.x/java/MessageBroker.html#Message-Broker-Support).
 
 ## Good to know
 
