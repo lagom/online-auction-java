@@ -1,10 +1,12 @@
 [<img src="docs/logo.png" alt="Lagom" width="50%">](https://github.com/lagom/lagom)
 
-[![Gitter](https://img.shields.io/gitter/room/gitterHQ/gitter.svg)](https://gitter.im/lagom/lagom?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) [<img src="https://img.shields.io/travis/lagom/lagom.svg"/>](https://travis-ci.org/lagom/lagom)
+[![Gitter](https://img.shields.io/gitter/room/gitterHQ/gitter.svg)](https://gitter.im/lagom/lagom?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) [<img src="https://travis-ci.org/lagom/online-auction-java.svg?branch=master"/>](https://travis-ci.org/lagom/online-auction-java)
 
 # INTRO
 
 Lagom is a Swedish word meaning just right, sufficient. Microservices are about creating services that are just the right size, that is, they have just the right level of functionality and isolation to be able to adequately implement a scalable and resilient system.
+
+Lagom focuses on ensuring that your application realises the full potential of the [Reactive Manifesto](http://reactivemanifesto.org/), while delivering a high productivity development environment, and seamless production deployment experience.
 
 This is a **sample Java auction system** using the Lagom Framework. A [Scala version](https://github.com/lagom/online-auction-scala) of the auction system is also available.
 
@@ -60,6 +62,6 @@ Check the docs for each service for details on the **commands** and **queries** 
 ## Good to know
 
 - Hello World Giter8 seed
-For a simple, gentler, introduction to Lagom with Java, have a look at the Hello World giter8 seed project using [Maven](http://www.lagomframework.com/documentation/1.3.x/java/GettingStartedMaven.html) or [sbt](http://www.lagomframework.com/documentation/1.3.x/java/GettingStartedSbt.html).
+For a simple, gentler, introduction to Lagom with Java, have a look at the Hello World Lagom archetype using [Maven](http://www.lagomframework.com/documentation/1.3.x/java/GettingStartedMaven.html) or Giter8 lagom template  with [sbt](http://www.lagomframework.com/documentation/1.3.x/java/GettingStartedSbt.html).
 - Getting help
 If you have any troubles and need help, feel free to ask in the [Gitter channel](https://gitter.im/lagom/lagom)
