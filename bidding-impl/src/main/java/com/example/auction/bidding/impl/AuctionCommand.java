@@ -17,7 +17,7 @@ public interface AuctionCommand extends Jsonable {
     /**
      * Start the auction.
      */
-	@Value
+    @Value
     final class StartAuction implements AuctionCommand, ReplyType<Done> {
 
         private static final long serialVersionUID = 1L;

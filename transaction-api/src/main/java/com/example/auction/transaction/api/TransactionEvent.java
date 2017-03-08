@@ -5,7 +5,7 @@ import java.util.UUID;
 public abstract class TransactionEvent {
 
     private TransactionEvent() {}
-    
+
     public static final class DeliveryByNegotiation extends TransactionEvent {
 
         private final UUID itemId;
@@ -14,7 +14,7 @@ public abstract class TransactionEvent {
             this.itemId = itemId;
         }
     }
-    
+
     public static final class DeliveryPriceUpdated extends TransactionEvent {
 
         private final UUID itemId;
@@ -23,7 +23,7 @@ public abstract class TransactionEvent {
             this.itemId = itemId;
         }
     }
-    
+
     public static final class PaymentConfirmed extends TransactionEvent {
 
         private final UUID itemId;
@@ -32,7 +32,7 @@ public abstract class TransactionEvent {
             this.itemId = itemId;
         }
     }
-    
+
     public static final class PaymentFailed extends TransactionEvent {
 
         private final UUID itemId;

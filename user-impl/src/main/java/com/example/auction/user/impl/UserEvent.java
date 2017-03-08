@@ -8,7 +8,7 @@ import lombok.Value;
 
 public interface UserEvent extends Jsonable, AggregateEvent<UserEvent> {
 
-	@Value
+    @Value
     final class UserCreated implements UserEvent {
         private final User user;
 

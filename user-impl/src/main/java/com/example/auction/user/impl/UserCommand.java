@@ -9,7 +9,7 @@ import lombok.Value;
 import java.util.Optional;
 
 public interface UserCommand extends Jsonable {
-	@Value
+    @Value
     final class CreateUser implements UserCommand, PersistentEntity.ReplyType<User> {
         private final String name;
 

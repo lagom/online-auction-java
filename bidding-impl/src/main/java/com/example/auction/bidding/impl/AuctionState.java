@@ -43,7 +43,7 @@ public final class AuctionState implements Jsonable {
     public static AuctionState start(Auction auction) {
         return new AuctionState(Optional.of(auction), AuctionStatus.UNDER_AUCTION, TreePVector.empty());
     }
-    
+
     public AuctionState withStatus(AuctionStatus status) {
         return new AuctionState(auction, status, biddingHistory);
     }
