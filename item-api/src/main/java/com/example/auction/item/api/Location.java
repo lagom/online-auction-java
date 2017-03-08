@@ -1,7 +1,12 @@
 package com.example.auction.item.api;
 
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
+
 import java.util.Optional;
 
+@EqualsAndHashCode
+@ToString
 public final class Location {
 
     private final Optional<String> country;
