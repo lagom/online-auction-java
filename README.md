@@ -61,7 +61,7 @@ Check the docs for each service for details on the **commands** and **queries** 
 
 ## Good to know
 
-- Hello World Giter8 seed
+- Hello World seed
 For a simple, gentler, introduction to Lagom with Java, have a look at the Hello World Lagom archetype using [Maven](http://www.lagomframework.com/documentation/1.3.x/java/GettingStartedMaven.html) or Giter8 lagom template  with [sbt](http://www.lagomframework.com/documentation/1.3.x/java/GettingStartedSbt.html).
 - Getting help
 If you have any troubles and need help, feel free to ask in the [Gitter channel](https://gitter.im/lagom/lagom)
