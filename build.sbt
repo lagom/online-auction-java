@@ -56,7 +56,10 @@ lazy val biddingApi = (project in file("bidding-api"))
   .settings(commonSettings: _*)
   .settings(
     version := "1.0-SNAPSHOT",
-    libraryDependencies += lagomJavadslApi
+    libraryDependencies ++= Seq(
+      lagomJavadslApi,
+      lombok
+    )
   )
   .dependsOn(security)
 
@@ -116,7 +119,10 @@ lazy val transactionApi = (project in file("transaction-api"))
   .dependsOn(itemApi)
   .settings(
     version := "1.0-SNAPSHOT",
-    libraryDependencies += lagomJavadslApi
+    libraryDependencies ++= Seq(
+      lagomJavadslApi,
+      lombok
+    )
   )
   .dependsOn(security)
 
@@ -136,7 +142,10 @@ lazy val userApi = (project in file("user-api"))
   .settings(commonSettings: _*)
   .settings(
     version := "1.0-SNAPSHOT",
-    libraryDependencies += lagomJavadslApi
+    libraryDependencies ++= Seq(
+      lagomJavadslApi,
+      lombok
+    )
   )
   .dependsOn(security)
 
