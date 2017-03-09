@@ -172,8 +172,9 @@ lazy val webGateway = (project in file("web-gateway"))
     ),
     // Workaround for https://github.com/lagom/online-auction-java/issues/22
     // Uncomment the commented out line and remove the Scala line when issue #22 is fixed
-    EclipseKeys.projectFlavor in Global := EclipseProjectFlavor.Scala
+    EclipseKeys.projectFlavor in Global := EclipseProjectFlavor.Scala,
     // EclipseKeys.createSrc := EclipseCreateSrc.ValueSet(EclipseCreateSrc.ManagedClasses, EclipseCreateSrc.ManagedResources)
+    EclipseKeys.preTasks := Seq(compile in Compile)
   )
 
 val lombok = "org.projectlombok" % "lombok" % "1.16.10"
