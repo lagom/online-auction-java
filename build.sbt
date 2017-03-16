@@ -99,7 +99,8 @@ lazy val searchImpl = (project in file("search-impl"))
       lagomJavadslTestKit,
       lagomJavadslKafkaClient,
       lombok
-    )
+    ),
+    testOptions in Test += Tests.Argument(TestFrameworks.JUnit, elasticsearch)
   )
   .dependsOn(tools, searchApi, itemApi, biddingApi)
 
@@ -179,6 +180,14 @@ lazy val webGateway = (project in file("web-gateway"))
 
 val lombok = "org.projectlombok" % "lombok" % "1.16.10"
 
+def elasticsearch : String = {
+  val enableElasticsearch = sys.props.getOrElse("enableElasticsearch", default = "false")
+  if ( enableElasticsearch == "true") {
+      "--include-categories=com.example.auction.search.impl.ElasticsearchTests"
+  } else {
+      "--exclude-categories=com.example.auction.search.impl.ElasticsearchTests"
+  }
+}
 
 def commonSettings: Seq[Setting[_]] = eclipseSettings ++ Seq(
   javacOptions ++= Seq("-encoding", "UTF-8", "-source", "1.8", "-target", "1.8", "-Xlint:unchecked", "-Xlint:deprecation", "-parameters")

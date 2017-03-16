@@ -1,5 +1,5 @@
 language: scala
-sudo: false
+sudo: required
 jdk:
   - oraclejdk8
 before_install:
@@ -8,12 +8,11 @@ before_install:
   - curl -L -O https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-5.0.2.tar.gz
   - tar -xvf elasticsearch-5.0.2.tar.gz
   - cd elasticsearch-5.0.2/bin
-  - ./elasticsearch &
+  - ./elasticsearch -d
+  - sleep 20
   - cd $location
-before_script:
-  - sleep 10
 script:
-  - sbt +test
+  - sbt -DenableElasticsearch=true test
 cache:
   directories:
     - $HOME/.ivy2/cache

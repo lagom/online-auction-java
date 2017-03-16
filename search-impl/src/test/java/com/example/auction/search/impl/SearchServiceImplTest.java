@@ -17,6 +17,7 @@ import com.lightbend.lagom.javadsl.testkit.ProducerStubFactory;
 import com.lightbend.lagom.javadsl.testkit.ServiceTest;
 import com.lightbend.lagom.javadsl.testkit.ServiceTest.*;
 import org.junit.*;
+import org.junit.experimental.categories.Category;
 import org.pcollections.PSequence;
 import scala.concurrent.duration.FiniteDuration;
 
@@ -36,6 +37,7 @@ import static org.junit.Assert.assertEquals;
 // This TestCase puts a lot of pressure on elasticserach destroying and rebuilding indices on each run. Currently all
 // tests are ignored but can be run on a freshly installed elasticserach 5.0.x individually.
 // This TestCase expects an elasticsearch 5.0.x available on port 9200.
+@Category(ElasticsearchTests.class)
 public class SearchServiceImplTest {
 
     private static final Setup setup = defaultSetup()
@@ -79,7 +81,6 @@ public class SearchServiceImplTest {
     private static ProducerStub<ItemEvent> itemProducerStub;
 
     @Test
-    @Ignore
     public void shouldFindAnItemUnderAuction() throws InterruptedException, ExecutionException, TimeoutException {
         UUID itemId1 = UUID.randomUUID();
         UUID itemId2 = UUID.randomUUID();
