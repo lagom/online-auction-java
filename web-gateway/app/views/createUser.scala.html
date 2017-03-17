@@ -9,7 +9,7 @@
     @foundationForm(createUser, routes.Main.createUser()) {
         <div class="row">
             <div class="medium-6 columns">
-              <p>Enter username in the box below and click on 'Create User' to create a new user profile.</p>
+              <p>@message("createUserInstructions")</p>
                 @inputText(createUser("name"))
             </div>
         </div>
