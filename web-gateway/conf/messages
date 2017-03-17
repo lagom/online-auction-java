@@ -23,7 +23,7 @@ editItem=Edit
 saveItem=Save
 searchItems=Search Items
 
-keywords=Exact terms: 
+keywords=Exact terms:
 maximumPrice=Maximum Price (set to '0' to disable filter)
 maximumPriceCurrency=
 searchFoundCount={0} items found
@@ -83,3 +83,5 @@ invalid.currency=Please enter a valid currency
 invalid.reserve=Please enter a valid reserve
 invalid.duration=Please enter a valid duration
 invalid.units=Please enter a valid unit
+
+createUserInstructions=Here you can create a new user who can participate in and create auctions.
