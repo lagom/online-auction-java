@@ -85,3 +85,5 @@ invalid.duration=Please enter a valid duration
 invalid.units=Please enter a valid unit
 
 createUserInstructions=Here you can create a new user who can participate in and create auctions.
+itemMessage=Click on an item to view/edit its details.
+editItemInstructions=Here you can edit details of your auction item. If the auction has not started, you can edit any detail including description, minimum bid increment, auction duration, etc. However, if the auction is on-going, only the item description can be edited.
