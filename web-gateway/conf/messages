@@ -85,8 +85,10 @@ invalid.duration=Please enter a valid duration
 invalid.units=Please enter a valid unit
 
 createUserInstructions=Here you can create a new user who can participate in and create auctions.
+
 itemMessage=Click on an item to view/edit its details.
 editItemInstructions=Here you can edit details of your auction item. If the auction has not started, you can edit any detail including description, minimum bid increment, auction duration, etc. However, if the auction is on-going, only the item description can be edited.
+
 instruction.createItem=Here you can create new items to auction.
 instruction.placeBid=Here you can place a bid for item under auction.
 instruction.seller=Here you can start the auction of the item.
@@ -94,3 +96,7 @@ instruction.auctionStarted.bidder=The auction has started for this item.
 instruction.auctionStarted.seller=This item is under auction. Now other users can start bidding for this item.
 instruction.auctionEnded=The auction has ended for this item.
 instruction.auctionCancelled=The auction has been cancelled for this item.
+
+searchInstructions=Here you can search for auctioned items. Search functionality can be enabled by downloading and running a local instance of elasticsearch. \
+	Steps for doing this can be found in README.md.\
+	You can filter your search by specifying the maximum price of items to search for and the currency to search in.

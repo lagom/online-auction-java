@@ -12,6 +12,8 @@
 
     <h2>@message("searchItems")</h2>
 
+	<p>@message("searchInstructions")</p>
+	
     @foundationForm(searchItemForm, routes.SearchController.search(), 'id -> "searchForm") {
         <div class="column row">
             @inputText(searchItemForm("keywords"), 'placeholder -> "laptop")
