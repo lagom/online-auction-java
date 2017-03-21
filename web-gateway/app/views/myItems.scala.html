@@ -22,6 +22,7 @@
             @if(paginatedItems.isEmpty) {
                 <em>@message("noItems." + status)</em>
             } else {
+                <p>@message("itemMessage")</p>
                 <table>
                     <caption>@message("items.caption", message("items." + status), paginatedItems.getCount)</caption>
 

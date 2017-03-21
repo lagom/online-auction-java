@@ -12,6 +12,8 @@
 
     <h2>@message("editItem")</h2>
 
+    <p>@message("editItemInstructions")</p>
+
     @foundationForm(itemForm, routes.ItemController.editItem(itemId.toString, itemStatus.name)) {
 
         @if(errorMessage.isPresent) {
