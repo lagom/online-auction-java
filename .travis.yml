@@ -2,15 +2,16 @@ language: scala
 sudo: required
 jdk:
   - oraclejdk8
+addons:
+  apt:
+    packages:
+      - oracle-java8-set-default # Installing Elasticsearch from .deb causes default JDK in the system to fallback. This is required to ensure that 'java' (and other JDK commands) is linked to those of oraclejdk8
 before_install:
-  - location=`pwd`
-  - cd
-  - curl -L -O https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-5.0.2.tar.gz
-  - tar -xvf elasticsearch-5.0.2.tar.gz
-  - cd elasticsearch-5.0.2/bin
-  - ./elasticsearch -d
+  - curl -O https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-5.0.2.deb
+  - sudo dpkg -i --force-confnew elasticsearch-5.0.2.deb
+  - sudo service elasticsearch restart
+before_script:
   - sleep 20
-  - cd $location
 script:
   - sbt -DenableElasticsearch=true test
 cache:
