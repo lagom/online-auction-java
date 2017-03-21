@@ -10,6 +10,7 @@
 
     @foundationForm(itemForm, routes.ItemController.createItem()) {
         <div class="column row">
+            <p>@message("instruction.createItem")</p>
             @inputText(itemForm("title"))
         </div>
         <div class="column row">

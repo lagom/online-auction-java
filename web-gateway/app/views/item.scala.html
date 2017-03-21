@@ -20,6 +20,26 @@
 
     <div >
         <h1>@item.getItemData.getTitle</h1>
+        @if(currentUser == item.getCreator ){
+           @if(item.getStatus == ItemStatus.AUCTION){
+                 <p>@message("instruction.auctionStarted.seller")</p>
+            }
+            @if(item.getStatus == ItemStatus.CREATED){
+                 <p>@message("instruction.seller")</p>
+            }
+        }else{
+            @if(item.getStatus == ItemStatus.AUCTION){
+                 <p>@message("instruction.auctionStarted.bidder")</p>
+            }
+        }
+
+        @if(item.getStatus == ItemStatus.COMPLETED){
+            <p>@message("instruction.auctionEnded")</p>
+        }
+        @if(item.getStatus == ItemStatus.CANCELLED){
+            <p>@message("instruction.auctionCancelled")</p>
+        }
+
     </div>
 
     @if(currentUser == item.getCreator &&(item.getStatus == ItemStatus.CREATED || item.getStatus == ItemStatus.AUCTION )){
@@ -108,6 +128,7 @@
 
     @if(currentUser != item.getCreator && item.getStatus == ItemStatus.AUCTION) {
         <h3>@message("placeBid")</h3>
+        <p>@message("instruction.placeBid")</p>
         @if(currentMaximumBid.isPresent) {
             <div class="success callout">
                 @message("currentWinningBidderMessage", currency.format(currentMaximumBid.get()))
