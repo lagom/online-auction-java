@@ -22,3 +22,5 @@ GET         /search                     controllers.SearchController.searchForm(
 POST        /search                     controllers.SearchController.search()
 
 GET         /assets/*file               controllers.Assets.at(path = "/public", file)
+
+GET         /*file                      controllers.ExternalAssets.at(path="../", file)
