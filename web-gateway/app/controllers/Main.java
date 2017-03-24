@@ -17,6 +17,8 @@ public class Main extends AbstractController {
     private final UserService userService;
     private final FormFactory formFactory;
 
+    public static boolean showInlineInstruction = true;
+
     @Inject
     public Main(MessagesApi messagesApi, UserService userService, FormFactory formFactory) {
         super(messagesApi, userService);
