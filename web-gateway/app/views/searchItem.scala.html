@@ -14,7 +14,7 @@
 
     <p>@message("instruction.search")</p>
 
-    <p>@Html(message("instruction.enableSearch", "<a href = \"/README.md\">README.md</a>"))</p>
+    <p>@Html(message("instruction.enableSearch", "<a href=\"https://github.com/lagom/online-auction-java/blob/master/README.md\">README.md</a>"))</p>
 
     @foundationForm(searchItemForm, routes.SearchController.search(), 'id -> "searchForm") {
         <div class="column row">
