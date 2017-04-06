@@ -1,9 +1,9 @@
 package com.example.auction.search.impl;
 
+import com.example.auction.pagination.PaginatedSequence;
 import com.example.auction.search.IndexedStore;
 import com.example.auction.search.api.SearchItem;
 import com.example.auction.search.api.SearchRequest;
-import com.example.auction.search.api.SearchResult;
 import com.example.auction.search.api.SearchService;
 import com.example.elasticsearch.IndexedItem;
 import com.example.elasticsearch.QueryBuilder;
@@ -27,7 +27,7 @@ public class SearchServiceImpl implements SearchService {
     }
 
     @Override
-    public ServiceCall<SearchRequest, SearchResult> search(int pageNo, int pageSize) {
+    public ServiceCall<SearchRequest, PaginatedSequence<SearchItem>> search(int pageNo, int pageSize) {
         return req -> {
             QueryRoot query = new QueryBuilder(pageNo, pageSize)
                     .withKeywords(req.getKeywords())
@@ -46,7 +46,7 @@ public class SearchServiceImpl implements SearchService {
                                 .map(this::toApi)
                                 .collect(Collectors.toList()));
 
-                return new SearchResult(items, query.getPageSize(), query.getPageNumber(), result.getHits().getTotal());
+                return new PaginatedSequence<>(items, query.getPageNumber(), query.getPageSize(), result.getHits().getTotal());
             });
         };
     }

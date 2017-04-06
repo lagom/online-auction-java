@@ -1,5 +1,6 @@
 package com.example.auction.search.api;
 
+import com.example.auction.pagination.PaginatedSequence;
 import com.lightbend.lagom.javadsl.api.Descriptor;
 import com.lightbend.lagom.javadsl.api.Service;
 import com.lightbend.lagom.javadsl.api.ServiceCall;
@@ -12,7 +13,7 @@ import static com.lightbend.lagom.javadsl.api.Service.named;
 
 public interface SearchService extends Service {
 
-    ServiceCall<SearchRequest, SearchResult> search(int pageNo, int pageSize);
+    ServiceCall<SearchRequest, PaginatedSequence<SearchItem>> search(int pageNo, int pageSize);
 
     @Override
     default Descriptor descriptor() {

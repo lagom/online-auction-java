@@ -4,8 +4,8 @@ import akka.Done;
 import akka.NotUsed;
 import com.example.auction.bidding.api.*;
 import com.example.auction.item.api.*;
+import com.example.auction.search.api.SearchItem;
 import com.example.auction.search.api.SearchRequest;
-import com.example.auction.search.api.SearchResult;
 import com.example.auction.search.api.SearchService;
 import com.example.auction.pagination.PaginatedSequence;
 import com.example.core.InMemServiceLocator;
@@ -182,7 +182,7 @@ public class SearchServiceImplTest {
 
     private void assertCountOfResults(int expectedCount, UUID itemId1, SearchRequest request) {
         eventually(new FiniteDuration(8, TimeUnit.SECONDS), new FiniteDuration(100, TimeUnit.MILLISECONDS), () -> {
-            SearchResult items =
+            PaginatedSequence<SearchItem> items =
                     flushIndex()
                             .thenCompose(done ->
                                     searchService.search(0, 100).invoke(request))

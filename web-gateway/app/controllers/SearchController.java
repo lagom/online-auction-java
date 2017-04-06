@@ -65,9 +65,9 @@ public class SearchController extends AbstractController {
                                         .thenApply(searchResult -> {
                                                     PaginatedSequence<SearchItem> page =
                                                             new PaginatedSequence<>(searchResult.getItems(),
-                                                                    searchResult.getPageNo(),
+                                                                    searchResult.getPage(),
                                                                     searchResult.getPageSize(),
-                                                                    searchResult.getNumResults());
+                                                                    searchResult.getCount());
                                                     return ok(searchItem.render(form, Optional.of(page), nav));
                                                 }
                                         ).exceptionally(exception ->
