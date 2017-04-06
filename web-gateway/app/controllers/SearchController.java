@@ -1,6 +1,6 @@
 package controllers;
 
-import com.example.auction.item.api.PaginatedSequence;
+import com.example.auction.pagination.PaginatedSequence;
 import com.example.auction.search.api.SearchItem;
 import com.example.auction.search.api.SearchRequest;
 import com.example.auction.search.api.SearchService;

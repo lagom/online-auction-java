@@ -1,4 +1,4 @@
-package com.example.auction.item.api;
+package com.example.auction.pagination;
 
 import lombok.Value;
 import org.pcollections.PSequence;

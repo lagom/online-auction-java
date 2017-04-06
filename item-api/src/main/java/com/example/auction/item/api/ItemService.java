@@ -6,6 +6,7 @@ package com.example.auction.item.api;
 import akka.Done;
 import akka.NotUsed;
 import com.example.auction.security.SecurityHeaderFilter;
+import com.example.auction.pagination.PaginatedSequence;
 import com.lightbend.lagom.javadsl.api.Descriptor;
 import com.lightbend.lagom.javadsl.api.Service;
 import com.lightbend.lagom.javadsl.api.ServiceCall;

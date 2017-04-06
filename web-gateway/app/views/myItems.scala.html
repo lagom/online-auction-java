@@ -1,6 +1,7 @@
 @import ProfileController.profilePage
 @import controllers.Currency
-@import com.example.auction.item.api.{ItemStatus, ItemSummary, PaginatedSequence}
+@import com.example.auction.item.api.{ItemStatus, ItemSummary}
+@import com.example.auction.pagination.PaginatedSequence
 @import routes.ItemController.{getItem, startAuction}
 
 @(status: ItemStatus, paginatedItems: PaginatedSequence[ItemSummary])(implicit nav: Nav)

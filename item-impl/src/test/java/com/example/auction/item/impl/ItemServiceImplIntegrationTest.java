@@ -8,6 +8,7 @@ import com.example.auction.bidding.api.*;
 import com.example.auction.item.api.*;
 import com.example.auction.item.api.Item;
 import com.example.auction.item.impl.testkit.Await;
+import com.example.auction.pagination.PaginatedSequence;
 import com.lightbend.lagom.javadsl.api.ServiceCall;
 import com.lightbend.lagom.javadsl.api.broker.Topic;
 import com.lightbend.lagom.javadsl.api.transport.TransportException;

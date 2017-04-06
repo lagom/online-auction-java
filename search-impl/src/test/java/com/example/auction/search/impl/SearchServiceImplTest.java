@@ -7,6 +7,7 @@ import com.example.auction.item.api.*;
 import com.example.auction.search.api.SearchRequest;
 import com.example.auction.search.api.SearchResult;
 import com.example.auction.search.api.SearchService;
+import com.example.auction.pagination.PaginatedSequence;
 import com.example.core.InMemServiceLocator;
 import com.example.elasticsearch.ElasticsearchTestUtils;
 import com.lightbend.lagom.javadsl.api.ServiceCall;
