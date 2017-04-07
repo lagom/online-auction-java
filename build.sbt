@@ -35,7 +35,7 @@ lazy val itemApi = (project in file("item-api"))
       lombok
     )
   )
-  .dependsOn(security)
+  .dependsOn(security, tools)
 
 lazy val itemImpl = (project in file("item-impl"))
   .settings(commonSettings: _*)
@@ -87,7 +87,7 @@ lazy val searchApi = (project in file("search-api"))
       lombok
     )
   )
-  .dependsOn(security)
+  .dependsOn(security, tools)
 
 lazy val searchImpl = (project in file("search-impl"))
   .settings(commonSettings: _*)
@@ -110,7 +110,8 @@ lazy val tools = (project in file("tools"))
     version := "1.0-SNAPSHOT",
     libraryDependencies ++= Seq(
       lagomJavadslApi,
-      lagomJavadslTestKit
+      lagomJavadslTestKit,
+      lombok
     ) ++ lagomJUnitDeps
   )
 
@@ -162,7 +163,7 @@ lazy val userImpl = (project in file("user-impl"))
 lazy val webGateway = (project in file("web-gateway"))
   .settings(commonSettings: _*)
   .enablePlugins(PlayJava && LagomPlay)
-  .dependsOn(transactionApi, biddingApi, itemApi, searchApi, userApi, searchApi)
+  .dependsOn(tools, transactionApi, biddingApi, itemApi, searchApi, userApi, searchApi)
   .settings(
     version := "1.0-SNAPSHOT",
     libraryDependencies ++= Seq(

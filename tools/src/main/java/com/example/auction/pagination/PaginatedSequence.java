@@ -1,4 +1,4 @@
-package com.example.auction.item.api;
+package com.example.auction.pagination;
 
 import lombok.Value;
 import org.pcollections.PSequence;
@@ -6,7 +6,6 @@ import org.pcollections.PSequence;
 /**
  * A partial sequence of elements, with metadata for retrieving additional pages.
  */
-// TODO: move to a common sbt project to reuse from searchApi
 @Value
 public class PaginatedSequence<T> {
     PSequence<T> items;

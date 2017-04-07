@@ -3,7 +3,7 @@ package controllers;
 import com.example.auction.item.api.ItemService;
 import com.example.auction.item.api.ItemStatus;
 import com.example.auction.item.api.ItemSummary;
-import com.example.auction.item.api.PaginatedSequence;
+import com.example.auction.pagination.PaginatedSequence;
 import com.example.auction.user.api.UserService;
 import play.i18n.MessagesApi;
 import play.mvc.Call;
