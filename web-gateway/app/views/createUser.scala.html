@@ -1,6 +1,6 @@
 @import helper._
 
-@(createUser: Form[CreateUserForm])(implicit nav: Nav)
+@(showInlineInstruction: Boolean, createUser: Form[CreateUserForm])(implicit nav: Nav)
 
 @main(message("createUser")) {
 
@@ -9,7 +9,7 @@
     @foundationForm(createUser, routes.Main.createUser()) {
         <div class="row">
             <div class="medium-6 columns">
-                @if(showInlineInstruction==true){
+                @if(showInlineInstruction == true) {
                         <p>@message("createUserInstructions")</p>
                 }
                 @inputText(createUser("name"))

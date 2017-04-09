@@ -14,6 +14,8 @@ import play.mvc.Http;
 import play.mvc.Result;
 import views.html.editItem;
 
+import play.Configuration;
+
 import javax.inject.Inject;
 import java.time.Duration;
 import java.time.Instant;
@@ -30,19 +32,25 @@ public class ItemController extends AbstractController {
     private final ItemService itemService;
     private final BiddingService bidService;
 
+    private Configuration config;
+    private Boolean showInlineInstruction;
+
     @Inject
-    public ItemController(MessagesApi messagesApi, UserService userService, FormFactory formFactory,
+    public ItemController(Configuration config, MessagesApi messagesApi, UserService userService, FormFactory formFactory,
                           ItemService itemService, BiddingService bidService) {
         super(messagesApi, userService);
         this.formFactory = formFactory;
         this.itemService = itemService;
         this.bidService = bidService;
+
+        this.config = config;
+        showInlineInstruction = config.getBoolean("play.instruction.show");
     }
 
     public CompletionStage<Result> createItemForm() {
         return requireUser(ctx(), user ->
                 loadNav(user).thenApply(nav ->
-                        ok(views.html.createItem.render(formFactory.form(ItemForm.class).fill(new ItemForm()), nav))
+                        ok(views.html.createItem.render(showInlineInstruction, formFactory.form(ItemForm.class).fill(new ItemForm()), nav))
                 )
         );
     }
@@ -55,7 +63,7 @@ public class ItemController extends AbstractController {
 
             if (form.hasErrors()) {
                 return loadNav(user).thenApply(nav ->
-                        ok(views.html.createItem.render(form, nav))
+                        ok(views.html.createItem.render(showInlineInstruction, form, nav))
                 );
             } else {
                 ItemData payload = fromForm(form.get());

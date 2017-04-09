@@ -7,6 +7,7 @@ import play.i18n.MessagesApi;
 import play.mvc.Http;
 import play.mvc.Result;
 import play.data.Form;
+import play.Configuration;
 
 import javax.inject.Inject;
 import java.util.concurrent.CompletableFuture;
@@ -17,13 +18,19 @@ public class Main extends AbstractController {
     private final UserService userService;
     private final FormFactory formFactory;
 
-    public static boolean showInlineInstruction = true;
+    //public static boolean showInlineInstruction = true;
+
+    private Configuration config;
+    private Boolean showInlineInstruction;
 
     @Inject
-    public Main(MessagesApi messagesApi, UserService userService, FormFactory formFactory) {
+    public Main(Configuration config, MessagesApi messagesApi, UserService userService, FormFactory formFactory) {
         super(messagesApi, userService);
         this.userService = userService;
         this.formFactory = formFactory;
+
+        this.config = config;
+        showInlineInstruction = config.getBoolean("play.instruction.show");
     }
 
     public CompletionStage<Result> index() {
@@ -37,7 +44,7 @@ public class Main extends AbstractController {
     public CompletionStage<Result> createUserForm() {
         return withUser(ctx(), userId ->
                 loadNav(userId).thenApply(nav ->
-                        ok(views.html.createUser.render(formFactory.form(CreateUserForm.class), nav))
+                        ok(views.html.createUser.render(showInlineInstruction, formFactory.form(CreateUserForm.class), nav))
                 )
         );
     }
@@ -48,7 +55,7 @@ public class Main extends AbstractController {
                 loadNav(userId).thenCompose(nav -> {
                     Form<CreateUserForm> form = formFactory.form(CreateUserForm.class).bindFromRequest(ctx.request());
                     if (form.hasErrors()) {
-                        return CompletableFuture.completedFuture(ok(views.html.createUser.render(form, nav)));
+                        return CompletableFuture.completedFuture(ok(views.html.createUser.render(showInlineInstruction, form, nav)));
                     }
 
                     return userService.createUser().invoke(new User(form.get().getName())).thenApply(user -> {

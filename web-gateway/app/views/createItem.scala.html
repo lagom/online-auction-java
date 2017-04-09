@@ -2,7 +2,7 @@
 @import java.time.temporal.ChronoUnit
 @import controllers.{Currency => Currencies}
 
-@(itemForm: Form[ItemForm])(implicit nav: Nav)
+@(showInlineInstruction: Boolean, itemForm: Form[ItemForm])(implicit nav: Nav)
 
 @main(message("createItem")) {
 
@@ -10,9 +10,9 @@
 
     @foundationForm(itemForm, routes.ItemController.createItem()) {
         <div class="column row">
-            @if(Main.showInlineInstruction==true){
+            @if(showInlineInstruction == true){
                 <p>@message("instruction.createItem")</p>
-            }                
+            }
             @inputText(itemForm("title"))
         </div>
         <div class="column row">
