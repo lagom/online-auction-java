@@ -5,14 +5,16 @@
 
 @import com.example.auction.item.api.ItemStatus
 
-@(itemId: UUID, itemForm: Form[ItemForm], itemStatus: ItemStatus, errorMessage: Optional[String])(implicit nav: Nav)
+@(showInlineInstruction: Boolean, itemId: UUID, itemForm: Form[ItemForm], itemStatus: ItemStatus, errorMessage: Optional[String])(implicit nav: Nav)
 
 
 @main(message("editItem")) {
 
     <h2>@message("editItem")</h2>
 
-    <p>@message("instruction.editItem")</p>
+    @if(showInlineInstruction == true) {
+        <p>@message("instruction.editItem")</p>
+    }
 
     @foundationForm(itemForm, routes.ItemController.editItem(itemId.toString, itemStatus.name)) {
 

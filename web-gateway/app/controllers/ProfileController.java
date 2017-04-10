@@ -8,6 +8,7 @@ import com.example.auction.user.api.UserService;
 import play.i18n.MessagesApi;
 import play.mvc.Call;
 import play.mvc.Result;
+import play.Configuration;
 
 import javax.inject.Inject;
 import java.util.Locale;
@@ -22,10 +23,14 @@ public class ProfileController extends AbstractController {
 
     private final ItemService itemService;
 
+    private final Boolean showInlineInstruction;
+
     @Inject
-    public ProfileController(MessagesApi messagesApi, UserService userService, ItemService itemService) {
+    public ProfileController(Configuration config, MessagesApi messagesApi, UserService userService, ItemService itemService) {
         super(messagesApi, userService);
         this.itemService = itemService;
+
+        showInlineInstruction = config.getBoolean("play.instruction.show");
     }
 
     public CompletionStage<Result> myItems(String statusParam, int page, int pageSize) {
@@ -33,7 +38,7 @@ public class ProfileController extends AbstractController {
         return requireUser(ctx(),
                 userId -> loadNav(userId).thenCombineAsync(
                         getItemsForUser(userId, status, page, pageSize), (nav, items) ->
-                                ok(views.html.myItems.render(status, items, nav))
+                                ok(views.html.myItems.render(showInlineInstruction, status, items, nav))
                 )
         );
     }

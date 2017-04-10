@@ -4,7 +4,7 @@
 @import com.example.auction.pagination.PaginatedSequence
 @import routes.ItemController.{getItem, startAuction}
 
-@(status: ItemStatus, paginatedItems: PaginatedSequence[ItemSummary])(implicit nav: Nav)
+@(showInlineInstruction: Boolean, status: ItemStatus, paginatedItems: PaginatedSequence[ItemSummary])(implicit nav: Nav)
 
 @defining(nav.getUser.get) { user =>
     @main(user.getName) {
@@ -23,7 +23,9 @@
             @if(paginatedItems.isEmpty) {
                 <em>@message("noItems." + status)</em>
             } else {
-                <p>@message("instruction.itemMessage")</p>
+                @if(showInlineInstruction == true) {
+                    <p>@message("instruction.itemMessage")</p>
+                }
                 <table>
                     <caption>@message("items.caption", message("items." + status), paginatedItems.getCount)</caption>
 

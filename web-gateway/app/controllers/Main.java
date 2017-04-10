@@ -18,10 +18,7 @@ public class Main extends AbstractController {
     private final UserService userService;
     private final FormFactory formFactory;
 
-    //public static boolean showInlineInstruction = true;
-
-    private Configuration config;
-    private Boolean showInlineInstruction;
+    private final Boolean showInlineInstruction;
 
     @Inject
     public Main(Configuration config, MessagesApi messagesApi, UserService userService, FormFactory formFactory) {
@@ -29,7 +26,6 @@ public class Main extends AbstractController {
         this.userService = userService;
         this.formFactory = formFactory;
 
-        this.config = config;
         showInlineInstruction = config.getBoolean("play.instruction.show");
     }
 
