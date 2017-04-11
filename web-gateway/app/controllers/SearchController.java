@@ -11,6 +11,7 @@ import play.i18n.MessagesApi;
 import play.mvc.Http;
 import play.mvc.Result;
 import views.html.searchItem;
+import play.Configuration;
 
 import javax.inject.Inject;
 import java.util.Optional;
@@ -27,14 +28,19 @@ public class SearchController extends AbstractController {
     private final FormFactory formFactory;
     private final SearchService searchService;
 
+    private final Boolean showInlineInstruction;
+
     @Inject
-    public SearchController(MessagesApi messagesApi,
+    public SearchController(Configuration config,
+                            MessagesApi messagesApi,
                             UserService userService,
                             FormFactory formFactory,
                             SearchService searchService) {
         super(messagesApi, userService);
         this.formFactory = formFactory;
         this.searchService = searchService;
+
+        showInlineInstruction = config.getBoolean("play.instruction.show");
     }
 
     public CompletionStage<Result> searchForm() {
@@ -42,7 +48,7 @@ public class SearchController extends AbstractController {
         Form<SearchItemForm> form = formFactory.form(SearchItemForm.class).bindFromRequest(ctx.request());
 
         return loadNav(Optional.empty()).thenApply(nav ->
-                ok(views.html.searchItem.render(form, Optional.empty(), nav))
+                ok(views.html.searchItem.render(showInlineInstruction, form, Optional.empty(), nav))
         );
     }
 
@@ -52,7 +58,7 @@ public class SearchController extends AbstractController {
         return withUser(ctx, maybeUser ->
                 loadNav(maybeUser).thenCompose(nav -> {
                             if (form.hasErrors()) {
-                                return CompletableFuture.completedFuture(ok(views.html.searchItem.render(form, Optional.empty(), nav)));
+                                return CompletableFuture.completedFuture(ok(views.html.searchItem.render(showInlineInstruction, form, Optional.empty(), nav)));
                             } else {
 
                                 SearchItemForm searchItemForm = form.get();
@@ -68,10 +74,10 @@ public class SearchController extends AbstractController {
                                                                     searchResult.getPage(),
                                                                     searchResult.getPageSize(),
                                                                     searchResult.getCount());
-                                                    return ok(searchItem.render(form, Optional.of(page), nav));
+                                                    return ok(searchItem.render(showInlineInstruction, form, Optional.of(page), nav));
                                                 }
                                         ).exceptionally(exception ->
-                                                ok(views.html.searchItem.render(form, Optional.empty(), nav))
+                                                ok(views.html.searchItem.render(showInlineInstruction, form, Optional.empty(), nav))
                                         );
                             }
                         }

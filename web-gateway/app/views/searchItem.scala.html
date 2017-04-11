@@ -7,15 +7,17 @@
 @import controllers.Currency
 @import controllers.{Currency => Currencies}
 
-@(searchItemForm: Form[SearchItemForm], results: Optional[PaginatedSequence[SearchItem]])(implicit nav: Nav)
+@(showInlineInstruction: Boolean, searchItemForm: Form[SearchItemForm], results: Optional[PaginatedSequence[SearchItem]])(implicit nav: Nav)
 
 @main(message("searchItems")) {
 
     <h2>@message("searchItems")</h2>
 
-    <p>@message("instruction.search")</p>
+    @if(showInlineInstruction == true) {
+        <p>@message("instruction.search")</p>
 
-    <p>@Html(message("instruction.enableSearch", "<a href=\"https://github.com/lagom/online-auction-java/blob/master/README.md\">README.md</a>"))</p>
+        <p>@Html(message("instruction.enableSearch", "<a href=\"https://github.com/lagom/online-auction-java/blob/master/README.md\">README.md</a>"))</p>
+    }
 
     @foundationForm(searchItemForm, routes.SearchController.search(), 'id -> "searchForm") {
         <div class="column row">

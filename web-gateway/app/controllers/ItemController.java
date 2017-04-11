@@ -14,6 +14,8 @@ import play.mvc.Http;
 import play.mvc.Result;
 import views.html.editItem;
 
+import play.Configuration;
+
 import javax.inject.Inject;
 import java.time.Duration;
 import java.time.Instant;
@@ -30,19 +32,23 @@ public class ItemController extends AbstractController {
     private final ItemService itemService;
     private final BiddingService bidService;
 
+    private final Boolean showInlineInstruction;
+
     @Inject
-    public ItemController(MessagesApi messagesApi, UserService userService, FormFactory formFactory,
+    public ItemController(Configuration config, MessagesApi messagesApi, UserService userService, FormFactory formFactory,
                           ItemService itemService, BiddingService bidService) {
         super(messagesApi, userService);
         this.formFactory = formFactory;
         this.itemService = itemService;
         this.bidService = bidService;
+
+        showInlineInstruction = config.getBoolean("play.instruction.show");
     }
 
     public CompletionStage<Result> createItemForm() {
         return requireUser(ctx(), user ->
                 loadNav(user).thenApply(nav ->
-                        ok(views.html.createItem.render(formFactory.form(ItemForm.class).fill(new ItemForm()), nav))
+                        ok(views.html.createItem.render(showInlineInstruction, formFactory.form(ItemForm.class).fill(new ItemForm()), nav))
                 )
         );
     }
@@ -55,7 +61,7 @@ public class ItemController extends AbstractController {
 
             if (form.hasErrors()) {
                 return loadNav(user).thenApply(nav ->
-                        ok(views.html.createItem.render(form, nav))
+                        ok(views.html.createItem.render(showInlineInstruction, form, nav))
                 );
             } else {
                 ItemData payload = fromForm(form.get());
@@ -106,6 +112,7 @@ public class ItemController extends AbstractController {
 
                                         return ok(
                                                 views.html.editItem.render(
+                                                        showInlineInstruction,
                                                         item.getId(),
                                                         formFactory.form(ItemForm.class).fill(itemForm),
                                                         item.getStatus(),
@@ -129,7 +136,7 @@ public class ItemController extends AbstractController {
             ItemStatus itemStatus = ItemStatus.valueOf(itemStatusStr);
             if (form.hasErrors()) {
                 return loadNav(user).thenApply(nav ->
-                        ok(views.html.editItem.render(itemId, form, itemStatus, Optional.empty(), nav))
+                        ok(views.html.editItem.render(showInlineInstruction, itemId, form, itemStatus, Optional.empty(), nav))
                 );
             } else {
                 ItemData payload = fromForm(form.get());
@@ -144,7 +151,7 @@ public class ItemController extends AbstractController {
                             } else {
                                 String msg = ((TransportException) exception.getCause()).exceptionMessage().detail();
                                 return loadNav(user).thenApply(nav -> ok(
-                                        editItem.render(itemId, form, itemStatus, Optional.of(msg), nav)));
+                                        editItem.render(showInlineInstruction, itemId, form, itemStatus, Optional.of(msg), nav)));
                             }
                         }).thenCompose((x) -> x);
             }
@@ -206,8 +213,7 @@ public class ItemController extends AbstractController {
 
                 Optional<BidResult> bidResult = loadBidResult(ctx.flash());
 
-                return ok(views.html.item.render(item, bidForm, anonymizeBids(user, currency, bidHistory), user,
-                        currency, seller, winner, currentBidMaximum, bidResult, nav));
+                return ok(views.html.item.render(showInlineInstruction, item, bidForm, anonymizeBids(user, currency, bidHistory), user, currency, seller, winner, currentBidMaximum, bidResult, nav));
             });
         }));
     }
