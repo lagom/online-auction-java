@@ -2,6 +2,8 @@ package controllers;
 
 import com.example.auction.user.api.User;
 import com.example.auction.user.api.UserService;
+import play.core.j.JavaHelpers;
+import play.core.j.JavaHelpers$;
 import play.i18n.MessagesApi;
 import play.mvc.Controller;
 import play.mvc.Http;
@@ -17,10 +19,12 @@ import java.util.function.Function;
 public abstract class AbstractController extends Controller {
     private final MessagesApi messagesApi;
     private final UserService userService;
+    private final WebJarAssets webJarAssets;
 
-    public AbstractController(MessagesApi messagesApi, UserService userService) {
+    public AbstractController(MessagesApi messagesApi, UserService userService, WebJarAssets webJarAssets) {
         this.messagesApi = messagesApi;
         this.userService = userService;
+        this.webJarAssets = webJarAssets;
     }
 
     protected <T> T withUser(Http.Context ctx, Function<Optional<UUID>, T> block) {
@@ -37,7 +41,7 @@ public abstract class AbstractController extends Controller {
             if (maybeUser.isPresent()) {
                 return block.apply(maybeUser.get());
             } else {
-                return CompletableFuture.completedFuture(redirect(routes.Main.index()));
+                return CompletableFuture.completedFuture(redirect("/"));
             }
         });
     }
@@ -56,8 +60,18 @@ public abstract class AbstractController extends Controller {
                 }
                 return Optional.empty();
             });
-            return new Nav(messagesApi.preferred(Collections.emptyList()), users, currentUser);
+            return new Nav(messagesApi.preferred(Collections.emptyList()), webJarAssets, currentUser, users);
         });
     }
 
+    /**
+     * Work around https://github.com/playframework/playframework/issues/7213.
+     *
+     * This needs to be called by any actions that modify the HTTP context, if those modifications are going to make
+     * it into the final result. Once Play is upgraded to 2.5.15 or greater, this method and all invocations of it can
+     * be removed.
+     */
+    protected Result mergeContext(Http.Context ctx, Result result) {
+        return JavaHelpers$.MODULE$.createResult(ctx, result).asJava();
+    }
 }

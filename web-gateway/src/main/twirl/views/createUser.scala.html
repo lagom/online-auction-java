@@ -6,7 +6,7 @@
 
     <h2>@message("createUser")</h2>
 
-    @foundationForm(createUser, routes.Main.createUser()) {
+    @foundationForm(createUser, play.api.mvc.Call("POST", "/user")) {
         <div class="row">
             <div class="medium-6 columns">
                 @if(showInlineInstruction == true) {

@@ -11,9 +11,7 @@ import play.mvc.Result;
 import play.Configuration;
 
 import javax.inject.Inject;
-import java.util.Locale;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.CompletionStage;
 
 public class ProfileController extends AbstractController {
@@ -26,8 +24,9 @@ public class ProfileController extends AbstractController {
     private final Boolean showInlineInstruction;
 
     @Inject
-    public ProfileController(Configuration config, MessagesApi messagesApi, UserService userService, ItemService itemService) {
-        super(messagesApi, userService);
+    public ProfileController(Configuration config, MessagesApi messagesApi, UserService userService,
+            WebJarAssets webJarAssets, ItemService itemService) {
+        super(messagesApi, userService, webJarAssets);
         this.itemService = itemService;
 
         showInlineInstruction = config.getBoolean("play.instruction.show");
@@ -52,7 +51,22 @@ public class ProfileController extends AbstractController {
     }
 
     public static Call profilePage(ItemStatus status, int page, int pageSize) {
-        return routes.ProfileController.myItems(status.name().toLowerCase(Locale.ENGLISH), page, pageSize);
+        Map<String, String> queryParams = new LinkedHashMap<>();
+        if (page != ProfileController.DEFAULT_PAGE) {
+            queryParams.put("page", Integer.toString(page));
+        }
+        if (pageSize != ProfileController.DEFAULT_PAGE_SIZE) {
+            queryParams.put("pageSize", Integer.toString(pageSize));
+        }
+        String path = String.format("/my/items/%s", status);
+
+        if (queryParams.isEmpty()) {
+            return new play.api.mvc.Call("GET", path, null);
+        } else {
+            StringJoiner joiner = new StringJoiner(",", path + "?", "");
+            queryParams.forEach((key, value) -> joiner.add(key + "=" + value));
+            return new play.api.mvc.Call("GET", joiner.toString(), null);
+        }
     }
 
     private CompletionStage<PaginatedSequence<ItemSummary>> getItemsForUser(

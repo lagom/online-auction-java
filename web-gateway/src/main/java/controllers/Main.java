@@ -21,8 +21,9 @@ public class Main extends AbstractController {
     private final Boolean showInlineInstruction;
 
     @Inject
-    public Main(Configuration config, MessagesApi messagesApi, UserService userService, FormFactory formFactory) {
-        super(messagesApi, userService);
+    public Main(Configuration config, MessagesApi messagesApi, UserService userService, WebJarAssets webJarAssets,
+            FormFactory formFactory) {
+        super(messagesApi, userService, webJarAssets);
         this.userService = userService;
         this.formFactory = formFactory;
 
@@ -56,7 +57,7 @@ public class Main extends AbstractController {
 
                     return userService.createUser().invoke(new User(form.get().getName())).thenApply(user -> {
                         ctx.session().put("user", user.getId().toString());
-                        return redirect(ProfileController.defaultProfilePage());
+                        return mergeContext(ctx, redirect(ProfileController.defaultProfilePage()));
                     });
                 })
         );
@@ -64,7 +65,6 @@ public class Main extends AbstractController {
 
     public Result currentUser(String userId) {
         session("user", userId);
-        return ok("User switched");
+        return mergeContext(ctx(), ok("User switched"));
     }
-
 }

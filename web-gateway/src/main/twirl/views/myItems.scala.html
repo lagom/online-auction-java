@@ -2,7 +2,6 @@
 @import controllers.Currency
 @import com.example.auction.item.api.{ItemStatus, ItemSummary}
 @import com.example.auction.pagination.PaginatedSequence
-@import routes.ItemController.{getItem, startAuction}
 
 @(showInlineInstruction: Boolean, status: ItemStatus, paginatedItems: PaginatedSequence[ItemSummary])(implicit nav: Nav)
 
@@ -44,14 +43,14 @@
                         @defining(Currency.valueOf(item.getCurrencyId)) { currency =>
                             <tr>
                                 <td>
-                                    <a href="@getItem(item.getId.toString)">@item.getTitle</a>
+                                    <a href="/item/@item.getId">@item.getTitle</a>
                                 </td>
                                 <td>@item.getStatus</td>
                                 <td>@currency.getDisplayName</td>
                                 <td>@currency.format(item.getReservePrice)</td>
                                 <td>
                                 @if(item.getStatus == ItemStatus.CREATED) {
-                                    <form action="@startAuction(item.getId.toString)" method="POST">
+                                    <form action="/item/@item.getId/start" method="POST">
                                         <input class="button success" type="submit" value="@message("startAuction")"/>
                                     </form>
                                 }
