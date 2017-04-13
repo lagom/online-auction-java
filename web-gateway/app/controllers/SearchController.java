@@ -40,7 +40,7 @@ public class SearchController extends AbstractController {
         this.formFactory = formFactory;
         this.searchService = searchService;
 
-        showInlineInstruction = config.getBoolean("play.instruction.show");
+        showInlineInstruction = config.getBoolean("online-auction.instruction.show");
     }
 
     public CompletionStage<Result> searchForm() {
