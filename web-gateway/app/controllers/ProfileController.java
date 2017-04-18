@@ -30,7 +30,7 @@ public class ProfileController extends AbstractController {
         super(messagesApi, userService);
         this.itemService = itemService;
 
-        showInlineInstruction = config.getBoolean("play.instruction.show");
+        showInlineInstruction = config.getBoolean("online-auction.instruction.show");
     }
 
     public CompletionStage<Result> myItems(String statusParam, int page, int pageSize) {
