@@ -27,7 +27,7 @@ public class Main extends AbstractController {
         this.userService = userService;
         this.formFactory = formFactory;
 
-        showInlineInstruction = config.getBoolean("play.instruction.show");
+        showInlineInstruction = config.getBoolean("online-auction.instruction.show");
     }
 
     public CompletionStage<Result> index() {

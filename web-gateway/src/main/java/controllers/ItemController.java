@@ -42,7 +42,7 @@ public class ItemController extends AbstractController {
         this.itemService = itemService;
         this.bidService = bidService;
 
-        showInlineInstruction = config.getBoolean("play.instruction.show");
+        showInlineInstruction = config.getBoolean("online-auction.instruction.show");
     }
 
     public CompletionStage<Result> createItemForm() {

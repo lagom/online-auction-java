@@ -46,6 +46,10 @@ sbt runAll
 * To import the online-auction-javaproject into Eclipse you can have a look at [The Lagom Documentation for Eclipse](http://www.lagomframework.com/documentation/1.3.x/java/EclipseSbt.html)
 * You will also need to add Lombok plugin in your IDE for annotations. Take a look at [The Lagom Documentation for Lombok](http://www.lagomframework.com/documentation/1.3.x/java/Immutable.html#Lombok)
 
+### Displaying inline instructions (optional)
+
+To get a better understanding of what can be done at each step of the application, inline instructions are displayed on the web UI. To disable these instructions, go to **[application.conf](web-gateway/conf/application.conf)** in the web-gateway micro-service and set **online-auction.instruction.show** to false.
+
 # Auction system - System architecture
 
 The auction system is the sum of 5 micro-services and a web gateway:
