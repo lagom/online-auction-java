@@ -35,9 +35,9 @@ public class ItemController extends AbstractController {
     private final Boolean showInlineInstruction;
 
     @Inject
-    public ItemController(Configuration config, MessagesApi messagesApi, UserService userService, FormFactory formFactory,
-                          ItemService itemService, BiddingService bidService) {
-        super(messagesApi, userService);
+    public ItemController(Configuration config, MessagesApi messagesApi, UserService userService, WebJarAssets webJarAssets,
+            FormFactory formFactory, ItemService itemService, BiddingService bidService) {
+        super(messagesApi, userService, webJarAssets);
         this.formFactory = formFactory;
         this.itemService = itemService;
         this.bidService = bidService;
@@ -70,7 +70,7 @@ public class ItemController extends AbstractController {
                         .handleRequestHeader(authenticate(user))
                         .invoke(payload)
                         .thenApply(
-                                item -> redirect(routes.ItemController.getItem(item.getId().toString())));
+                                item -> redirect(routeGetItem(item.getId().toString())));
             }
         });
     }
@@ -147,7 +147,7 @@ public class ItemController extends AbstractController {
                         .handle((updatedItem, exception) -> {
                             if (exception == null) {
                                 // TODO: this is creating an extra roundtrip to the server. We should render the returned item already.
-                                return CompletableFuture.completedFuture(redirect(controllers.routes.ItemController.getItem(itemId.toString())));
+                                return CompletableFuture.completedFuture(redirect(routeGetItem(itemId.toString())));
                             } else {
                                 String msg = ((TransportException) exception.getCause()).exceptionMessage().detail();
                                 return loadNav(user).thenApply(nav -> ok(
@@ -264,7 +264,7 @@ public class ItemController extends AbstractController {
         return requireUser(ctx(), user ->
                 itemService.startAuction(UUID.fromString(itemId))
                         .handleRequestHeader(authenticate(user)).invoke().thenApply(done ->
-                        redirect(routes.ItemController.getItem(itemId))
+                        redirect(routeGetItem(itemId))
                 )
         );
     }
@@ -289,9 +289,13 @@ public class ItemController extends AbstractController {
                         .invoke(new PlaceBid(bidPrice)).thenApply(bidResult -> {
                             ctx.flash().put("bidResultStatus", bidResult.getStatus().name());
                             ctx.flash().put("bidResultPrice", Integer.toString(bidResult.getCurrentPrice()));
-                            return redirect(routes.ItemController.getItem(itemId));
+                            return mergeContext(ctx, redirect(routeGetItem(itemId)));
                         });
             }
         });
+    }
+
+    private String routeGetItem(String itemId) {
+        return "/item/" + itemId;
     }
 }

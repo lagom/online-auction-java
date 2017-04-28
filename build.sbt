@@ -166,15 +166,19 @@ lazy val userImpl = (project in file("user-impl"))
 lazy val webGateway = (project in file("web-gateway"))
   .settings(commonSettings: _*)
   .enablePlugins(PlayJava && LagomPlay)
-  .dependsOn(tools, transactionApi, biddingApi, itemApi, searchApi, userApi, searchApi)
+  // Disable Play layout so that this project can also be built by Maven
+  .disablePlugins(PlayLayoutPlugin)
+  .dependsOn(tools, transactionApi, biddingApi, itemApi, searchApi, userApi)
   .settings(
     version := "1.0-SNAPSHOT",
     libraryDependencies ++= Seq(
       lagomJavadslClient,
       "org.ocpsoft.prettytime" % "prettytime" % "3.2.7.Final",
+      "org.webjars" %% "webjars-play" % "2.5.0",
       "org.webjars" % "foundation" % "6.2.3",
       "org.webjars" % "foundation-icon-fonts" % "d596a3cfb3"
     ),
+    lagomWatchDirectories += (sourceDirectory in (Compile, TwirlKeys.compileTemplates)).value,
     // Workaround for https://github.com/lagom/online-auction-java/issues/22
     // Uncomment the commented out line and remove the Scala line when issue #22 is fixed
     EclipseKeys.projectFlavor in Global := EclipseProjectFlavor.Scala,

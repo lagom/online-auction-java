@@ -12,16 +12,15 @@ import play.i18n.Messages;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.time.temporal.TemporalUnit;
 import java.util.Date;
 import java.util.Optional;
-import java.util.TimeZone;
 
 public class Nav {
 
     private final Messages messages;
     private final PSequence<User> users;
     private final Optional<User> user;
+    private final WebJarAssets webJarAssets;
     // todo - make these based on users language/timezone
     private static final PrettyTime prettyTime = new PrettyTime();
     static {
@@ -42,8 +41,9 @@ public class Nav {
     private static final DateTimeFormatter todayFormatter = DateTimeFormatter.ofPattern("HH:mm");
     private static final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd MMM yyyy HH:mm");
 
-    public Nav(Messages messages, PSequence<User> users, Optional<User> user) {
+    public Nav(Messages messages, WebJarAssets webJarAssets, Optional<User> user, PSequence<User> users) {
         this.messages = messages;
+        this.webJarAssets = webJarAssets;
         this.users = users;
         this.user = user;
     }
@@ -89,6 +89,9 @@ public class Nav {
         }
 
         return messages.at(key, pair.second());
+    }
 
+    public String locateWebJarAsset(String webjar, String name) {
+        return webJarAssets.locate(webjar, name);
     }
 }

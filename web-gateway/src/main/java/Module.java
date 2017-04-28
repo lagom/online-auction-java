@@ -17,4 +17,3 @@ public class Module extends AbstractModule implements ServiceClientGuiceSupport 
         bindClient(SearchService.class);
     }
 }
-

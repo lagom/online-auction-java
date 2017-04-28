@@ -31,12 +31,9 @@ public class SearchController extends AbstractController {
     private final Boolean showInlineInstruction;
 
     @Inject
-    public SearchController(Configuration config,
-                            MessagesApi messagesApi,
-                            UserService userService,
-                            FormFactory formFactory,
-                            SearchService searchService) {
-        super(messagesApi, userService);
+    public SearchController(Configuration config, MessagesApi messagesApi, UserService userService,
+            WebJarAssets webJarAssets, FormFactory formFactory, SearchService searchService) {
+        super(messagesApi, userService, webJarAssets);
         this.formFactory = formFactory;
         this.searchService = searchService;
 

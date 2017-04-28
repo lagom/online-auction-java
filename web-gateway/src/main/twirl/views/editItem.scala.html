@@ -16,7 +16,7 @@
         <p>@message("instruction.editItem")</p>
     }
 
-    @foundationForm(itemForm, routes.ItemController.editItem(itemId.toString, itemStatus.name)) {
+    @foundationForm(itemForm, play.api.mvc.Call("POST", s"/item/$itemId?itemStatus=$itemStatus")) {
 
         @if(errorMessage.isPresent) {
             <div class="alert callout">

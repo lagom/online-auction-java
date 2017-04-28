@@ -43,7 +43,7 @@
     </div>
 
     @if(currentUser == item.getCreator &&(item.getStatus == ItemStatus.CREATED || item.getStatus == ItemStatus.AUCTION )){
-        <a href="@routes.ItemController.editItemForm(item.getId.toString)" class="edit" >@message("editItem")</a>
+        <a href="/item/@item.getId/edit" class="edit" >@message("editItem")</a>
     }
 
 
@@ -121,7 +121,7 @@
     </dl>
 
     @if(currentUser == item.getCreator && item.getStatus == ItemStatus.CREATED) {
-        <form action="@routes.ItemController.startAuction(item.getId.toString)" method="POST">
+        <form action="/item/@item.getId/start" method="POST">
             <input class="button success" type="submit" value="@message("startAuction")"/>
         </form>
     }
@@ -134,7 +134,7 @@
                 @message("currentWinningBidderMessage", currency.format(currentMaximumBid.get()))
             </div>
         }
-        @foundationForm(bidForm, routes.ItemController.placeBid(item.getId.toString)) {
+        @foundationForm(bidForm, play.api.mvc.Call("POST", s"/item/${item.getId}/bid")) {
             @helper.inputText(bidForm("bid"), 'type -> "number", 'step -> currency.formatDecimal(item.getItemData.getIncrement),
                 'min -> currency.formatDecimal(item.getPrice + item.getItemData.getIncrement))
             <input type="hidden" name="currency" value="@item.getItemData.getCurrencyId"/>

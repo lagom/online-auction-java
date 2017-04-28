@@ -2,7 +2,6 @@
 @import com.example.auction.item.api.ItemStatus
 @import com.example.auction.search.api.SearchItem
 @import com.example.auction.pagination.PaginatedSequence
-@import routes.ItemController.getItem
 @import java.util.Optional
 @import controllers.Currency
 @import controllers.{Currency => Currencies}
@@ -19,7 +18,7 @@
         <p>@Html(message("instruction.enableSearch", "<a href=\"https://github.com/lagom/online-auction-java/blob/master/README.md\">README.md</a>"))</p>
     }
 
-    @foundationForm(searchItemForm, routes.SearchController.search(), 'id -> "searchForm") {
+    @foundationForm(searchItemForm, play.api.mvc.Call("POST", "/search"), 'id -> "searchForm") {
         <div class="column row">
             @inputText(searchItemForm("keywords"), 'placeholder -> "laptop")
         </div>
@@ -61,7 +60,7 @@
                     @defining(Currency.valueOf(item.getCurrencyId)) { currency =>
                         <tr>
                             <td>
-                                <a href="@getItem(item.getId.toString)">@item.getTitle</a>
+                                <a href="/item/@item.getId">@item.getTitle</a>
                             </td>
                             <td>@item.getItemStatus</td>
                             <td>

@@ -12,8 +12,11 @@ before_install:
   - sudo service elasticsearch restart
 before_script:
   - sleep 20
-script:
-  - sbt -DenableElasticsearch=true test
+env:
+  matrix:
+    - SCRIPT="sbt -DenableElasticsearch=true test"
+    - SCRIPT="mvn -DenableElasticsearch=true test"
+script: eval $SCRIPT
 cache:
   directories:
     - $HOME/.ivy2/cache

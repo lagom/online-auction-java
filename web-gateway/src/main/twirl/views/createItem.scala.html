@@ -8,7 +8,7 @@
 
     <h2>@message("createItem")</h2>
 
-    @foundationForm(itemForm, routes.ItemController.createItem()) {
+    @foundationForm(itemForm, play.api.mvc.Call("POST", "/item")) {
         <div class="column row">
             @if(showInlineInstruction == true){
                 <p>@message("instruction.createItem")</p>
