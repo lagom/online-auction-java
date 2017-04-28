@@ -203,7 +203,12 @@ def commonSettings: Seq[Setting[_]] = eclipseSettings ++ Seq(
 // host and port rather than looking it up from the service locator.
 // See docs/running-in-conductr.md for details.
 def kafkaSettings: Seq[Setting[_]] = Seq(
-  BundleKeys.startCommand += "-Dlagom.broker.kafka.service-name=''"
+  BundleKeys.startCommand ++= Seq(
+    "-Dlagom.broker.kafka.service-name=''",
+    // You may have to edit this list if your Kafka
+    // server is not listening on 127.0.0.1:9092
+    "-Dlagom.broker.kafka.brokers='127.0.0.1:9092'"
+  )
 )
 
 lagomCassandraCleanOnStart in ThisBuild := false
