@@ -31,7 +31,7 @@ cd elasticsearch-5.0.2/bin
 ./elasticsearch
 ```
 
-## Running
+## Running in Development Mode
 
 On another terminal, clone this repo and run the sample app using the command `sbt runAll`:
 
@@ -40,13 +40,18 @@ git clone git@github.com:lagom/online-auction-java.git
 cd online-auction-java
 sbt runAll
 ```
-### Importing into IDEs (optional)
+
+## Running in Production Mode
+
+See [Running Online Auction in ConductR Sandbox](running-in-conductr.md) for instructions.
+
+## Importing into IDEs (optional)
 
 * To import the online-auction-javaproject into IntellijIDEA you can have a look at [The Lagom Documentation for IDEA](http://www.lagomframework.com/documentation/1.3.x/java/IntellijSbtJava.html)
 * To import the online-auction-javaproject into Eclipse you can have a look at [The Lagom Documentation for Eclipse](http://www.lagomframework.com/documentation/1.3.x/java/EclipseSbt.html)
 * You will also need to add Lombok plugin in your IDE for annotations. Take a look at [The Lagom Documentation for Lombok](http://www.lagomframework.com/documentation/1.3.x/java/Immutable.html#Lombok)
 
-### Displaying inline instructions (optional)
+## Displaying inline instructions (optional)
 
 To get a better understanding of what can be done at each step of the application, inline instructions are displayed on the web UI. To disable these instructions, go to **[application.conf](web-gateway/conf/application.conf)** in the web-gateway micro-service and set **online-auction.instruction.show** to false.
 

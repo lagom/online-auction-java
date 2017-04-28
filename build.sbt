@@ -39,6 +39,7 @@ lazy val itemApi = (project in file("item-api"))
 
 lazy val itemImpl = (project in file("item-impl"))
   .settings(commonSettings: _*)
+  .settings(kafkaSettings: _*)
   .enablePlugins(LagomJava)
   .settings(
     version := "1.0-SNAPSHOT",
@@ -65,6 +66,7 @@ lazy val biddingApi = (project in file("bidding-api"))
 
 lazy val biddingImpl = (project in file("bidding-impl"))
   .settings(commonSettings: _*)
+  .settings(kafkaSettings: _*)
   .enablePlugins(LagomJava)
   .dependsOn(biddingApi, itemApi)
   .settings(
@@ -91,6 +93,7 @@ lazy val searchApi = (project in file("search-api"))
 
 lazy val searchImpl = (project in file("search-impl"))
   .settings(commonSettings: _*)
+  .settings(kafkaSettings: _*)
   .enablePlugins(LagomJava)
   .settings(
     version := "1.0-SNAPSHOT",
@@ -191,7 +194,21 @@ def elasticsearch : String = {
 }
 
 def commonSettings: Seq[Setting[_]] = eclipseSettings ++ Seq(
-  javacOptions ++= Seq("-encoding", "UTF-8", "-source", "1.8", "-target", "1.8", "-Xlint:unchecked", "-Xlint:deprecation", "-parameters")
+  javacOptions in Compile ++= Seq("-encoding", "UTF-8", "-source", "1.8"),
+  javacOptions in (Compile, compile) ++= Seq("-Xlint:unchecked", "-Xlint:deprecation", "-parameters")
+)
+
+// Include this into impl projects that use the message broker API
+// It overrides the production configuration to use a hardcoded Kafka broker
+// host and port rather than looking it up from the service locator.
+// See docs/running-in-conductr.md for details.
+def kafkaSettings: Seq[Setting[_]] = Seq(
+  BundleKeys.startCommand ++= Seq(
+    "-Dlagom.broker.kafka.service-name=''",
+    // You may have to edit this list if your Kafka
+    // server is not listening on 127.0.0.1:9092
+    "-Dlagom.broker.kafka.brokers='127.0.0.1:9092'"
+  )
 )
 
 lagomCassandraCleanOnStart in ThisBuild := false

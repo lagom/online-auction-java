@@ -22,6 +22,6 @@ public interface SearchService extends Service {
                 Service.restCall(Method.GET, "/search?pageNo&pageSize", this::search)
         ).withPathParamSerializer(
                 UUID.class, PathParamSerializers.optional("UUID", UUID::fromString, UUID::toString)
-        ).withAutoAcl(true);
+        );
     }
 }
