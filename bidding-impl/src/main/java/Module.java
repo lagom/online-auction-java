@@ -12,7 +12,7 @@ public class Module extends AbstractModule implements ServiceGuiceSupport {
 
     @Override
     protected void configure() {
-        bindServices(serviceBinding(BiddingService.class, BiddingServiceImpl.class));
+        bindService(BiddingService.class, BiddingServiceImpl.class);
 
         bindClient(ItemService.class);
 
