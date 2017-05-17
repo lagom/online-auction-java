@@ -12,6 +12,7 @@ before_install:
   - sudo service elasticsearch restart
 before_script:
   - sleep 20
+  - sudo chmod +x /usr/local/bin/sbt # see https://github.com/travis-ci/travis-ci/issues/7703
 script:
   - sbt -DenableElasticsearch=true test
 cache:
