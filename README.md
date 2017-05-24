@@ -43,7 +43,7 @@ sbt runAll
 
 ## Running in Production Mode
 
-See [Running Online Auction in ConductR Sandbox](running-in-conductr.md) for instructions.
+See [Running Online Auction in ConductR Sandbox](docs/running-in-conductr.md) for instructions.
 
 ## Importing into IDEs (optional)
 
