@@ -7,6 +7,7 @@ import akka.persistence.query.PersistenceQuery;
 import akka.persistence.query.javadsl.CurrentPersistenceIdsQuery;
 import akka.stream.Materializer;
 import akka.stream.javadsl.Sink;
+import com.example.auction.user.api.Auth;
 import com.example.auction.user.api.User;
 import com.example.auction.user.api.UserService;
 import com.lightbend.lagom.javadsl.api.ServiceCall;
@@ -66,6 +67,30 @@ public class UserServiceImpl implements UserService {
                 .map(Optional::get)
                 .runWith(Sink.seq(), mat)
                 .thenApply(TreePVector::from);
+    }
+
+    @Override
+    public ServiceCall<Auth, User> authUser() {
+        return req -> {
+            PSequence<User> users = currentIdsQuery.currentPersistenceIds()
+                    .filter(id -> id.startsWith("UserEntity"))
+                    .mapAsync(4, id -> entityRef(id.substring(10)).ask(UserCommand.GetUser.INSTANCE))
+                    .filter(Optional::isPresent)
+                    .map(Optional::get)
+                    .runWith(Sink.seq(), mat)
+                    .thenApply(TreePVector::from);
+
+            Optional<User> validUser = users.stream().filter(user ->
+                user.getUsername().equals(req.getUsername()) && user.getPassword().equals(req.getPassword())
+            ).findFirst();
+
+            if(validUser.isPresent()) {
+                return validUser.get();
+            } else {
+                throw new NotFound("User not found");
+            }
+
+        };
     }
 
     private PersistentEntityRef<UserCommand> entityRef(UUID id) {

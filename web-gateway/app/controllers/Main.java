@@ -1,5 +1,6 @@
 package controllers;
 
+import com.example.auction.user.api.Auth;
 import com.example.auction.user.api.User;
 import com.example.auction.user.api.UserService;
 import play.data.FormFactory;
@@ -54,7 +55,7 @@ public class Main extends AbstractController {
                         return CompletableFuture.completedFuture(ok(views.html.createUser.render(showInlineInstruction, form, nav)));
                     }
 
-                    return userService.createUser().invoke(new User(form.get().getName())).thenApply(user -> {
+                    return userService.createUser().invoke(new User(form.get().getName(), "admin", "admin")).thenApply(user -> {
                         ctx.session().put("user", user.getId().toString());
                         return redirect(ProfileController.defaultProfilePage());
                     });
@@ -76,11 +77,7 @@ public class Main extends AbstractController {
                         return CompletableFuture.completedFuture(ok(views.html.login.render(showInlineInstruction, form, nav)));
                     }
 
-                    if (form.hasErrors()) {
-                        return CompletableFuture.completedFuture(ok(views.html.login.render(showInlineInstruction, form, nav)));
-                    }
-
-                    return userService.createUser().invoke(new User(form.get().getName())).thenApply(user -> {
+                    return userService.authUser().invoke(new Auth(form.get().getUsername(), form.get().getPassword())).thenApply(user -> {
                         ctx.session().put("user", user.getId().toString());
                         return redirect(ProfileController.defaultProfilePage());
                     });

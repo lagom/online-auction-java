@@ -3,6 +3,7 @@ GET         /                           controllers.Main.index
 
 # User management
 GET         /createuser                 controllers.Main.createUserForm
+GET         /login                      controllers.Main.loginUser
 POST        /user                       controllers.Main.createUser
 POST        /currentuser/:userId        controllers.Main.currentUser(userId)
 

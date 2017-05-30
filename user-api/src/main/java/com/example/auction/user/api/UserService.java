@@ -21,7 +21,7 @@ public interface UserService extends Service {
     ServiceCall<NotUsed, PSequence<User>> getUsers();
 
     // Remove once we have a proper user service
-    ServiceCall<User, Boolean> authUser();
+    ServiceCall<Auth, User> authUser();
 
     @Override
     default Descriptor descriptor() {
