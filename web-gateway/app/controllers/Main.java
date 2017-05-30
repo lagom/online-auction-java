@@ -67,4 +67,25 @@ public class Main extends AbstractController {
         return ok("User switched");
     }
 
+    public CompletionStage<Result> loginUser() {
+        Http.Context ctx = ctx();
+        return withUser(ctx, userId ->
+                loadNav(userId).thenCompose(nav -> {
+                    Form<LoginForm> form = formFactory.form(LoginForm.class).bindFromRequest(ctx.request());
+                    if (form.hasErrors()) {
+                        return CompletableFuture.completedFuture(ok(views.html.login.render(showInlineInstruction, form, nav)));
+                    }
+
+                    if (form.hasErrors()) {
+                        return CompletableFuture.completedFuture(ok(views.html.login.render(showInlineInstruction, form, nav)));
+                    }
+
+                    return userService.createUser().invoke(new User(form.get().getName())).thenApply(user -> {
+                        ctx.session().put("user", user.getId().toString());
+                        return redirect(ProfileController.defaultProfilePage());
+                    });
+                })
+        );
+    }
+
 }

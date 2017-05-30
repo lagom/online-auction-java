@@ -20,12 +20,16 @@ public interface UserService extends Service {
     // Remove once we have a proper user service
     ServiceCall<NotUsed, PSequence<User>> getUsers();
 
+    // Remove once we have a proper user service
+    ServiceCall<User, Boolean> authUser();
+
     @Override
     default Descriptor descriptor() {
         return named("user").withCalls(
                 pathCall("/api/user", this::createUser),
                 pathCall("/api/user/:id", this::getUser),
-                pathCall("/api/user", this::getUsers)
+                pathCall("/api/user", this::getUsers),
+                pathCall("/api/user/auth", this::authUser)
         ).withPathParamSerializer(UUID.class, PathParamSerializers.required("UUID", UUID::fromString, UUID::toString));
     }
 }
