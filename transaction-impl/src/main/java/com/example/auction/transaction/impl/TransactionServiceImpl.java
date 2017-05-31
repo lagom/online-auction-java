@@ -5,6 +5,7 @@ import akka.stream.javadsl.Flow;
 import com.example.auction.item.api.Item;
 import com.example.auction.item.api.ItemEvent;
 import com.example.auction.item.api.ItemService;
+import com.example.auction.transaction.impl.TransactionCommand.*;
 import com.example.auction.transaction.api.TransactionService;
 import com.lightbend.lagom.javadsl.persistence.PersistentEntityRef;
 import com.lightbend.lagom.javadsl.persistence.PersistentEntityRegistry;
@@ -29,7 +30,7 @@ public class TransactionServiceImpl implements TransactionService {
                 Transaction transaction = new Transaction(item.getId(), item.getCreator(),
                         item.getAuctionWinner().get(), item.getPrice(), 0);
 
-                return entityRef(auctionFinished.getItemId()).ask(new TransactionCommand.StartTransaction(transaction));
+                return entityRef(auctionFinished.getItemId()).ask(new StartTransaction(transaction));
             } else {
                 return CompletableFuture.completedFuture(Done.getInstance());
             }
