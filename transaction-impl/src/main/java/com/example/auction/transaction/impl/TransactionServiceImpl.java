@@ -2,6 +2,7 @@ package com.example.auction.transaction.impl;
 
 import akka.Done;
 import akka.stream.javadsl.Flow;
+import com.example.auction.item.api.Item;
 import com.example.auction.item.api.ItemEvent;
 import com.example.auction.item.api.ItemService;
 import com.example.auction.transaction.api.TransactionService;
@@ -24,7 +25,9 @@ public class TransactionServiceImpl implements TransactionService {
         itemService.itemEvents().subscribe().atLeastOnce(Flow.<ItemEvent>create().mapAsync(1, itemEvent -> {
             if (itemEvent instanceof ItemEvent.AuctionFinished) {
                 ItemEvent.AuctionFinished auctionFinished = (ItemEvent.AuctionFinished) itemEvent;
-                Transaction transaction = new Transaction(auctionFinished.getItem());
+                Item item = auctionFinished.getItem();
+                Transaction transaction = new Transaction(item.getId(), item.getCreator(),
+                        item.getAuctionWinner().get(), item.getPrice(), 0);
 
                 return entityRef(auctionFinished.getItemId()).ask(new TransactionCommand.StartTransaction(transaction));
             } else {

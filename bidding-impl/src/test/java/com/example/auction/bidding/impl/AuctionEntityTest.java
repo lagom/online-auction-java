@@ -24,7 +24,7 @@ public class AuctionEntityTest {
 
     @BeforeClass
     public static void startActorSystem() {
-        system = ActorSystem.create("HelloWorldTest");
+        system = ActorSystem.create();
     }
 
     @AfterClass
