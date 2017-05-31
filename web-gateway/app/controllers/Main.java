@@ -85,4 +85,13 @@ public class Main extends AbstractController {
         );
     }
 
+    public CompletionStage<Result> loginUserForm() {
+        Http.Context ctx = ctx();
+        return withUser(ctx, userId ->
+                loadNav(userId).thenCompose(nav -> {
+                    return CompletableFuture.completedFuture(ok(views.html.login.render(showInlineInstruction,  formFactory.form(LoginForm.class), nav)));
+                })
+        );
+    }
+
 }

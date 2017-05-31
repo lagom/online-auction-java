@@ -211,7 +211,7 @@ def kafkaSettings: Seq[Setting[_]] = Seq(
   )
 )
 
-lagomCassandraCleanOnStart in ThisBuild := true
+lagomCassandraCleanOnStart in ThisBuild := false
 
 // ------------------------------------------------------------------------------------------------
 
