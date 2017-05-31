@@ -44,7 +44,7 @@ public class UserEntity extends PersistentEntity<UserCommand, UserEvent, Optiona
         );
 
         b.setCommandHandler(CreateUser.class, (create, ctx) -> {
-            User user = new User(UUID.fromString(entityId()), create.getName());
+            User user = new User(UUID.fromString(entityId()), create.getName(),"admin","admin");
             return ctx.thenPersist(new UserCreated(user), (e) -> ctx.reply(user));
         });
 

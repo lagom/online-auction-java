@@ -12,10 +12,14 @@ public interface UserCommand extends Jsonable {
     @Value
     final class CreateUser implements UserCommand, PersistentEntity.ReplyType<User> {
         private final String name;
+        private final String username;
+        private final String password;
 
         @JsonCreator
-        public CreateUser(String name) {
+        public CreateUser(String name, String username, String password) {
             this.name = name;
+            this.username = username;
+            this.password = password;
         }
     }
 
