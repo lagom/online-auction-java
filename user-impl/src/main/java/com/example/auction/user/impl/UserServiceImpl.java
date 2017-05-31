@@ -20,6 +20,8 @@ import org.pcollections.TreePVector;
 import javax.inject.Inject;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 
 public class UserServiceImpl implements UserService {
 
@@ -72,24 +74,20 @@ public class UserServiceImpl implements UserService {
     @Override
     public ServiceCall<Auth, User> authUser() {
         return req -> {
-            PSequence<User> users = currentIdsQuery.currentPersistenceIds()
-                    .filter(id -> id.startsWith("UserEntity"))
-                    .mapAsync(4, id -> entityRef(id.substring(10)).ask(UserCommand.GetUser.INSTANCE))
-                    .filter(Optional::isPresent)
-                    .map(Optional::get)
-                    .runWith(Sink.seq(), mat)
-                    .thenApply(TreePVector::from);
 
-            Optional<User> validUser = users.stream().filter(user ->
-                user.getUsername().equals(req.getUsername()) && user.getPassword().equals(req.getPassword())
-            ).findFirst();
+            CompletionStage<PSequence<User>> sequence = getUsers().invoke();
 
-            if(validUser.isPresent()) {
-                return validUser.get();
-            } else {
-                throw new NotFound("User not found");
-            }
+            return sequence.thenApply(users -> {
+                Optional<User> validUser = users.stream().filter(user ->
+                        user.getUsername().equals(req.getUsername()) && user.getPassword().equals(req.getPassword())
+                ).findFirst();
 
+                if(validUser.isPresent()) {
+                    return validUser.get();
+                } else {
+                    throw new NotFound("User not found");
+                }
+            });
         };
     }
 
