@@ -12,6 +12,7 @@ lazy val root = (project in file("."))
     itemApi, itemImpl,
     biddingApi, biddingImpl,
     userApi, userImpl,
+    transactionApi, transactionImpl,
     searchApi, searchImpl,
     webGateway)
   .settings(commonSettings: _*)
@@ -121,7 +122,6 @@ lazy val tools = (project in file("tools"))
 
 lazy val transactionApi = (project in file("transaction-api"))
   .settings(commonSettings: _*)
-  .dependsOn(itemApi)
   .settings(
     version := "1.0-SNAPSHOT",
     libraryDependencies ++= Seq(
@@ -133,13 +133,15 @@ lazy val transactionApi = (project in file("transaction-api"))
 
 lazy val transactionImpl = (project in file("transaction-impl"))
   .settings(commonSettings: _*)
-  // .enablePlugins(LagomJava)
-  .dependsOn(transactionApi, biddingApi)
+  .settings(kafkaSettings: _*)
+  .enablePlugins(LagomJava)
+  .dependsOn(transactionApi, itemApi)
   .settings(
     version := "1.0-SNAPSHOT",
     libraryDependencies ++= Seq(
       lagomJavadslPersistenceCassandra,
-      lagomJavadslTestKit
+      lagomJavadslTestKit,
+      lagomJavadslKafkaBroker
     )
   )
 
