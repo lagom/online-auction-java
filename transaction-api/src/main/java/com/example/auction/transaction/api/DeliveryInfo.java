@@ -2,6 +2,10 @@ package com.example.auction.transaction.api;
 
 // import com.example.auction.item.api.DeliveryOption;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import lombok.Value;
+
+@Value
 public final class DeliveryInfo {
 
     private final String addressLine1;
@@ -12,6 +16,7 @@ public final class DeliveryInfo {
     private final String country;
     // private final DeliveryOption selectedDeliveryOption;
 
+    @JsonCreator
     public DeliveryInfo(String addressLine1, String addressLine2, String city, String state, int postalCode, String country /* DeliveryOption selectedDeliveryOption*/) {
         this.addressLine1 = addressLine1;
         this.addressLine2 = addressLine2;

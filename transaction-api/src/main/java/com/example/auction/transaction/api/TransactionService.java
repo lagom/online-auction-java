@@ -48,7 +48,8 @@ public interface TransactionService extends Service {
         return named("transaction").withCalls(
                 pathCall("/api/item/:id/transaction", this::submitDeliveryDetails)
         ).withPathParamSerializer(UUID.class, PathParamSerializers.required("UUID", UUID::fromString, UUID::toString))
-                .withHeaderFilter(SecurityHeaderFilter.INSTANCE);
+                .withHeaderFilter(SecurityHeaderFilter.INSTANCE)
+        .withAutoAcl(true);
 
     }
 

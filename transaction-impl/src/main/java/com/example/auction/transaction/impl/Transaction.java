@@ -35,4 +35,8 @@ public class Transaction implements Jsonable {
         this.deliveryPrice = 0;
         this.deliveryData = Optional.empty();
     }
+
+    public Transaction withDeliveryData(DeliveryData deliveryData){
+        return new Transaction(itemId, creator, winner, itemPrice, deliveryPrice, Optional.of(deliveryData));
+    }
 }

@@ -1,13 +1,18 @@
 package com.example.auction.transaction.impl;
 
 import akka.Done;
+import com.example.auction.item.api.ItemEvent;
+import com.lightbend.lagom.javadsl.api.transport.Forbidden;
 import com.lightbend.lagom.javadsl.persistence.PersistentEntity;
 import com.example.auction.transaction.impl.TransactionCommand.*;
 import com.example.auction.transaction.impl.TransactionEvent.*;
+
+import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 
 public class TransactionEntity extends PersistentEntity<TransactionCommand, TransactionEvent, TransactionState> {
+
     @Override
     public Behavior initialBehavior(Optional<TransactionState> snapshotState) {
         if (!snapshotState.isPresent()) {
@@ -30,14 +35,14 @@ public class TransactionEntity extends PersistentEntity<TransactionCommand, Tran
     private Behavior notStarted(TransactionState state) {
         BehaviorBuilder builder = newBehaviorBuilder(state);
 
-        builder.setCommandHandler(StartTransaction.class, (start, ctx) ->
-                ctx.thenPersist(new TransactionStarted(entityUUID(), start.getTransaction()), (e) ->
+        builder.setCommandHandler(StartTransaction.class, (cmd, ctx) ->
+                ctx.thenPersist(new TransactionStarted(entityUUID(), cmd.getTransaction()), (e) ->
                         ctx.reply(Done.getInstance())
                 )
         );
 
-        builder.setEventHandlerChangingBehavior(TransactionStarted.class, started ->
-                negotiatingDelivery(TransactionState.start(started.getTransaction()))
+        builder.setEventHandlerChangingBehavior(TransactionStarted.class, event ->
+                negotiatingDelivery(TransactionState.start(event.getTransaction()))
         );
 
         return builder.build();
@@ -46,19 +51,24 @@ public class TransactionEntity extends PersistentEntity<TransactionCommand, Tran
     private Behavior negotiatingDelivery(TransactionState state) {
         BehaviorBuilder builder = newBehaviorBuilder(state);
 
-        builder.setReadOnlyCommandHandler(StartTransaction.class, (start, ctx) ->
+        builder.setReadOnlyCommandHandler(StartTransaction.class, (cmd, ctx) ->
                 ctx.reply(Done.getInstance())
         );
 
-        builder.setCommandHandler(SubmitDeliveryDetails.class, (cmd, ctx) ->
-                ctx.thenPersist(new DeliveryDetailsSubmitted(entityUUID(), cmd.getDeliveryData()), (e) ->
+        builder.setCommandHandler(SubmitDeliveryDetails.class, (cmd, ctx) -> {
+            if(cmd.getUserId().equals(state().getTransaction().get().getWinner())) {
+                return ctx.thenPersist(new DeliveryDetailsSubmitted(entityUUID(), cmd.getDeliveryData()), (e) ->
                         ctx.reply(Done.getInstance())
-                )
-        );
+                );
+            }
+            else {
+                ctx.commandFailed(new Forbidden("Only the buyer can submit delivery details"));
+                return ctx.done();
+            }
+        });
 
-        builder.setEventHandlerChangingBehavior(DeliveryDetailsSubmitted.class, event ->
-                // WIP
-                null
+        builder.setEventHandlerChangingBehavior(DeliveryDetailsSubmitted.class, evt ->
+                paymentSubmitted(state().updateDeliveryData(evt.getDeliveryData()))
         );
 
         return builder.build();
