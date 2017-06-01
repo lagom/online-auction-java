@@ -2,16 +2,21 @@ package com.example.auction.transaction.impl;
 
 import akka.Done;
 import akka.stream.javadsl.Flow;
+import com.example.auction.transaction.impl.TransactionCommand.*;
 import com.example.auction.item.api.Item;
 import com.example.auction.item.api.ItemEvent;
 import com.example.auction.item.api.ItemService;
+import com.example.auction.transaction.api.DeliveryInfo;
 import com.example.auction.transaction.api.TransactionService;
+import com.lightbend.lagom.javadsl.api.ServiceCall;
 import com.lightbend.lagom.javadsl.persistence.PersistentEntityRef;
 import com.lightbend.lagom.javadsl.persistence.PersistentEntityRegistry;
 
 import javax.inject.Inject;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+
+import static com.example.auction.security.ServerSecurity.authenticated;
 
 public class TransactionServiceImpl implements TransactionService {
 
@@ -27,9 +32,9 @@ public class TransactionServiceImpl implements TransactionService {
                 ItemEvent.AuctionFinished auctionFinished = (ItemEvent.AuctionFinished) itemEvent;
                 Item item = auctionFinished.getItem();
                 Transaction transaction = new Transaction(item.getId(), item.getCreator(),
-                        item.getAuctionWinner().get(), item.getPrice(), 0);
+                        item.getAuctionWinner().get(), item.getPrice());
 
-                return entityRef(auctionFinished.getItemId()).ask(new TransactionCommand.StartTransaction(transaction));
+                return entityRef(auctionFinished.getItemId()).ask(new StartTransaction(transaction));
             } else {
                 return CompletableFuture.completedFuture(Done.getInstance());
             }
@@ -40,6 +45,13 @@ public class TransactionServiceImpl implements TransactionService {
     public Topic<TransactionEvent> transactionEvents() {
         return null;
     }*/
+
+    @Override
+    public ServiceCall<DeliveryInfo, Done> submitDeliveryDetails(UUID itemId) {
+        return authenticated(userId -> deliveryInfo -> {
+            return null;
+        });
+    }
 
     private PersistentEntityRef<TransactionCommand> entityRef(UUID itemId) {
         return registry.refFor(TransactionEntity.class, itemId.toString());

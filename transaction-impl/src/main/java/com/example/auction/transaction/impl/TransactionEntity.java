@@ -19,6 +19,8 @@ public class TransactionEntity extends PersistentEntity<TransactionCommand, Tran
                     return notStarted(state);
                 case NEGOTIATING_DELIVERY:
                     return negotiatingDelivery(state);
+                case PAYMENT_SUBMITTED:
+                    return paymentSubmitted(state);
                 default:
                     throw new IllegalStateException();
             }
@@ -42,6 +44,27 @@ public class TransactionEntity extends PersistentEntity<TransactionCommand, Tran
     }
 
     private Behavior negotiatingDelivery(TransactionState state) {
+        BehaviorBuilder builder = newBehaviorBuilder(state);
+
+        builder.setReadOnlyCommandHandler(StartTransaction.class, (start, ctx) ->
+                ctx.reply(Done.getInstance())
+        );
+
+        builder.setCommandHandler(SubmitDeliveryDetails.class, (cmd, ctx) ->
+                ctx.thenPersist(new DeliveryDetailsSubmitted(entityUUID(), cmd.getDeliveryData()), (e) ->
+                        ctx.reply(Done.getInstance())
+                )
+        );
+
+        builder.setEventHandlerChangingBehavior(DeliveryDetailsSubmitted.class, event ->
+                // WIP
+                null
+        );
+
+        return builder.build();
+    }
+
+    private Behavior paymentSubmitted(TransactionState state) {
         BehaviorBuilder builder = newBehaviorBuilder(state);
         // WIP ...
         return builder.build();

@@ -1,10 +1,17 @@
 package com.example.auction.transaction.api;
 
 import static com.lightbend.lagom.javadsl.api.Service.named;
+import static com.lightbend.lagom.javadsl.api.Service.pathCall;
 
+import akka.Done;
+import com.example.auction.security.SecurityHeaderFilter;
 import com.lightbend.lagom.javadsl.api.Descriptor;
 import com.lightbend.lagom.javadsl.api.Service;
+import com.lightbend.lagom.javadsl.api.ServiceCall;
 import com.lightbend.lagom.javadsl.api.broker.Topic;
+import com.lightbend.lagom.javadsl.api.deser.PathParamSerializers;
+
+import java.util.UUID;
 
 /**
  * The transaction services.
@@ -19,7 +26,7 @@ public interface TransactionService extends Service {
 
     //ServiceCall<TransactionMessage, Done> sendMessage(UUID itemId);
 
-    //ServiceCall<DeliveryInfo, Done> submitDeliveryDetails(UUID itemId);
+    ServiceCall<DeliveryInfo, Done> submitDeliveryDetails(UUID itemId);
 
     //ServiceCall<Integer, Done> setDeliveryPrice(UUID itemId);
 
@@ -39,8 +46,10 @@ public interface TransactionService extends Service {
     @Override
     default Descriptor descriptor() {
         return named("transaction").withCalls(
-                // No pathcalls for now ...
-        );
+                pathCall("/api/item/:id/transaction", this::submitDeliveryDetails)
+        ).withPathParamSerializer(UUID.class, PathParamSerializers.required("UUID", UUID::fromString, UUID::toString))
+                .withHeaderFilter(SecurityHeaderFilter.INSTANCE);
+
     }
 
 }
