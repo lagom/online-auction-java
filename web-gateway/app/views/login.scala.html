@@ -5,7 +5,9 @@
 @main(message("name.login")) {
 
 <h2>@message("name.login")</h2>
-
+@if(showInlineInstruction == true) {
+<p>@message("instruction.login")</p>
+}
 @foundationForm(login, routes.Main.loginUser()) {
 <div class="row">
     <div class="medium-6 columns">

@@ -5,6 +5,9 @@ search=Search
 formErrors=There are some errors in your form.
 
 name=Name
+password=Password
+username=Username
+email=Email
 createUser=Create user
 
 title=Title
@@ -96,6 +99,7 @@ instruction.auctionStarted.bidder=The auction has started for this item.
 instruction.auctionStarted.seller=This item is under auction. Now other users can start bidding for this item.
 instruction.auctionEnded=The auction has ended for this item.
 instruction.auctionCancelled=The auction has been cancelled for this item.
+instruction.login=Here the existing users can log in to participate in auctions.
 instruction.login.username=Enter your username
 instruction.login.password=Enter your password
 

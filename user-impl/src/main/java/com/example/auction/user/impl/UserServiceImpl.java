@@ -14,14 +14,18 @@ import com.lightbend.lagom.javadsl.api.ServiceCall;
 import com.lightbend.lagom.javadsl.api.transport.NotFound;
 import com.lightbend.lagom.javadsl.persistence.PersistentEntityRef;
 import com.lightbend.lagom.javadsl.persistence.PersistentEntityRegistry;
+
 import org.pcollections.PSequence;
 import org.pcollections.TreePVector;
 
+
 import javax.inject.Inject;
+
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
+
 import java.util.concurrent.CompletionStage;
+
 
 public class UserServiceImpl implements UserService {
 
@@ -43,7 +47,7 @@ public class UserServiceImpl implements UserService {
     public ServiceCall<User, User> createUser() {
         return user -> {
             UUID uuid = UUID.randomUUID();
-            return entityRef(uuid).ask(new UserCommand.CreateUser(user.getName(), user.getUsername(), user.getPassword()));
+            return entityRef(uuid).ask(new UserCommand.CreateUser( user.getUsername(),user.getEmail(), user.getPassword()));
         };
     }
 
@@ -87,6 +91,7 @@ public class UserServiceImpl implements UserService {
                 } else {
                     throw new NotFound("User not found");
                 }
+
             });
         };
     }

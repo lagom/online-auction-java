@@ -11,13 +11,13 @@ import java.util.Optional;
 public interface UserCommand extends Jsonable {
     @Value
     final class CreateUser implements UserCommand, PersistentEntity.ReplyType<User> {
-        private final String name;
+        private final String email;
         private final String username;
         private final String password;
 
         @JsonCreator
-        public CreateUser(String name, String username, String password) {
-            this.name = name;
+        public CreateUser( String username, String email,String password) {
+            this.email = email;
             this.username = username;
             this.password = password;
         }
