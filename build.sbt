@@ -12,6 +12,7 @@ lazy val root = (project in file("."))
     itemApi, itemImpl,
     biddingApi, biddingImpl,
     userApi, userImpl,
+    transactionApi, transactionImpl,
     searchApi, searchImpl,
     webGateway)
   .settings(commonSettings: _*)
