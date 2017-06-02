@@ -7,11 +7,11 @@ import org.junit.*;
 
 import com.example.auction.transaction.impl.TransactionCommand.*;
 import com.example.auction.transaction.impl.TransactionEvent.*;
+
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.hasItem;
+import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
@@ -34,8 +34,12 @@ public class TransactionEntityTest {
     private final UUID itemId = UUID.randomUUID();
     private final UUID creator = UUID.randomUUID();
     private final UUID winner = UUID.randomUUID();
+    private final DeliveryData deliveryData = new DeliveryData("Addr1", "Addr2", "City", "State", 27, "Country");
 
     private final Transaction transaction  = new Transaction(itemId, creator, winner, 2000);
+
+    private final StartTransaction startTransaction = new StartTransaction(transaction);
+    private final SubmitDeliveryDetails submitDeliveryDetails = new SubmitDeliveryDetails(creator, deliveryData);
 
     @Before
     public void createTestDriver() {
@@ -51,11 +55,20 @@ public class TransactionEntityTest {
     }
 
     @Test
-    public void testStartTransaction() {
-        PersistentEntityTestDriver.Outcome<TransactionEvent, TransactionState> outcome = driver.run(new StartTransaction(transaction));
+    public void shouldEmitEvenWhenCreatingTransaction() {
+        PersistentEntityTestDriver.Outcome<TransactionEvent, TransactionState> outcome = driver.run(startTransaction);
 
         assertThat(outcome.state().getStatus(), equalTo(TransactionStatus.NEGOTIATING_DELIVERY));
         assertThat(outcome.state().getTransaction(), equalTo(Optional.of(transaction)));
         assertThat(outcome.events(), hasItem(new TransactionStarted(itemId, transaction)));
     }
+
+    @Test
+    public void shouldEmitEventWhenSubmittingDeliveryDetails(){
+        driver.run(startTransaction);
+        PersistentEntityTestDriver.Outcome<TransactionEvent, TransactionState> outcome = driver.run(submitDeliveryDetails);
+        assertThat(outcome.state().getStatus(), equalTo(TransactionStatus.PAYMENT_SUBMITTED));
+        assertThat(outcome.events(), hasItem(new DeliveryDetailsSubmitted(itemId, deliveryData)));
+    }
 }
+
