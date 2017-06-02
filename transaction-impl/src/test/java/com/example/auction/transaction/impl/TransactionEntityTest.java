@@ -2,6 +2,7 @@ package com.example.auction.transaction.impl;
 
 import akka.actor.ActorSystem;
 import akka.testkit.JavaTestKit;
+import com.lightbend.lagom.javadsl.api.transport.Forbidden;
 import com.lightbend.lagom.javadsl.testkit.PersistentEntityTestDriver;
 import org.junit.*;
 
@@ -69,6 +70,14 @@ public class TransactionEntityTest {
         PersistentEntityTestDriver.Outcome<TransactionEvent, TransactionState> outcome = driver.run(submitDeliveryDetails);
         assertThat(outcome.state().getStatus(), equalTo(TransactionStatus.NEGOTIATING_DELIVERY));
         assertThat(outcome.events(), hasItem(new DeliveryDetailsSubmitted(itemId, deliveryData)));
+    }
+
+    @Test(expected = Forbidden.class)
+    public void shouldForbidSubmittingDeliveryDetailsByNonBuyer() {
+        driver.run(startTransaction);
+        UUID hacker = UUID.randomUUID();
+        SubmitDeliveryDetails invalid = new SubmitDeliveryDetails(hacker, deliveryData);
+        driver.run(invalid);
     }
 }
 
