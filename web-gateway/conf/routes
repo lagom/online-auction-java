@@ -22,3 +22,6 @@ GET         /search                     controllers.SearchController.searchForm(
 POST        /search                     controllers.SearchController.search()
 
 GET         /assets/*file               controllers.Assets.at(path = "/public", file)
+
+# Transaction
+GET         /transaction/:id/delivery   controllers.TransactionController.submitDeliveryDetailsForm(id)

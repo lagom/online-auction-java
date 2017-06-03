@@ -1,0 +1,9 @@
+@(showInlineInstruction: Boolean, deliveryForm: Form[DeliveryDetailsForm])(implicit nav: Nav)
+
+@main(message("deliveryDetails")) {
+    <h2>@message("deliveryDetails")</h2>
+
+    @foundationForm(deliveryForm, routes.ItemController.createItem()) {
+
+    }
+}
