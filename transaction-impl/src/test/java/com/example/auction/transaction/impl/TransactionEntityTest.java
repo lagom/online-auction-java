@@ -2,6 +2,7 @@ package com.example.auction.transaction.impl;
 
 import akka.actor.ActorSystem;
 import akka.testkit.JavaTestKit;
+import com.lightbend.lagom.javadsl.api.transport.Forbidden;
 import com.lightbend.lagom.javadsl.testkit.PersistentEntityTestDriver;
 import org.junit.*;
 
@@ -39,7 +40,11 @@ public class TransactionEntityTest {
     private final Transaction transaction  = new Transaction(itemId, creator, winner, 2000);
 
     private final StartTransaction startTransaction = new StartTransaction(transaction);
+<<<<<<< HEAD
     private final SubmitDeliveryDetails submitDeliveryDetails = new SubmitDeliveryDetails(creator, deliveryData);
+=======
+    private final SubmitDeliveryDetails submitDeliveryDetails = new SubmitDeliveryDetails(winner, deliveryData);
+>>>>>>> d7f3dfd15457a7019679cf71aef252e5b4351b65
 
     @Before
     public void createTestDriver() {
@@ -67,8 +72,16 @@ public class TransactionEntityTest {
     public void shouldEmitEventWhenSubmittingDeliveryDetails(){
         driver.run(startTransaction);
         PersistentEntityTestDriver.Outcome<TransactionEvent, TransactionState> outcome = driver.run(submitDeliveryDetails);
-        assertThat(outcome.state().getStatus(), equalTo(TransactionStatus.PAYMENT_SUBMITTED));
+        assertThat(outcome.state().getStatus(), equalTo(TransactionStatus.NEGOTIATING_DELIVERY));
         assertThat(outcome.events(), hasItem(new DeliveryDetailsSubmitted(itemId, deliveryData)));
+    }
+
+    @Test(expected = Forbidden.class)
+    public void shouldForbidSubmittingDeliveryDetailsByNonBuyer() {
+        driver.run(startTransaction);
+        UUID hacker = UUID.randomUUID();
+        SubmitDeliveryDetails invalid = new SubmitDeliveryDetails(hacker, deliveryData);
+        driver.run(invalid);
     }
 }
 
