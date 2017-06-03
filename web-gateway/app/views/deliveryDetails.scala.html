@@ -1,9 +1,44 @@
-@(showInlineInstruction: Boolean, deliveryForm: Form[DeliveryDetailsForm])(implicit nav: Nav)
+@import helper._
+@import java.util.Optional
+@import java.util.UUID
 
+@(showInlineInstruction: Boolean, itemId: UUID, deliveryForm: Form[DeliveryDetailsForm], errorMessage: Optional[String])(implicit nav: Nav)
+
+@* TODO: Get transaction status to show or not read-only inputs *@
 @main(message("deliveryDetails")) {
+
     <h2>@message("deliveryDetails")</h2>
 
-    @foundationForm(deliveryForm, routes.ItemController.createItem()) {
+    @if(showInlineInstruction == true) {
+        <p>@message("instruction.deliveryDetails")</p>
+    }
 
+    @foundationForm(deliveryForm, routes.TransactionController.submitDeliveryDetails(itemId.toString)) {
+        @if(errorMessage.isPresent) {
+            <div class="alert callout">
+                <i class="fi-alert"></i> @errorMessage.get()
+            </div>
+        }
+
+        <div class="column row">
+            @inputText(deliveryForm("addressLine1"))
+        </div>
+        <div class="column row">
+            @inputText(deliveryForm("addressLine2"))
+        </div>
+        <div class="column row">
+            @inputText(deliveryForm("city"))
+        </div>
+        <div class="column row">
+            @inputText(deliveryForm("state"))
+        </div>
+        <div class="column row">
+            @inputText(deliveryForm("postalCode"), 'type -> "number")
+        </div>
+        <div class="column row">
+            @inputText(deliveryForm("country"))
+        </div>
+
+        <input type="submit" class="button" value="@message("submitDeliveryDetails")"/>
     }
 }

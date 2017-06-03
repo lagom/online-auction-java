@@ -46,7 +46,7 @@ public interface TransactionService extends Service {
     @Override
     default Descriptor descriptor() {
         return named("transaction").withCalls(
-                pathCall("/api/item/:id/transaction", this::submitDeliveryDetails)
+                pathCall("/api/transaction/:id", this::submitDeliveryDetails)
         ).withPathParamSerializer(UUID.class, PathParamSerializers.required("UUID", UUID::fromString, UUID::toString))
                 .withHeaderFilter(SecurityHeaderFilter.INSTANCE);
 

@@ -3,7 +3,6 @@ package controllers;
 import akka.japi.Pair;
 import com.example.auction.bidding.api.*;
 import com.example.auction.item.api.*;
-import com.example.auction.transaction.api.TransactionService;
 import com.example.auction.user.api.User;
 import com.example.auction.user.api.UserService;
 import com.lightbend.lagom.javadsl.api.transport.TransportException;

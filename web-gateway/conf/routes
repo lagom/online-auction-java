@@ -25,3 +25,4 @@ GET         /assets/*file               controllers.Assets.at(path = "/public", 
 
 # Transaction
 GET         /transaction/:id/delivery   controllers.TransactionController.submitDeliveryDetailsForm(id)
+POST        /transaction/:id/delivery   controllers.TransactionController.submitDeliveryDetails(id)
