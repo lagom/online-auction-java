@@ -104,3 +104,9 @@ instruction.deliveryDetails=Here you can submit the delivery details for the tra
 
 deliveryDetails=Delivery Details
 submitDeliveryDetails=Submit
+addressLine1=Adress Line 1
+addressLine2=Adress Line 2
+city=City
+state=State
+postalCode=Postal code
+country=Country

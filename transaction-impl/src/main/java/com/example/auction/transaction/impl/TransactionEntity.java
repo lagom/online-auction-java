@@ -1,13 +1,11 @@
 package com.example.auction.transaction.impl;
 
 import akka.Done;
-import com.example.auction.item.api.ItemEvent;
 import com.lightbend.lagom.javadsl.api.transport.Forbidden;
 import com.lightbend.lagom.javadsl.persistence.PersistentEntity;
 import com.example.auction.transaction.impl.TransactionCommand.*;
 import com.example.auction.transaction.impl.TransactionEvent.*;
 
-import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 

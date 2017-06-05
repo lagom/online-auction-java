@@ -40,11 +40,7 @@ public class TransactionEntityTest {
     private final Transaction transaction  = new Transaction(itemId, creator, winner, 2000);
 
     private final StartTransaction startTransaction = new StartTransaction(transaction);
-<<<<<<< HEAD
-    private final SubmitDeliveryDetails submitDeliveryDetails = new SubmitDeliveryDetails(creator, deliveryData);
-=======
     private final SubmitDeliveryDetails submitDeliveryDetails = new SubmitDeliveryDetails(winner, deliveryData);
->>>>>>> d7f3dfd15457a7019679cf71aef252e5b4351b65
 
     @Before
     public void createTestDriver() {
