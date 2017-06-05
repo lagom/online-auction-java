@@ -1,5 +1,6 @@
 package com.example.auction.user.impl;
 
+import akka.Done;
 import akka.NotUsed;
 import akka.actor.ActorSystem;
 import akka.persistence.cassandra.query.javadsl.CassandraReadJournal;
@@ -30,16 +31,19 @@ import java.util.concurrent.CompletionStage;
 public class UserServiceImpl implements UserService {
 
     private final PersistentEntityRegistry registry;
+    private final PersistentEntityRegistry authRegistry;
     private final CurrentPersistenceIdsQuery currentIdsQuery;
     private final Materializer mat;
 
     @Inject
-    public UserServiceImpl(PersistentEntityRegistry registry, ActorSystem system, Materializer mat) {
+    public UserServiceImpl(PersistentEntityRegistry authRegistry, PersistentEntityRegistry registry, ActorSystem system, Materializer mat) {
         this.registry = registry;
+        this.authRegistry = authRegistry;
         this.mat = mat;
         this.currentIdsQuery =
                 PersistenceQuery.get(system).getReadJournalFor(CassandraReadJournal.class, CassandraReadJournal.Identifier());
 
+        authRegistry.register(AuthEntity.class);
         registry.register(UserEntity.class);
     }
 
@@ -47,7 +51,14 @@ public class UserServiceImpl implements UserService {
     public ServiceCall<User, User> createUser() {
         return user -> {
             UUID uuid = UUID.randomUUID();
-            return entityRef(uuid).ask(new UserCommand.CreateUser( user.getUsername(),user.getEmail(), user.getPassword()));
+            return entityRef(uuid).ask(new UserCommand.CreateUser(user.getName()));
+        };
+    }
+
+    @Override
+    public ServiceCall<Auth, Done> updateAuth() {
+        return auth -> {
+            return entityRef(auth.getUsername()).ask(new AuthCommand.UpdateAuth(auth.getId(), auth.getUsername(), auth.getPassword()));
         };
     }
 
@@ -59,7 +70,21 @@ public class UserServiceImpl implements UserService {
                             maybeUser.orElseGet(() -> {
                                 throw new NotFound("User " + userId + " not found");
                             })
-            );
+                    );
+        };
+    }
+
+
+    @Override
+    public ServiceCall<Auth, Auth> login() {
+        return req -> {
+            return entityRef(req.getUsername()).ask(AuthCommand.GetAuth.INSTANCE)
+                    .thenApply(maybeAuth ->
+
+                            maybeAuth.orElseGet(() -> {
+                                throw new NotFound("User " + userId + " not found");
+                            })
+                    );
         };
     }
 
@@ -102,5 +127,13 @@ public class UserServiceImpl implements UserService {
 
     private PersistentEntityRef<UserCommand> entityRef(String id) {
         return registry.refFor(UserEntity.class, id);
+    }
+
+    private PersistentEntityRef<AuthCommand> authRef(UUID id) {
+        return authRef(id.toString());
+    }
+
+    private PersistentEntityRef<AuthCommand> authRef(String id) {
+        return authRegistry.refFor(AuthEntity.class, id);
     }
 }

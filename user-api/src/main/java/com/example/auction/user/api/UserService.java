@@ -1,5 +1,6 @@
 package com.example.auction.user.api;
 
+import akka.Done;
 import akka.NotUsed;
 import com.lightbend.lagom.javadsl.api.Descriptor;
 import com.lightbend.lagom.javadsl.api.Service;
@@ -21,7 +22,8 @@ public interface UserService extends Service {
     ServiceCall<NotUsed, PSequence<User>> getUsers();
 
     // Remove once we have a proper user service
-    ServiceCall<Auth, User> authUser();
+    ServiceCall<Auth, Auth> login();
+    ServiceCall<Auth, Done> updateAuth();
 
     @Override
     default Descriptor descriptor() {
@@ -29,7 +31,8 @@ public interface UserService extends Service {
                 pathCall("/api/user", this::createUser),
                 pathCall("/api/user/:id", this::getUser),
                 pathCall("/api/user", this::getUsers),
-                pathCall("/api/user/auth", this::authUser)
+                pathCall("/api/user/login", this::login),
+                pathCall("/api/user/update-auth", this::updateAuth)
         ).withPathParamSerializer(UUID.class, PathParamSerializers.required("UUID", UUID::fromString, UUID::toString));
     }
 }

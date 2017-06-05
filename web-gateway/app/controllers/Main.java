@@ -55,7 +55,7 @@ public class Main extends AbstractController {
                         return CompletableFuture.completedFuture(ok(views.html.createUser.render(showInlineInstruction, form, nav)));
                     }
 
-                    return userService.createUser().invoke(new User( form.get().getUsername(),form.get().getEmail() ,form.get().getPassword())).thenApply(user -> {
+                    return userService.createUser().invoke(new User( form.get().getName())).thenApply(user -> {
                         ctx.session().put("user", user.getId().toString());
                         return redirect(ProfileController.defaultProfilePage());
                     });

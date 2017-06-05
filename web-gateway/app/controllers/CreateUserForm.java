@@ -7,7 +7,7 @@ public class CreateUserForm {
     @Constraints.Required
     private String username;
     @Constraints.Required
-    private String email;
+    private String name;
     @Constraints.Required
     private String password;
 
@@ -19,14 +19,13 @@ public class CreateUserForm {
         this.username = username;
     }
 
-    public String getEmail() {
-        return email;
+    public String getName() {
+        return name;
     }
 
-    public void setEmail(String email) {
-        this.email = email;
+    public void setName(String name) {
+        this.name = name;
     }
-
     public String getPassword() {
         return password;
     }

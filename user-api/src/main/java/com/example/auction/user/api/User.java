@@ -11,33 +11,29 @@ import java.util.UUID;
 public final class User {
 
     private final UUID id;
-    private final String email;
-    private final String username;
-    private final String password;
+    private final String name;
+   
 
     @JsonCreator
-    private User(@JsonProperty("id") Optional<UUID> id, @JsonProperty("email") String email,
-                 @JsonProperty("username") String username, @JsonProperty("password") String password ) {
+    private User(@JsonProperty("id") Optional<UUID> id, 
+                 @JsonProperty("name") String name) {
         this.id = id.orElse(null);
-        this.email = email;
-        this.username = username;
-        this.password = password;
+        this.name = name;
+
     }
 
-    public User(UUID id,  String username,String email, String password) {
+    public User(UUID id,  String name) {
         this.id = id;
-        this.email = email;
-        this.username = username;
-        this.password = password;
+        this.name = name;
+
     }
 
     /**
      * Used when creating a new user.
      */
-    public User( String username,String email, String password) {
+    public User( String name) {
         this.id = null;
-        this.email = email;
-        this.username = username;
-        this.password = password;
+        this.name = name;
+
     }
 }
