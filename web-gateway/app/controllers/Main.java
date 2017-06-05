@@ -11,6 +11,7 @@ import play.data.Form;
 import play.Configuration;
 
 import javax.inject.Inject;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
@@ -55,7 +56,8 @@ public class Main extends AbstractController {
                         return CompletableFuture.completedFuture(ok(views.html.createUser.render(showInlineInstruction, form, nav)));
                     }
 
-                    return userService.createUser().invoke(new User( form.get().getName())).thenApply(user -> {
+                    return userService.createUser().invoke(new User(form.get().getName())).thenApply(user -> {
+                        userService.updateAuth().invoke(new Auth(user.getId(), form.get().getUsername(), form.get().getPassword()));
                         ctx.session().put("user", user.getId().toString());
                         return redirect(ProfileController.defaultProfilePage());
                     });
@@ -77,8 +79,8 @@ public class Main extends AbstractController {
                         return CompletableFuture.completedFuture(ok(views.html.login.render(showInlineInstruction, form, nav)));
                     }
 
-                    return userService.authUser().invoke(new Auth(form.get().getUsername(), form.get().getPassword())).thenApply(user -> {
-                        ctx.session().put("user", user.getId().toString());
+                    return userService.login().invoke(new Auth(UUID.randomUUID(), form.get().getUsername(), form.get().getPassword())).thenApply(auth -> {
+                        ctx.session().put("user", auth.getId().toString());
                         return redirect(ProfileController.defaultProfilePage());
                     });
                 })

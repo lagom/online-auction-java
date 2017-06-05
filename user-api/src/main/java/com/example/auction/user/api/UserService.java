@@ -1,6 +1,5 @@
 package com.example.auction.user.api;
 
-import akka.Done;
 import akka.NotUsed;
 import com.lightbend.lagom.javadsl.api.Descriptor;
 import com.lightbend.lagom.javadsl.api.Service;
@@ -10,7 +9,8 @@ import org.pcollections.PSequence;
 
 import java.util.UUID;
 
-import static com.lightbend.lagom.javadsl.api.Service.*;
+import static com.lightbend.lagom.javadsl.api.Service.named;
+import static com.lightbend.lagom.javadsl.api.Service.pathCall;
 
 public interface UserService extends Service {
 
@@ -23,7 +23,7 @@ public interface UserService extends Service {
 
     // Remove once we have a proper user service
     ServiceCall<Auth, Auth> login();
-    ServiceCall<Auth, Done> updateAuth();
+    ServiceCall<Auth, Auth> updateAuth();
 
     @Override
     default Descriptor descriptor() {

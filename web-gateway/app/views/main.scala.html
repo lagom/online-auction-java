@@ -23,13 +23,13 @@
                     <li><a href="@routes.SearchController.searchForm()">@message("search")</a></li>
                     <li>
                         <a href="@ProfileController.defaultProfilePage">@if(nav.getUser.isPresent) {
-                            @nav.getUser.get.getUsername
+                            @nav.getUser.get.getName
                         } else {
                             @message("logInAs")
                         }</a>
                         <ul class="menu vertical">
                         @for(user <- nav.getUsers) {
-                            <li><a href="#" data-user-id="@user.getId" class="log-in-as">@user.getUsername</a></li>
+                            <li><a href="#" data-user-id="@user.getId" class="log-in-as">@user.getName</a></li>
                         }
                         </ul>
                     </li>
