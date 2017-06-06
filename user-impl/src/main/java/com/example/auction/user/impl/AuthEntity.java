@@ -23,6 +23,8 @@ public class AuthEntity extends PersistentEntity<AuthCommand, AuthEvent, Optiona
             return ctx.thenPersist(new AuthEvent.AuthUpdated(a), (e) -> ctx.reply(a));
         });
 
+        b.setEventHandlerChangingBehavior(AuthEvent.AuthUpdated.class, authUser -> b.build());
+
         return b.build();
     }
 
