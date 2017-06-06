@@ -60,8 +60,9 @@ public class TransactionEntity extends PersistentEntity<TransactionCommand, Tran
                 );
             }
             else {
-                ctx.commandFailed(new Forbidden("Only the buyer can submit delivery details"));
-                return ctx.done();
+                //ctx.commandFailed(new Forbidden("Only the buyer can submit delivery details"));
+                throw new Forbidden("Only the buyer can submit delivery details");
+                //return ctx.done();
             }
         });
 
