@@ -59,15 +59,12 @@ public class TransactionEntity extends PersistentEntity<TransactionCommand, Tran
                         ctx.reply(Done.getInstance())
                 );
             }
-            else {
-                //ctx.commandFailed(new Forbidden("Only the buyer can submit delivery details"));
-                throw new Forbidden("Only the buyer can submit delivery details");
-                //return ctx.done();
-            }
+            else
+                throw new Forbidden("Only the auction winner can submit delivery details");
         });
 
-        builder.setEventHandlerChangingBehavior(DeliveryDetailsSubmitted.class, evt ->
-                paymentSubmitted(state().updateDeliveryData(evt.getDeliveryData()))
+        builder.setEventHandler(DeliveryDetailsSubmitted.class, evt ->
+                state().updateDeliveryData(evt.getDeliveryData())
         );
 
         return builder.build();

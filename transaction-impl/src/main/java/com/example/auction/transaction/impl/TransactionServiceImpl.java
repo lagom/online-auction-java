@@ -49,7 +49,7 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     public ServiceCall<DeliveryInfo, Done> submitDeliveryDetails(UUID itemId) {
         return authenticated(userId -> deliveryInfo -> {
-            SubmitDeliveryDetails submit = new SubmitDeliveryDetails(itemId, TransactionMappers.fromApi(deliveryInfo));
+            SubmitDeliveryDetails submit = new SubmitDeliveryDetails(userId, TransactionMappers.fromApi(deliveryInfo));
             return entityRef(itemId).ask(submit);
         });
     }

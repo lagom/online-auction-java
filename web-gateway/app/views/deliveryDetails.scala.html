@@ -26,17 +26,22 @@
         <div class="column row">
             @inputText(deliveryForm("addressLine2"))
         </div>
-        <div class="column row">
-            @inputText(deliveryForm("city"))
+        <div class="row">
+            <div class="medium-6 columns">
+                @inputText(deliveryForm("city"))
+            </div>
+            <div class="medium-6 columns">
+                @inputText(deliveryForm("state"))
+            </div>
         </div>
-        <div class="column row">
-            @inputText(deliveryForm("state"))
-        </div>
-        <div class="column row">
-            @inputText(deliveryForm("postalCode"), 'type -> "number")
-        </div>
-        <div class="column row">
-            @inputText(deliveryForm("country"))
+
+        <div class="row">
+            <div class="medium-6 columns">
+                @inputText(deliveryForm("postalCode"), 'type -> "number")
+            </div>
+            <div class="medium-6 columns">
+                @inputText(deliveryForm("country"))
+            </div>
         </div>
 
         <input type="submit" class="button" value="@message("submitDeliveryDetails")"/>
