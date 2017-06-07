@@ -80,7 +80,7 @@
 
     <dl>
         <dt>@message("seller")</dt>
-        <dd>@seller.getName</dd>
+        <dd>@seller.getUsername</dd>
 
         <dt>@message("currency")</dt>
         <dd>@currency.getDisplayName</dd>
@@ -115,7 +115,7 @@
 
         @if(winner.isPresent && (currentUser == item.getCreator || currentUser == winner.get.getId)) {
             <dt>@message("auctionWinner")</dt>
-            <dd>@winner.get.getName</dd>
+            <dd>@winner.get.getUsername</dd>
         }
     }
     </dl>

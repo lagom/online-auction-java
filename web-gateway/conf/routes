@@ -4,6 +4,8 @@ GET         /                           controllers.Main.index
 # User management
 GET         /createuser                 controllers.Main.createUserForm
 POST        /user                       controllers.Main.createUser
+GET         /login                      controllers.Main.loginUserForm
+POST        /login                      controllers.Main.loginUser
 POST        /currentuser/:userId        controllers.Main.currentUser(userId)
 
 # User profile

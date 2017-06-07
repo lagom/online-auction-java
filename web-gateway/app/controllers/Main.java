@@ -1,5 +1,6 @@
 package controllers;
 
+import com.example.auction.user.api.Auth;
 import com.example.auction.user.api.User;
 import com.example.auction.user.api.UserService;
 import play.data.FormFactory;
@@ -54,7 +55,7 @@ public class Main extends AbstractController {
                         return CompletableFuture.completedFuture(ok(views.html.createUser.render(showInlineInstruction, form, nav)));
                     }
 
-                    return userService.createUser().invoke(new User(form.get().getName())).thenApply(user -> {
+                    return userService.createUser().invoke(new User( form.get().getUsername(),form.get().getEmail() ,form.get().getPassword())).thenApply(user -> {
                         ctx.session().put("user", user.getId().toString());
                         return redirect(ProfileController.defaultProfilePage());
                     });
@@ -65,6 +66,32 @@ public class Main extends AbstractController {
     public Result currentUser(String userId) {
         session("user", userId);
         return ok("User switched");
+    }
+
+    public CompletionStage<Result> loginUser() {
+        Http.Context ctx = ctx();
+        return withUser(ctx, userId ->
+                loadNav(userId).thenCompose(nav -> {
+                    Form<LoginForm> form = formFactory.form(LoginForm.class).bindFromRequest(ctx.request());
+                    if (form.hasErrors()) {
+                        return CompletableFuture.completedFuture(ok(views.html.login.render(showInlineInstruction, form, nav)));
+                    }
+
+                    return userService.authUser().invoke(new Auth(form.get().getUsername(), form.get().getPassword())).thenApply(user -> {
+                        ctx.session().put("user", user.getId().toString());
+                        return redirect(ProfileController.defaultProfilePage());
+                    });
+                })
+        );
+    }
+
+    public CompletionStage<Result> loginUserForm() {
+        Http.Context ctx = ctx();
+        return withUser(ctx, userId ->
+                loadNav(userId).thenCompose(nav -> {
+                    return CompletableFuture.completedFuture(ok(views.html.login.render(showInlineInstruction,  formFactory.form(LoginForm.class), nav)));
+                })
+        );
     }
 
 }

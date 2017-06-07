@@ -7,18 +7,25 @@ import akka.persistence.query.PersistenceQuery;
 import akka.persistence.query.javadsl.CurrentPersistenceIdsQuery;
 import akka.stream.Materializer;
 import akka.stream.javadsl.Sink;
+import com.example.auction.user.api.Auth;
 import com.example.auction.user.api.User;
 import com.example.auction.user.api.UserService;
 import com.lightbend.lagom.javadsl.api.ServiceCall;
 import com.lightbend.lagom.javadsl.api.transport.NotFound;
 import com.lightbend.lagom.javadsl.persistence.PersistentEntityRef;
 import com.lightbend.lagom.javadsl.persistence.PersistentEntityRegistry;
+
 import org.pcollections.PSequence;
 import org.pcollections.TreePVector;
 
+
 import javax.inject.Inject;
+
 import java.util.Optional;
 import java.util.UUID;
+
+import java.util.concurrent.CompletionStage;
+
 
 public class UserServiceImpl implements UserService {
 
@@ -40,7 +47,7 @@ public class UserServiceImpl implements UserService {
     public ServiceCall<User, User> createUser() {
         return user -> {
             UUID uuid = UUID.randomUUID();
-            return entityRef(uuid).ask(new UserCommand.CreateUser(user.getName()));
+            return entityRef(uuid).ask(new UserCommand.CreateUser( user.getUsername(),user.getEmail(), user.getPassword()));
         };
     }
 
@@ -66,6 +73,27 @@ public class UserServiceImpl implements UserService {
                 .map(Optional::get)
                 .runWith(Sink.seq(), mat)
                 .thenApply(TreePVector::from);
+    }
+
+    @Override
+    public ServiceCall<Auth, User> authUser() {
+        return req -> {
+
+            CompletionStage<PSequence<User>> sequence = getUsers().invoke();
+
+            return sequence.thenApply(users -> {
+                Optional<User> validUser = users.stream().filter(user ->
+                        user.getUsername().equals(req.getUsername()) && user.getPassword().equals(req.getPassword())
+                ).findFirst();
+
+                if(validUser.isPresent()) {
+                    return validUser.get();
+                } else {
+                    throw new NotFound("User not found");
+                }
+
+            });
+        };
     }
 
     private PersistentEntityRef<UserCommand> entityRef(UUID id) {
