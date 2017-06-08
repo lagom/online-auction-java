@@ -1,7 +1,9 @@
 package com.example.auction.transaction.impl;
 
 import akka.Done;
+import akka.NotUsed;
 import akka.stream.javadsl.Flow;
+import com.example.auction.transaction.api.TransactionInfo;
 import com.example.auction.transaction.impl.TransactionCommand.*;
 import com.example.auction.item.api.Item;
 import com.example.auction.item.api.ItemEvent;
@@ -30,14 +32,17 @@ public class TransactionServiceImpl implements TransactionService {
         itemService.itemEvents().subscribe().atLeastOnce(Flow.<ItemEvent>create().mapAsync(1, itemEvent -> {
             if (itemEvent instanceof ItemEvent.AuctionFinished) {
                 ItemEvent.AuctionFinished auctionFinished = (ItemEvent.AuctionFinished) itemEvent;
-                Item item = auctionFinished.getItem();
-                Transaction transaction = new Transaction(item.getId(), item.getCreator(),
-                        item.getAuctionWinner().get(), item.getPrice());
-
-                return entityRef(auctionFinished.getItemId()).ask(new StartTransaction(transaction));
-            } else {
+                // If an auction doesn't have a winner, then we can't start a transaction
+                if(auctionFinished.getItem().getAuctionWinner().isPresent()) {
+                    Item item = auctionFinished.getItem();
+                    Transaction transaction = new Transaction(item.getId(), item.getCreator(),
+                            item.getAuctionWinner().get(), item.getItemData(), item.getPrice());
+                    return entityRef(auctionFinished.getItemId()).ask(new StartTransaction(transaction));
+                }
+                else
+                    return CompletableFuture.completedFuture(Done.getInstance());
+            } else
                 return CompletableFuture.completedFuture(Done.getInstance());
-            }
         }));
     }
 
@@ -52,6 +57,15 @@ public class TransactionServiceImpl implements TransactionService {
             SubmitDeliveryDetails submit = new SubmitDeliveryDetails(userId, TransactionMappers.fromApi(deliveryInfo));
             return entityRef(itemId).ask(submit);
         });
+    }
+
+    @Override
+    public ServiceCall<NotUsed, TransactionInfo> getTransaction(UUID itemId) {
+        return authenticated(userId -> request -> {
+            GetTransaction get = new GetTransaction(userId);
+            return entityRef(itemId).ask(get).thenApply(transaction -> TransactionMappers.toApi(transaction));
+        });
+
     }
 
     private PersistentEntityRef<TransactionCommand> entityRef(UUID itemId) {

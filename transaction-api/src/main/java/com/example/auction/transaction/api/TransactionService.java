@@ -4,6 +4,7 @@ import static com.lightbend.lagom.javadsl.api.Service.named;
 import static com.lightbend.lagom.javadsl.api.Service.pathCall;
 
 import akka.Done;
+import akka.NotUsed;
 import com.example.auction.security.SecurityHeaderFilter;
 import com.lightbend.lagom.javadsl.api.Descriptor;
 import com.lightbend.lagom.javadsl.api.Service;
@@ -38,6 +39,8 @@ public interface TransactionService extends Service {
 
     //ServiceCall<NotUsed, Done> initiateRefund(UUID itemId);
 
+    ServiceCall<NotUsed, TransactionInfo> getTransaction(UUID itemId);
+
     /**
      * The transaction events topic.
      */
@@ -46,7 +49,8 @@ public interface TransactionService extends Service {
     @Override
     default Descriptor descriptor() {
         return named("transaction").withCalls(
-                pathCall("/api/transaction/:id", this::submitDeliveryDetails)
+                pathCall("/api/transaction/:id", this::submitDeliveryDetails),
+                pathCall("/api/transaction/:id", this::getTransaction)
         ).withPathParamSerializer(UUID.class, PathParamSerializers.required("UUID", UUID::fromString, UUID::toString))
                 .withHeaderFilter(SecurityHeaderFilter.INSTANCE);
 

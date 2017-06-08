@@ -43,6 +43,8 @@ public class TransactionEntity extends PersistentEntity<TransactionCommand, Tran
                 negotiatingDelivery(TransactionState.start(event.getTransaction()))
         );
 
+        addGetTransactionHandler(builder);
+
         return builder.build();
     }
 
@@ -67,13 +69,28 @@ public class TransactionEntity extends PersistentEntity<TransactionCommand, Tran
                 state().updateDeliveryData(evt.getDeliveryData())
         );
 
+        addGetTransactionHandler(builder);
+
         return builder.build();
     }
 
     private Behavior paymentSubmitted(TransactionState state) {
         BehaviorBuilder builder = newBehaviorBuilder(state);
         // WIP ...
+
+        addGetTransactionHandler(builder);
+
         return builder.build();
+    }
+
+    private void addGetTransactionHandler(BehaviorBuilder builder) {
+        builder.setReadOnlyCommandHandler(GetTransaction.class, (cmd, ctx) -> {
+            if(cmd.getUserId().equals(state().getTransaction().get().getCreator()) ||
+                    cmd.getUserId().equals(state().getTransaction().get().getWinner()))
+                    ctx.reply(state());
+            else
+                throw new Forbidden("Only the item owner and the auction winner can see transaction details");
+        });
     }
 
     private UUID entityUUID() {

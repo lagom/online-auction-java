@@ -2,13 +2,16 @@ package com.example.auction.transaction.impl;
 
 import akka.actor.ActorSystem;
 import akka.testkit.JavaTestKit;
+import com.example.auction.item.api.ItemData;
 import com.lightbend.lagom.javadsl.api.transport.Forbidden;
 import com.lightbend.lagom.javadsl.testkit.PersistentEntityTestDriver;
+import com.lightbend.lagom.javadsl.testkit.PersistentEntityTestDriver.Outcome;
 import org.junit.*;
 
 import com.example.auction.transaction.impl.TransactionCommand.*;
 import com.example.auction.transaction.impl.TransactionEvent.*;
 
+import java.time.Duration;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -35,12 +38,14 @@ public class TransactionEntityTest {
     private final UUID itemId = UUID.randomUUID();
     private final UUID creator = UUID.randomUUID();
     private final UUID winner = UUID.randomUUID();
+    private final ItemData itemData = new ItemData("title", "desc", "EUR", 1, 10, Duration.ofMinutes(10), Optional.empty());
     private final DeliveryData deliveryData = new DeliveryData("Addr1", "Addr2", "City", "State", 27, "Country");
 
-    private final Transaction transaction  = new Transaction(itemId, creator, winner, 2000);
+    private final Transaction transaction  = new Transaction(itemId, creator, winner, itemData, 2000);
 
     private final StartTransaction startTransaction = new StartTransaction(transaction);
     private final SubmitDeliveryDetails submitDeliveryDetails = new SubmitDeliveryDetails(winner, deliveryData);
+    private final GetTransaction getTransaction = new GetTransaction(creator);
 
     @Before
     public void createTestDriver() {
@@ -57,7 +62,7 @@ public class TransactionEntityTest {
 
     @Test
     public void shouldEmitEvenWhenCreatingTransaction() {
-        PersistentEntityTestDriver.Outcome<TransactionEvent, TransactionState> outcome = driver.run(startTransaction);
+        Outcome<TransactionEvent, TransactionState> outcome = driver.run(startTransaction);
 
         assertThat(outcome.state().getStatus(), equalTo(TransactionStatus.NEGOTIATING_DELIVERY));
         assertThat(outcome.state().getTransaction(), equalTo(Optional.of(transaction)));
@@ -67,7 +72,7 @@ public class TransactionEntityTest {
     @Test
     public void shouldEmitEventWhenSubmittingDeliveryDetails(){
         driver.run(startTransaction);
-        PersistentEntityTestDriver.Outcome<TransactionEvent, TransactionState> outcome = driver.run(submitDeliveryDetails);
+        Outcome<TransactionEvent, TransactionState> outcome = driver.run(submitDeliveryDetails);
         assertThat(outcome.state().getStatus(), equalTo(TransactionStatus.NEGOTIATING_DELIVERY));
         assertThat(outcome.events(), hasItem(new DeliveryDetailsSubmitted(itemId, deliveryData)));
     }
@@ -77,6 +82,21 @@ public class TransactionEntityTest {
         driver.run(startTransaction);
         UUID hacker = UUID.randomUUID();
         SubmitDeliveryDetails invalid = new SubmitDeliveryDetails(hacker, deliveryData);
+        driver.run(invalid);
+    }
+
+    @Test
+    public void shouldAllowSeeTransactionByItemCreator() {
+        driver.run(startTransaction);
+        Outcome<TransactionEvent, TransactionState> outcome = driver.run(getTransaction);
+        assertThat(outcome.getReplies(), hasItem(outcome.state()));
+    }
+
+    @Test(expected = Forbidden.class)
+    public void shouldForbidSeeTransactionByNonWinnerNonCreator() {
+        driver.run(startTransaction);
+        UUID hacker = UUID.randomUUID();
+        GetTransaction invalid = new GetTransaction(hacker);
         driver.run(invalid);
     }
 }

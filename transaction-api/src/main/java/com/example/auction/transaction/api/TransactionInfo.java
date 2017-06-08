@@ -1,23 +1,35 @@
 package com.example.auction.transaction.api;
 
-//import com.example.auction.item.api.Item;
-import org.pcollections.PSequence;
+import com.example.auction.item.api.ItemData;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import lombok.Value;
 
+import java.util.Optional;
+import java.util.UUID;
+
+@Value
 public final class TransactionInfo {
 
-    //private final Item item;
-    private final PSequence<TransactionMessage> messages;
-    private final TransactionStatus status;
-    private final DeliveryInfo deliveryInfo;
+    //private final PSequence<TransactionMessage> messages;
+    private final UUID itemId;
+    private final UUID creator;
+    private final UUID winner;
+    private final ItemData itemData;
+    private final int itemPrice;
     private final int deliveryPrice;
-    private final PaymentInfo paymentInfo;
+    private final Optional<DeliveryInfo> deliveryInfo;
+    private final TransactionInfoStatus status;
+    //private final PaymentInfo paymentInfo;
 
-    public TransactionInfo(/*Item item, */PSequence<TransactionMessage> messages, TransactionStatus status, DeliveryInfo deliveryInfo, int deliveryPrice, PaymentInfo paymentInfo) {
-        // this.item = item;
-        this.messages = messages;
-        this.status = status;
-        this.deliveryInfo = deliveryInfo;
+    @JsonCreator
+    public TransactionInfo(UUID itemId, UUID creator, UUID winner, ItemData itemData, int itemPrice, int deliveryPrice, Optional<DeliveryInfo> deliveryInfo, TransactionInfoStatus status) {
+        this.itemId = itemId;
+        this.creator = creator;
+        this.winner = winner;
+        this.itemData = itemData;
+        this.itemPrice = itemPrice;
         this.deliveryPrice = deliveryPrice;
-        this.paymentInfo = paymentInfo;
+        this.deliveryInfo = deliveryInfo;
+        this.status = status;
     }
 }
