@@ -2,7 +2,8 @@
 @import java.util.Optional
 @import java.util.UUID
 
-@(showInlineInstruction: Boolean, itemId: UUID, deliveryForm: Form[DeliveryDetailsForm], errorMessage: Optional[String])(implicit nav: Nav)
+@import com.example.auction.transaction.api.TransactionInfoStatus
+@(showInlineInstruction: Boolean, itemId: UUID, deliveryForm: Form[DeliveryDetailsForm], transactionStatus: TransactionInfoStatus, errorMessage: Optional[String])(implicit nav: Nav)
 
 @* TODO: Get transaction status to show or not read-only inputs *@
 @main(message("deliveryDetails")) {
@@ -21,29 +22,55 @@
         }
 
         <div class="column row">
-            @inputText(deliveryForm("addressLine1"))
+            @if(transactionStatus.equals(TransactionInfoStatus.NEGOTIATING_DELIVERY)) {
+                @inputText(deliveryForm("addressLine1"))
+            } else {
+                @inputText(deliveryForm("addressLine1"),'readonly->'readonly)
+            }
         </div>
         <div class="column row">
-            @inputText(deliveryForm("addressLine2"))
+            @if(transactionStatus.equals(TransactionInfoStatus.NEGOTIATING_DELIVERY)) {
+                @inputText(deliveryForm("addressLine2"))
+            } else {
+                @inputText(deliveryForm("addressLine2"),'readonly -> 'readonly)
+            }
         </div>
         <div class="row">
             <div class="medium-6 columns">
-                @inputText(deliveryForm("city"))
+                @if(transactionStatus.equals(TransactionInfoStatus.NEGOTIATING_DELIVERY)) {
+                    @inputText(deliveryForm("city"))
+                } else {
+                    @inputText(deliveryForm("city"),'readonly -> 'readonly)
+                }
+
             </div>
             <div class="medium-6 columns">
-                @inputText(deliveryForm("state"))
+                @if(transactionStatus.equals(TransactionInfoStatus.NEGOTIATING_DELIVERY)) {
+                    @inputText(deliveryForm("state"))
+                } else {
+                    @inputText(deliveryForm("state"),'readonly -> 'readonly)
+                }
             </div>
         </div>
 
         <div class="row">
             <div class="medium-6 columns">
-                @inputText(deliveryForm("postalCode"), 'type -> "number")
+                @if(transactionStatus.equals(TransactionInfoStatus.NEGOTIATING_DELIVERY)) {
+                    @inputText(deliveryForm("postalCode"), 'type -> "number")
+                } else {
+                    @inputText(deliveryForm("postalCode"), 'type -> "number",'readonly -> 'readonly)
+                }
             </div>
             <div class="medium-6 columns">
-                @inputText(deliveryForm("country"))
+                @if(transactionStatus.equals(TransactionInfoStatus.NEGOTIATING_DELIVERY)) {
+                    @inputText(deliveryForm("country"))
+                } else {
+                    @inputText(deliveryForm("country"),'readonly -> 'readonly)
+                }
             </div>
         </div>
-
-        <input type="submit" class="button" value="@message("submitDeliveryDetails")"/>
+        @if(transactionStatus.equals(TransactionInfoStatus.NEGOTIATING_DELIVERY)) {
+            <input type="submit" class="button" value="@message("submitDeliveryDetails")"/>
+        }
     }
 }
