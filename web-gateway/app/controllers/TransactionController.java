@@ -1,6 +1,8 @@
 package controllers;
 
 import com.example.auction.transaction.api.DeliveryInfo;
+import com.example.auction.transaction.api.TransactionInfo;
+import com.example.auction.transaction.api.TransactionInfoStatus;
 import com.example.auction.transaction.api.TransactionService;
 import com.example.auction.user.api.UserService;
 import com.lightbend.lagom.javadsl.api.transport.TransportException;
@@ -37,33 +39,47 @@ public class TransactionController extends AbstractController {
 
     public CompletionStage<Result> submitDeliveryDetailsForm(String id) {
         return requireUser(ctx(), user ->
-                loadNav(user).thenApply(nav -> {
-                            UUID itemId = UUID.fromString(id);
-                            // TODO: Fill with deliveryForm with data
-                            return ok(
-                                    views.html.deliveryDetails.render(
-                                            showInlineInstruction,
-                                            itemId,
-                                            formFactory.form(DeliveryDetailsForm.class).fill(new DeliveryDetailsForm()),
-                                            Optional.empty(),
-                                            nav)
-                            );
+            loadNav(user).thenCompose(nav -> {
+                UUID itemId = UUID.fromString(id);
+                CompletionStage<TransactionInfo> transactionFuture = transactionService.getTransaction(itemId).handleRequestHeader(authenticate(user)).invoke();
+                return transactionFuture.thenApply(transaction -> {
+                    DeliveryDetailsForm form = new DeliveryDetailsForm();
+                    Optional<DeliveryInfo> maybeDeliveryInfo = transaction.getDeliveryInfo();
+                    if(maybeDeliveryInfo.isPresent()) {
+                        form.setAddressLine1(maybeDeliveryInfo.get().getAddressLine1());
+                        form.setAddressLine2(maybeDeliveryInfo.get().getAddressLine2());
+                        form.setCity(maybeDeliveryInfo.get().getCity());
+                        form.setState(maybeDeliveryInfo.get().getState());
+                        form.setPostalCode(maybeDeliveryInfo.get().getPostalCode());
+                        form.setCountry(maybeDeliveryInfo.get().getCountry());
+                    }
 
-                        }
-                )
+                    return ok(
+                            views.html.deliveryDetails.render(
+                                    showInlineInstruction,
+                                    itemId,
+                                    formFactory.form(DeliveryDetailsForm.class).fill(form),
+                                    transaction.getStatus(),
+                                    Optional.empty(),
+                                    nav)
+                    );
+                });
+
+            })
         );
     }
 
-    public CompletionStage<Result> submitDeliveryDetails(String id) {
+    public CompletionStage<Result> submitDeliveryDetails(String id, String transactionStatus) {
         Http.Context ctx = ctx();
         return requireUser(ctx(), user -> {
 
             Form<DeliveryDetailsForm> form = formFactory.form(DeliveryDetailsForm.class).bindFromRequest(ctx.request());
             UUID itemId = UUID.fromString(id);
+            TransactionInfoStatus status = TransactionInfoStatus.valueOf(transactionStatus);
 
             if (form.hasErrors()) {
                 return loadNav(user).thenApply(nav ->
-                        ok(views.html.deliveryDetails.render(showInlineInstruction, itemId, form, Optional.empty(), nav))
+                        ok(views.html.deliveryDetails.render(showInlineInstruction, itemId, form, status, Optional.empty(), nav))
                 );
             } else {
                 return transactionService.submitDeliveryDetails(itemId)
@@ -74,8 +90,9 @@ public class TransactionController extends AbstractController {
                                 return CompletableFuture.completedFuture(redirect(controllers.routes.TransactionController.submitDeliveryDetailsForm(id)));
                             } else {
                                 String msg = ((TransportException) exception.getCause()).exceptionMessage().detail();
+                                // TODO: Redirect to show all TransactionData
                                 return loadNav(user).thenApply(nav -> ok(
-                                        views.html.deliveryDetails.render(showInlineInstruction, itemId, form, Optional.of(msg), nav)));
+                                        views.html.deliveryDetails.render(showInlineInstruction, itemId, form, status, Optional.of(msg), nav)));
                             }
                         }).thenCompose((x) -> x);
             }
