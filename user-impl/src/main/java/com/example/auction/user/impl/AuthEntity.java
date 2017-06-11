@@ -12,20 +12,35 @@ public class AuthEntity extends PersistentEntity<AuthCommand, AuthEvent, Optiona
     public Behavior initialBehavior(Optional<Optional<Auth>> snapshotState) {
         Optional<Auth> auth = snapshotState.flatMap(Function.identity());
 
+        if (auth.isPresent()) {
+            return created(auth.get());
+        } else {
+            return notCreated();
+        }
+    }
+
+    private Behavior created(Auth auth) {
+        BehaviorBuilder b = newBehaviorBuilder(Optional.of(auth));
+
+        b.setReadOnlyCommandHandler(AuthCommand.GetAuth.class, (get, ctx) ->
+                ctx.reply(state())
+        );
+        b.setCommandHandler(AuthCommand.UpdateAuth.class, (update, ctx) -> {
+            Auth a = new Auth(update.getId(), update.getUsername(), update.getPassword());
+            return ctx.thenPersist(new AuthEvent.AuthUpdated(a), (e) -> ctx.reply(a));
+        });
+        return b.build();
+    }
+
+    private Behavior notCreated() {
         BehaviorBuilder b = newBehaviorBuilder(Optional.empty());
+
 
         b.setReadOnlyCommandHandler(AuthCommand.GetAuth.class, (get, ctx) ->
                 ctx.reply(state())
         );
 
-        b.setCommandHandler(AuthCommand.UpdateAuth.class, (update, ctx) -> {
-            Auth a = new Auth(update.getId(), update.getUsername(), update.getPassword());
-            return ctx.thenPersist(new AuthEvent.AuthUpdated(a), (e) -> ctx.reply(a));
-        });
-
-        b.setEventHandlerChangingBehavior(AuthEvent.AuthUpdated.class, authUser -> b.build());
-
+        b.setEventHandlerChangingBehavior(AuthEvent.AuthUpdated.class, authUser -> created(authUser.getAuth()));
         return b.build();
     }
-
 }

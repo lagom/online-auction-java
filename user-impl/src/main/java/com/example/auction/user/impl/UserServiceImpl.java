@@ -34,6 +34,8 @@ public class UserServiceImpl implements UserService {
         this.mat = mat;
         this.currentIdsQuery =
                 PersistenceQuery.get(system).getReadJournalFor(CassandraReadJournal.class, CassandraReadJournal.Identifier());
+        registry.register(UserEntity.class);
+        registry.register(AuthEntity.class);
     }
 
     @Override
@@ -94,12 +96,10 @@ public class UserServiceImpl implements UserService {
     }
 
     private PersistentEntityRef<UserCommand> entityRef(String id) {
-        registry.register(UserEntity.class);
-        return registry.refFor(UserEntity.class, id);
+            return registry.refFor(UserEntity.class, id);
     }
 
     private PersistentEntityRef<AuthCommand> authRef(String username) {
-        registry.register(AuthEntity.class);
-        return registry.refFor(AuthEntity.class, username);
+               return registry.refFor(AuthEntity.class, username);
     }
 }
