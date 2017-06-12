@@ -37,7 +37,7 @@ public class AuthEntity extends PersistentEntity<AuthCommand, AuthEvent, Optiona
 
 
         b.setReadOnlyCommandHandler(AuthCommand.GetAuth.class, (get, ctx) ->
-                ctx.reply(state())
+                ctx.invalidCommand("User does not exists.")
         );
 
         b.setEventHandlerChangingBehavior(AuthEvent.AuthUpdated.class, authUser -> created(authUser.getAuth()));

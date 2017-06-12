@@ -1,5 +1,6 @@
 package controllers;
 
+import akka.Done;
 import com.example.auction.user.api.Auth;
 import com.example.auction.user.api.User;
 import com.example.auction.user.api.UserService;
@@ -79,8 +80,8 @@ public class Main extends AbstractController {
                         return CompletableFuture.completedFuture(ok(views.html.login.render(showInlineInstruction, form, nav)));
                     }
 
-                    return userService.login().invoke(new Auth(UUID.randomUUID(), form.get().getUsername(), form.get().getPassword())).thenApply(auth -> {
-                        ctx.session().put("user", auth.getId().toString());
+                    return userService.login().invoke(new Auth(UUID.randomUUID(), form.get().getUsername(), form.get().getPassword())).thenApply(id -> {
+                        ctx.session().put("user", id);
                         return redirect(ProfileController.defaultProfilePage());
                     });
                 })

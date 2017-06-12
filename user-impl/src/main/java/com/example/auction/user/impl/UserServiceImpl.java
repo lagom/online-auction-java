@@ -1,5 +1,6 @@
 package com.example.auction.user.impl;
 
+import akka.Done;
 import akka.NotUsed;
 import akka.actor.ActorSystem;
 import akka.persistence.cassandra.query.javadsl.CassandraReadJournal;
@@ -47,9 +48,10 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public ServiceCall<Auth, Auth> updateAuth() {
+    public ServiceCall<Auth, Done> updateAuth() {
         return auth -> {
-            return authRef(auth.getUsername()).ask(new AuthCommand.UpdateAuth(auth.getId(), auth.getUsername(), auth.getPassword()));
+            return authRef(auth.getUsername()).ask(new AuthCommand.UpdateAuth(auth.getId(), auth.getUsername(), auth.getPassword()))
+               .thenApply(maybeAuth ->Done.getInstance());
         };
     }
 
@@ -66,14 +68,16 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public ServiceCall<Auth, Auth> login() {
-        return req -> {
+    public ServiceCall<Auth, String> login() {
+        return (Auth req) -> {
             return authRef(req.getUsername()).ask(AuthCommand.GetAuth.INSTANCE)
-                    .thenApply(maybeAuth ->
-
-                            maybeAuth.orElseGet(() -> {
-                                throw new NotFound("User not found");
-                            })
+                    .thenApply(maybeAuth -> {
+                                 if(maybeAuth.isPresent()) {
+                                     return maybeAuth.get().getId().toString();
+                                 } else {
+                                     throw new NotFound("User not found");
+                                 }
+                            }
                     );
         };
     }
