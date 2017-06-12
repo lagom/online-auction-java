@@ -1,0 +1,47 @@
+@import com.example.auction.transaction.api.TransactionInfo
+@import com.example.auction.user.api.User
+@import java.util.Optional
+@import controllers.{Currency => Currencies}
+
+@(showInlineInstruction: Boolean, transaction: Optional[TransactionInfo], seller: Optional[User], winner: Optional[User], currency: Optional[Currencies], errorMessage: Optional[String])(implicit nav: Nav)
+@main(message("transactionInfo")) {
+    <h2>@message("transactionInfo")</h2>
+
+    @if(showInlineInstruction == true) {
+        <p>@message("instruction.transactionInfo")</p>
+    }
+
+    @if(errorMessage.isPresent) {
+        <div class="alert callout">
+            <i class="fi-alert"></i> @errorMessage.get()
+        </div>
+    }
+
+    @if(transaction.isPresent) {
+        <dl>
+            <h3>@message("aboutGeneral")</h3>
+
+            <dt>@message("seller")</dt>
+            <dd>@seller.get().getName</dd>
+
+            <dt>@message("auctionWinner")</dt>
+            <dd>@winner.get().getName</dd>
+
+            <h3>@message("aboutItem")</h3>
+
+            <dt>@message("title")</dt>
+            <dd>@transaction.get().getItemData.getTitle</dd>
+
+            <dt>@message("description")</dt>
+            <dd>@transaction.get().getItemData.getDescription</dd>
+
+            <dt>@message("finalPrice")</dt>
+            <dd>@currency.get().format(transaction.get().getItemPrice)</dd>
+
+            <dt>@message("currency")</dt>
+            <dd>@currency.get().getDisplayName</dd>
+        </dl>
+
+        <a href="@routes.TransactionController.submitDeliveryDetailsForm(transaction.get().getItemId.toString)" class="edit" >@message("viewDeliveryDetails")</a>
+    }
+}

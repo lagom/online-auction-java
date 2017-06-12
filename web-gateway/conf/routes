@@ -24,5 +24,6 @@ POST        /search                     controllers.SearchController.search()
 GET         /assets/*file               controllers.Assets.at(path = "/public", file)
 
 # Transaction
+GET         /transaction/:id            controllers.TransactionController.getTransaction(id)
 GET         /transaction/:id/delivery   controllers.TransactionController.submitDeliveryDetailsForm(id)
-POST        /transaction/:id/delivery   controllers.TransactionController.submitDeliveryDetails(id, transactionStatus)
+POST        /transaction/:id/delivery   controllers.TransactionController.submitDeliveryDetails(id, transactionStatus, isBuyer: Boolean)
