@@ -8,13 +8,14 @@ import akka.persistence.query.PersistenceQuery;
 import akka.persistence.query.javadsl.CurrentPersistenceIdsQuery;
 import akka.stream.Materializer;
 import akka.stream.javadsl.Sink;
-import com.example.auction.user.api.Auth;
+import com.example.auction.user.api.Credential;
 import com.example.auction.user.api.User;
 import com.example.auction.user.api.UserService;
 import com.lightbend.lagom.javadsl.api.ServiceCall;
 import com.lightbend.lagom.javadsl.api.transport.NotFound;
 import com.lightbend.lagom.javadsl.persistence.PersistentEntityRef;
 import com.lightbend.lagom.javadsl.persistence.PersistentEntityRegistry;
+import org.mindrot.jbcrypt.BCrypt;
 import org.pcollections.PSequence;
 import org.pcollections.TreePVector;
 
@@ -36,7 +37,7 @@ public class UserServiceImpl implements UserService {
         this.currentIdsQuery =
                 PersistenceQuery.get(system).getReadJournalFor(CassandraReadJournal.class, CassandraReadJournal.Identifier());
         registry.register(UserEntity.class);
-        registry.register(AuthEntity.class);
+        registry.register(CredentialEntity.class);
     }
 
     @Override
@@ -48,10 +49,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public ServiceCall<Auth, Done> updateAuth() {
-        return auth -> {
-            return authRef(auth.getUsername()).ask(new AuthCommand.UpdateAuth(auth.getId(), auth.getUsername(), auth.getPassword()))
-               .thenApply(maybeAuth ->Done.getInstance());
+    public ServiceCall<Credential, Done> updateCredential() {
+        return credential -> {
+            String hashed = BCrypt.hashpw(credential.getPassword(), BCrypt.gensalt());
+            return credRef(credential.getUsername()).ask(new CredentialCommand.UpdateCredential(credential.getId(), credential.getUsername(), hashed))
+               .thenApply(maybeCredential -> Done.getInstance());
         };
     }
 
@@ -68,12 +70,16 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public ServiceCall<Auth, String> login() {
-        return (Auth req) -> {
-            return authRef(req.getUsername()).ask(AuthCommand.GetAuth.INSTANCE)
-                    .thenApply(maybeAuth -> {
-                                 if(maybeAuth.isPresent()) {
-                                     return maybeAuth.get().getId().toString();
+    public ServiceCall<Credential, String> login() {
+        return (Credential req) -> {
+            return credRef(req.getUsername()).ask(CredentialCommand.GetCredential.INSTANCE)
+                    .thenApply(maybeCredential-> {
+                                 if(maybeCredential.isPresent()) {
+                                     if (BCrypt.checkpw(req.getPassword(), maybeCredential.get().getPassword())){
+                                         return maybeCredential.get().getId().toString();
+                                     } else {
+                                         throw new NotFound("Username or password does not match ");
+                                     }
                                  } else {
                                      throw new NotFound("User not found");
                                  }
@@ -103,7 +109,7 @@ public class UserServiceImpl implements UserService {
             return registry.refFor(UserEntity.class, id);
     }
 
-    private PersistentEntityRef<AuthCommand> authRef(String username) {
-               return registry.refFor(AuthEntity.class, username);
+    private PersistentEntityRef<CredentialCommand> credRef(String username) {
+               return registry.refFor(CredentialEntity.class, username);
     }
 }

@@ -23,8 +23,8 @@ public interface UserService extends Service {
     ServiceCall<NotUsed, PSequence<User>> getUsers();
 
     // Remove once we have a proper user service
-    ServiceCall<Auth, String> login();
-    ServiceCall<Auth, Done> updateAuth();
+    ServiceCall<Credential, String> login();
+    ServiceCall<Credential, Done> updateCredential();
 
     @Override
     default Descriptor descriptor() {
@@ -33,7 +33,7 @@ public interface UserService extends Service {
                 pathCall("/api/user/:id", this::getUser),
                 pathCall("/api/user", this::getUsers),
                 pathCall("/api/user/login", this::login),
-                pathCall("/api/user/update-auth", this::updateAuth)
+                pathCall("/api/user/update-auth", this::updateCredential)
         ).withPathParamSerializer(UUID.class, PathParamSerializers.required("UUID", UUID::fromString, UUID::toString));
     }
 }

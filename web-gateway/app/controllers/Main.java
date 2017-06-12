@@ -1,7 +1,6 @@
 package controllers;
 
-import akka.Done;
-import com.example.auction.user.api.Auth;
+import com.example.auction.user.api.Credential;
 import com.example.auction.user.api.User;
 import com.example.auction.user.api.UserService;
 import play.data.FormFactory;
@@ -58,7 +57,7 @@ public class Main extends AbstractController {
                     }
 
                     return userService.createUser().invoke(new User(form.get().getName())).thenApply(user -> {
-                        userService.updateAuth().invoke(new Auth(user.getId(), form.get().getUsername(), form.get().getPassword()));
+                        userService.updateCredential().invoke(new Credential(user.getId(), form.get().getUsername(), form.get().getPassword()));
                         ctx.session().put("user", user.getId().toString());
                         return redirect(ProfileController.defaultProfilePage());
                     });
@@ -80,7 +79,7 @@ public class Main extends AbstractController {
                         return CompletableFuture.completedFuture(ok(views.html.login.render(showInlineInstruction, form, nav)));
                     }
 
-                    return userService.login().invoke(new Auth(UUID.randomUUID(), form.get().getUsername(), form.get().getPassword())).thenApply(id -> {
+                    return userService.login().invoke(new Credential(UUID.randomUUID(), form.get().getUsername(), form.get().getPassword())).thenApply(id -> {
                         ctx.session().put("user", id);
                         return redirect(ProfileController.defaultProfilePage());
                     });
