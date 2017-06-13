@@ -8,18 +8,14 @@ import java.util.Optional;
 public class TransactionMappers {
 
     public static Optional<DeliveryInfo> toApi(Optional<DeliveryData> data) {
-        if(data.isPresent()) {
-            return Optional.of(new DeliveryInfo(
-                    data.get().getAddressLine1(),
-                    data.get().getAddressLine2(),
-                    data.get().getCity(),
-                    data.get().getState(),
-                    data.get().getPostalCode(),
-                    data.get().getCountry()
-            ));
-        }
-        else
-            return Optional.empty();
+        return data.map(deliveryData -> new DeliveryInfo(
+                data.get().getAddressLine1(),
+                data.get().getAddressLine2(),
+                data.get().getCity(),
+                data.get().getState(),
+                data.get().getPostalCode(),
+                data.get().getCountry())
+        );
     }
 
     public static DeliveryData fromApi(DeliveryInfo data) {
@@ -33,17 +29,18 @@ public class TransactionMappers {
         );
     }
 
-    public static TransactionInfo toApi(TransactionState data) {
-        Transaction transaction = data.getTransaction().get();
-        return new TransactionInfo(
-                transaction.getItemId(),
-                transaction.getCreator(),
-                transaction.getWinner(),
-                transaction.getItemData(),
-                transaction.getItemPrice(),
-                transaction.getDeliveryPrice(),
-                toApi(transaction.getDeliveryData()),
-                data.getStatus().transactionStatus
+    public static Optional<TransactionInfo> toApi(TransactionState data) {
+        return data.getTransaction().map(transaction ->
+            new TransactionInfo(
+                    transaction.getItemId(),
+                    transaction.getCreator(),
+                    transaction.getWinner(),
+                    transaction.getItemData(),
+                    transaction.getItemPrice(),
+                    transaction.getDeliveryPrice(),
+                    toApi(transaction.getDeliveryData()),
+                    data.getStatus().transactionStatus
+            )
         );
     }
 }

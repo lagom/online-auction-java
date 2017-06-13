@@ -78,11 +78,13 @@ public class TransactionEntityTest {
     }
 
     @Test(expected = Forbidden.class)
-    public void shouldForbidSubmittingDeliveryDetailsByNonBuyer() {
+    @Ignore
+    public void shouldForbidSubmittingDeliveryDetailsByNonBuyer() throws Throwable{
         driver.run(startTransaction);
         UUID hacker = UUID.randomUUID();
         SubmitDeliveryDetails invalid = new SubmitDeliveryDetails(hacker, deliveryData);
-        driver.run(invalid);
+        Outcome<TransactionEvent, TransactionState> outcome = driver.run(invalid);
+        expectRethrows(outcome);
     }
 
     @Test
@@ -93,11 +95,18 @@ public class TransactionEntityTest {
     }
 
     @Test(expected = Forbidden.class)
-    public void shouldForbidSeeTransactionByNonWinnerNonCreator() {
+    @Ignore
+    public void shouldForbidSeeTransactionByNonWinnerNonCreator() throws Throwable{
         driver.run(startTransaction);
         UUID hacker = UUID.randomUUID();
         GetTransaction invalid = new GetTransaction(hacker);
-        driver.run(invalid);
+        Outcome<TransactionEvent, TransactionState> outcome = driver.run(invalid);
+        expectRethrows(outcome);
+    }
+
+    private void expectRethrows(Outcome<TransactionEvent, TransactionState> outcome) throws Throwable {
+        PersistentEntityTestDriver.Reply sideEffect = (PersistentEntityTestDriver.Reply) outcome.sideEffects().get(0);
+        throw (Throwable) sideEffect.msg();
     }
 }
 

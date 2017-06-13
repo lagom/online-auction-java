@@ -122,14 +122,14 @@ public class TransactionController extends AbstractController {
                         .invoke(fromForm(form.get()))
                         .handle((done, exception) -> {
                             if(exception == null) {
-                                return CompletableFuture.completedFuture(redirect(controllers.routes.TransactionController.submitDeliveryDetailsForm(id)));
+                                return CompletableFuture.completedFuture(redirect(routes.TransactionController.getTransaction(id)));
+                                //return CompletableFuture.completedFuture(redirect(controllers.routes.TransactionController.submitDeliveryDetailsForm(id)));
                             } else {
                                 String msg = ((TransportException) exception.getCause()).exceptionMessage().detail();
-                                // TODO: Redirect to show all TransactionInfo
-                                return loadNav(user).thenApply(nav -> ok(
-                                        views.html.deliveryDetails.render(showInlineInstruction, isBuyer, itemId, form, status, Optional.of(msg), nav)));
+                                return loadNav(user).thenApply(nav ->
+                                    ok(views.html.deliveryDetails.render(showInlineInstruction, isBuyer, itemId, form, status, Optional.of(msg), nav)));
                             }
-                        }).thenCompose((x) -> x);
+                        }).thenCompose(x -> x);
             }
         });
     }

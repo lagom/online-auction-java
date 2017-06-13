@@ -2,6 +2,7 @@ package com.example.auction.transaction.impl;
 
 import akka.Done;
 import com.lightbend.lagom.javadsl.api.transport.Forbidden;
+import com.lightbend.lagom.javadsl.api.transport.NotFound;
 import com.lightbend.lagom.javadsl.persistence.PersistentEntity;
 import com.example.auction.transaction.impl.TransactionCommand.*;
 import com.example.auction.transaction.impl.TransactionEvent.*;
@@ -44,7 +45,6 @@ public class TransactionEntity extends PersistentEntity<TransactionCommand, Tran
         );
 
         addGetTransactionHandler(builder);
-
         return builder.build();
     }
 
@@ -61,8 +61,10 @@ public class TransactionEntity extends PersistentEntity<TransactionCommand, Tran
                         ctx.reply(Done.getInstance())
                 );
             }
-            else
-                throw new Forbidden("Only the auction winner can submit delivery details");
+            else {
+                ctx.commandFailed(new Forbidden("Only the auction winner can submit delivery details"));
+                return ctx.done();
+            }
         });
 
         builder.setEventHandler(DeliveryDetailsSubmitted.class, evt ->
@@ -85,11 +87,15 @@ public class TransactionEntity extends PersistentEntity<TransactionCommand, Tran
 
     private void addGetTransactionHandler(BehaviorBuilder builder) {
         builder.setReadOnlyCommandHandler(GetTransaction.class, (cmd, ctx) -> {
-            if(cmd.getUserId().equals(state().getTransaction().get().getCreator()) ||
-                    cmd.getUserId().equals(state().getTransaction().get().getWinner()))
+            if(state().getTransaction().isPresent()) {
+                if (cmd.getUserId().equals(state().getTransaction().get().getCreator()) ||
+                        cmd.getUserId().equals(state().getTransaction().get().getWinner()))
                     ctx.reply(state());
+                else
+                    ctx.commandFailed(new Forbidden("Only the item owner and the auction winner can see transaction details"));
+            }
             else
-                throw new Forbidden("Only the item owner and the auction winner can see transaction details");
+                ctx.commandFailed(new NotFound("Transaction for item " + entityId() + " not found"));
         });
     }
 
