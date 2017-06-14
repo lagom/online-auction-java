@@ -15,7 +15,6 @@ import com.lightbend.lagom.javadsl.api.ServiceCall;
 import com.lightbend.lagom.javadsl.api.transport.NotFound;
 import com.lightbend.lagom.javadsl.persistence.PersistentEntityRef;
 import com.lightbend.lagom.javadsl.persistence.PersistentEntityRegistry;
-import org.mindrot.jbcrypt.BCrypt;
 import org.pcollections.PSequence;
 import org.pcollections.TreePVector;
 
@@ -50,12 +49,11 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public ServiceCall<Credential, Done> updateCredential() {
-        return credential -> {
-            String hashed = BCrypt.hashpw(credential.getPassword(), BCrypt.gensalt());
-            return credRef(credential.getUsername()).ask(new CredentialCommand.UpdateCredential(credential.getId(), credential.getUsername(), hashed))
-               .thenApply(maybeCredential -> Done.getInstance());
-        };
+        return (credential) -> {
+                        return credRef(credential.getUsername()).ask(new CredentialCommand.UpdateCredential(credential.getId(), credential.getUsername(), CredentialCommand.hashPassword(credential.getPassword())));
+                      };
     }
+
 
     @Override
     public ServiceCall<NotUsed, User> getUser(UUID userId) {
@@ -72,10 +70,10 @@ public class UserServiceImpl implements UserService {
     @Override
     public ServiceCall<Credential, String> login() {
         return (Credential req) -> {
-            return credRef(req.getUsername()).ask(CredentialCommand.GetCredential.INSTANCE)
+            return credRef(req.getUsername()).ask(CredentialCommand.Login.INSTANCE)
                     .thenApply(maybeCredential-> {
-                                 if(maybeCredential.isPresent()) {
-                                     if (BCrypt.checkpw(req.getPassword(), maybeCredential.get().getPassword())){
+                        if(maybeCredential.isPresent()) {
+                                     if (CredentialCommand.checkPassword(req.getPassword(),maybeCredential.get().getPassword())){
                                          return maybeCredential.get().getId().toString();
                                      } else {
                                          throw new NotFound("Username or password does not match ");
@@ -83,6 +81,7 @@ public class UserServiceImpl implements UserService {
                                  } else {
                                      throw new NotFound("User not found");
                                  }
+
                             }
                     );
         };

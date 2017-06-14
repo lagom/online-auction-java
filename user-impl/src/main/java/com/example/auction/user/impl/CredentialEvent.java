@@ -8,10 +8,10 @@ public interface CredentialEvent extends Jsonable, AggregateEvent<CredentialEven
 
     @Value
     final class CredentialUpdated implements CredentialEvent {
-        private final PCredential PCredential;
+        private final PCredential pCredential;
 
-        public CredentialUpdated(PCredential PCredential) {
-            this.PCredential = PCredential;
+        public CredentialUpdated(PCredential pCredential) {
+            this.pCredential = pCredential;
         }
     }
 

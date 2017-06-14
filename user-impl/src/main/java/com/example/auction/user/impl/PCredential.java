@@ -11,6 +11,7 @@ public final class PCredential {
     private final UUID id;
     private final String username;
     private final String password;
+
     @JsonCreator
     public PCredential(@JsonProperty("id") UUID id, @JsonProperty("username") String username, @JsonProperty("password") String password ) {
         this.username = username;

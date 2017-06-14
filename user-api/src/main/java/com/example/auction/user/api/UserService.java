@@ -22,7 +22,6 @@ public interface UserService extends Service {
     // Remove once we have a proper user service
     ServiceCall<NotUsed, PSequence<User>> getUsers();
 
-    // Remove once we have a proper user service
     ServiceCall<Credential, String> login();
     ServiceCall<Credential, Done> updateCredential();
 
