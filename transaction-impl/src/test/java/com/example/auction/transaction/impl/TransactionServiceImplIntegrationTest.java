@@ -108,16 +108,16 @@ public class TransactionServiceImplIntegrationTest {
     }
 
     @Test
-    public void shouldSubmitDeliveryDetails() {
+    public void shouldSubmitDeliveryDetails() throws Throwable {
         itemProducerStub.send(auctionFinished);
 
-        eventually(new FiniteDuration(15, SECONDS), () -> {
-            transactionService.submitDeliveryDetails(itemId)
-                    .handleRequestHeader(authenticate(winnerId))
-                    .invoke(deliveryInfo)
-                    .toCompletableFuture()
-                    .get(5, SECONDS);
+        transactionService.submitDeliveryDetails(itemId)
+                .handleRequestHeader(authenticate(winnerId))
+                .invoke(deliveryInfo)
+                .toCompletableFuture()
+                .get(5, SECONDS);
 
+        eventually(new FiniteDuration(15, SECONDS), () -> {
             TransactionInfo retrievedTransaction = transactionService.getTransaction(itemId)
                     .handleRequestHeader(authenticate(creatorId))
                     .invoke()
