@@ -1,5 +1,6 @@
 package controllers;
 
+import com.example.auction.user.api.Credential;
 import com.example.auction.user.api.User;
 import com.example.auction.user.api.UserService;
 import play.data.FormFactory;
@@ -10,6 +11,7 @@ import play.data.Form;
 import play.Configuration;
 
 import javax.inject.Inject;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
@@ -25,7 +27,6 @@ public class Main extends AbstractController {
         super(messagesApi, userService);
         this.userService = userService;
         this.formFactory = formFactory;
-
         showInlineInstruction = config.getBoolean("online-auction.instruction.show");
     }
 
@@ -55,6 +56,7 @@ public class Main extends AbstractController {
                     }
 
                     return userService.createUser().invoke(new User(form.get().getName())).thenApply(user -> {
+                        userService.updateCredential().invoke(new Credential(user.getId(), form.get().getUsername(), form.get().getPassword()));
                         ctx.session().put("user", user.getId().toString());
                         return redirect(ProfileController.defaultProfilePage());
                     });
@@ -65,6 +67,44 @@ public class Main extends AbstractController {
     public Result currentUser(String userId) {
         session("user", userId);
         return ok("User switched");
+    }
+
+    public CompletionStage<Result> loginUser() {
+        Http.Context ctx = ctx();
+        return withUser(ctx, userId ->
+                loadNav(userId).thenCompose(nav -> {
+                    Form<LoginForm> form = formFactory.form(LoginForm.class).bindFromRequest(ctx.request());
+                    if (form.hasErrors()) {
+                        return CompletableFuture.completedFuture(ok(views.html.login.render(showInlineInstruction, form, nav)));
+                    }
+
+                    return userService.login().invoke(new Credential(UUID.randomUUID(), form.get().getUsername(), form.get().getPassword())).thenApply(id -> {
+                        ctx.session().put("user", id);
+                        return redirect(ProfileController.defaultProfilePage());
+                    });
+                })
+        );
+    }
+    public CompletionStage<Result> logoutUser() {
+        Http.Context ctx = ctx();
+        return withUser(ctx, userId ->
+                loadNav(userId).thenCompose(nav -> {
+                    return userService.logout(userId.get()).invoke().thenApply(id -> {
+                        ctx.session().clear();
+                        return  ok(views.html.logout.render(nav));
+                    });
+                })
+        );
+
+    }
+
+    public CompletionStage<Result> loginUserForm() {
+        Http.Context ctx = ctx();
+        return withUser(ctx, userId ->
+                loadNav(userId).thenCompose(nav -> {
+                    return CompletableFuture.completedFuture(ok(views.html.login.render(showInlineInstruction,  formFactory.form(LoginForm.class), nav)));
+                })
+        );
     }
 
 }

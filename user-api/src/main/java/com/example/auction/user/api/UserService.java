@@ -1,5 +1,6 @@
 package com.example.auction.user.api;
 
+import akka.Done;
 import akka.NotUsed;
 import com.lightbend.lagom.javadsl.api.Descriptor;
 import com.lightbend.lagom.javadsl.api.Service;
@@ -9,7 +10,8 @@ import org.pcollections.PSequence;
 
 import java.util.UUID;
 
-import static com.lightbend.lagom.javadsl.api.Service.*;
+import static com.lightbend.lagom.javadsl.api.Service.named;
+import static com.lightbend.lagom.javadsl.api.Service.pathCall;
 
 public interface UserService extends Service {
 
@@ -20,12 +22,19 @@ public interface UserService extends Service {
     // Remove once we have a proper user service
     ServiceCall<NotUsed, PSequence<User>> getUsers();
 
+    ServiceCall<Credential, String> login();
+    ServiceCall<Credential, Done> updateCredential();
+    ServiceCall<NotUsed, Done> logout(UUID userId);
+
     @Override
     default Descriptor descriptor() {
         return named("user").withCalls(
                 pathCall("/api/user", this::createUser),
                 pathCall("/api/user/:id", this::getUser),
-                pathCall("/api/user", this::getUsers)
+                pathCall("/api/user", this::getUsers),
+                pathCall("/api/user/login", this::login),
+                pathCall("/api/user/logout/:userId", this::logout),
+                pathCall("/api/user/update-auth", this::updateCredential)
         ).withPathParamSerializer(UUID.class, PathParamSerializers.required("UUID", UUID::fromString, UUID::toString));
     }
 }

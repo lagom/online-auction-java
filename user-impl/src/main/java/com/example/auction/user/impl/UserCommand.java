@@ -14,8 +14,9 @@ public interface UserCommand extends Jsonable {
         private final String name;
 
         @JsonCreator
-        public CreateUser(String name) {
+        public CreateUser( String name) {
             this.name = name;
+
         }
     }
 

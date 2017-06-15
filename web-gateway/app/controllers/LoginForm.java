@@ -2,12 +2,11 @@ package controllers;
 
 import play.data.validation.Constraints;
 
-public class CreateUserForm {
+public class LoginForm {
 
     @Constraints.Required
     private String username;
-    @Constraints.Required
-    private String name;
+
     @Constraints.Required
     private String password;
 
@@ -19,14 +18,6 @@ public class CreateUserForm {
         this.username = username;
     }
 
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
     public String getPassword() {
         return password;
     }
@@ -34,4 +25,6 @@ public class CreateUserForm {
     public void setPassword(String password) {
         this.password = password;
     }
+
+
 }

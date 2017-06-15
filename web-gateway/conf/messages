@@ -1,10 +1,15 @@
 lagomAuction=Lagom Auction
 logInAs=Log in as...
 search=Search
+loginWith=Login with username/password
+logout=Logout
 
 formErrors=There are some errors in your form.
 
 name=Name
+password=Password
+username=Username
+email=Email
 createUser=Create user
 
 title=Title
@@ -96,6 +101,11 @@ instruction.auctionStarted.bidder=The auction has started for this item.
 instruction.auctionStarted.seller=This item is under auction. Now other users can start bidding for this item.
 instruction.auctionEnded=The auction has ended for this item.
 instruction.auctionCancelled=The auction has been cancelled for this item.
+instruction.login=Here the existing users can log in to participate in auctions.
+instruction.login.username=Enter your username
+instruction.login.password=Enter your password
 
 instruction.search=Here you can search for auctioned items. You can filter your search by specifying the maximum price of items to search for and the currency to search in.
 instruction.enableSearch=Search functionality can be enabled by downloading and running a local instance of elasticsearch. Steps for doing this can be found in {0}. If the lagom system is up and running, you don't need to restart the system after installing and running elasticsearch; the search service becomes functional once it starts.
+
+name.login=Login
