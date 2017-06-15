@@ -29,18 +29,20 @@ public class TransactionMappers {
         );
     }
 
-    public static Optional<TransactionInfo> toApi(TransactionState data) {
-        return data.getTransaction().map(transaction ->
-            new TransactionInfo(
-                    transaction.getItemId(),
-                    transaction.getCreator(),
-                    transaction.getWinner(),
-                    transaction.getItemData(),
-                    transaction.getItemPrice(),
-                    transaction.getDeliveryPrice(),
-                    toApi(transaction.getDeliveryData()),
-                    data.getStatus().transactionStatus
-            )
+    public static TransactionInfo toApi(TransactionState data) {
+        // TransactionEntity verifies if a transaction in TransactionState is set
+        // This code is called after this verification was done from TransactionServiceImpl
+        // We can get() safely
+        Transaction transaction = data.getTransaction().get();
+        return new TransactionInfo(
+                transaction.getItemId(),
+                transaction.getCreator(),
+                transaction.getWinner(),
+                transaction.getItemData(),
+                transaction.getItemPrice(),
+                transaction.getDeliveryPrice(),
+                toApi(transaction.getDeliveryData()),
+                data.getStatus().transactionStatus
         );
     }
 }

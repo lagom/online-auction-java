@@ -10,14 +10,13 @@ import com.example.auction.transaction.api.TransactionInfoStatus;
 import com.example.auction.transaction.api.TransactionService;
 import com.lightbend.lagom.javadsl.api.ServiceCall;
 import com.lightbend.lagom.javadsl.api.broker.Topic;
+import com.lightbend.lagom.javadsl.api.transport.NotFound;
 import com.lightbend.lagom.javadsl.testkit.ProducerStub;
 import com.lightbend.lagom.javadsl.testkit.ProducerStubFactory;
 import com.lightbend.lagom.javadsl.testkit.ServiceTest;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
-import scala.concurrent.Await;
 import scala.concurrent.duration.FiniteDuration;
 
 import javax.inject.Inject;
@@ -25,6 +24,8 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
 
 import static com.example.auction.security.ClientSecurity.authenticate;
 import static com.lightbend.lagom.javadsl.testkit.ServiceTest.bind;
@@ -62,6 +63,8 @@ public class TransactionServiceImplIntegrationTest {
     private final UUID winnerId = UUID.randomUUID();
     private final ItemData itemData = new ItemData("title", "desc", "EUR", 1, 10, Duration.ofMinutes(10), Optional.empty());
     private final Item item = new Item(itemId, creatorId, itemData, 5000, ItemStatus.COMPLETED, Optional.of(Instant.now()), Optional.of(Instant.now()), Optional.of(winnerId));
+    private final ItemEvent.AuctionFinished auctionFinished = new ItemEvent.AuctionFinished(itemId, item);
+
     private final DeliveryInfo deliveryInfo = new DeliveryInfo("ADDR1", "ADDR2", "CITY", "STATE", 27, "COUNTRY");
 
     private final TransactionInfo transactionInfoStarted = new TransactionInfo(itemId, creatorId, winnerId, itemData, item.getPrice(), 0, Optional.empty(), TransactionInfoStatus.NEGOTIATING_DELIVERY);
@@ -70,7 +73,6 @@ public class TransactionServiceImplIntegrationTest {
 
     @Test
     public void shouldCreateTransactionOnAuctionFinished() {
-        ItemEvent.AuctionFinished auctionFinished = new ItemEvent.AuctionFinished(itemId, item);
         itemProducerStub.send(auctionFinished);
 
         eventually(new FiniteDuration(10, SECONDS), () -> {
@@ -81,26 +83,47 @@ public class TransactionServiceImplIntegrationTest {
                     .get(5, SECONDS);
             assertEquals(retrievedTransaction, transactionInfoStarted);
         });
+    }
 
+    @Test(expected = NotFound.class)
+    public void shouldNotCreateTransactionWithNoWinner() throws Throwable {
+        UUID itemIdWithNoWinner = UUID.randomUUID();
+        Item itemWithNoWinner = new Item(itemIdWithNoWinner, creatorId, itemData, 5000, ItemStatus.COMPLETED, Optional.of(Instant.now()), Optional.of(Instant.now()), Optional.empty());
+        ItemEvent.AuctionFinished auctionFinishedWithNoWinner = new ItemEvent.AuctionFinished(itemIdWithNoWinner, itemWithNoWinner);
+        itemProducerStub.send(auctionFinishedWithNoWinner);
+
+        try {
+            transactionService.getTransaction(itemIdWithNoWinner)
+                    .handleRequestHeader(authenticate(creatorId))
+                    .invoke()
+                    .toCompletableFuture()
+                    .get(5, SECONDS);
+        }
+        catch(ExecutionException re) {
+            throw re.getCause();
+        }
+        catch (InterruptedException | TimeoutException e) {
+            throw e;
+        }
     }
 
     @Test
-    @Ignore
     public void shouldSubmitDeliveryDetails() {
-        eventually(new FiniteDuration(10, SECONDS), () ->
+        itemProducerStub.send(auctionFinished);
+
+        eventually(new FiniteDuration(15, SECONDS), () -> {
             transactionService.submitDeliveryDetails(itemId)
                     .handleRequestHeader(authenticate(winnerId))
                     .invoke(deliveryInfo)
                     .toCompletableFuture()
-                    .get(5, SECONDS)
-        );
+                    .get(5, SECONDS);
 
-        eventually(new FiniteDuration(10, SECONDS), () -> {
             TransactionInfo retrievedTransaction = transactionService.getTransaction(itemId)
                     .handleRequestHeader(authenticate(creatorId))
                     .invoke()
                     .toCompletableFuture()
                     .get(5, SECONDS);
+
             assertEquals(retrievedTransaction, transactionInfoWithDelivery);
         });
     }

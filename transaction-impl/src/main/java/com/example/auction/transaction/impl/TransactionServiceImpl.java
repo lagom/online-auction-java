@@ -11,12 +11,10 @@ import com.example.auction.item.api.ItemService;
 import com.example.auction.transaction.api.DeliveryInfo;
 import com.example.auction.transaction.api.TransactionService;
 import com.lightbend.lagom.javadsl.api.ServiceCall;
-import com.lightbend.lagom.javadsl.api.transport.NotFound;
 import com.lightbend.lagom.javadsl.persistence.PersistentEntityRef;
 import com.lightbend.lagom.javadsl.persistence.PersistentEntityRegistry;
 
 import javax.inject.Inject;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
@@ -65,13 +63,12 @@ public class TransactionServiceImpl implements TransactionService {
     public ServiceCall<NotUsed, TransactionInfo> getTransaction(UUID itemId) {
         return authenticated(userId -> request -> {
             GetTransaction get = new GetTransaction(userId);
-            return entityRef(itemId).ask(get).thenApply(transaction -> {
-                Optional<TransactionInfo> transactionInfo = TransactionMappers.toApi(transaction);
-                if(transactionInfo.isPresent())
-                    return transactionInfo.get();
-                else
-                    throw new NotFound("Transaction for item " + itemId + " not found");
-            });
+            return entityRef(itemId)
+                    .ask(get)
+                    .thenApply(transaction -> {
+                        TransactionInfo transactionInfo = TransactionMappers.toApi((TransactionState) transaction);
+                        return transactionInfo;
+                    });
         });
 
     }

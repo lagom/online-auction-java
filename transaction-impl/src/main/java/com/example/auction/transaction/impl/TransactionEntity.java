@@ -61,10 +61,8 @@ public class TransactionEntity extends PersistentEntity<TransactionCommand, Tran
                         ctx.reply(Done.getInstance())
                 );
             }
-            else {
-                ctx.commandFailed(new Forbidden("Only the auction winner can submit delivery details"));
-                return ctx.done();
-            }
+            else
+                throw new Forbidden("Only the auction winner can submit delivery details");
         });
 
         builder.setEventHandler(DeliveryDetailsSubmitted.class, evt ->
@@ -92,10 +90,10 @@ public class TransactionEntity extends PersistentEntity<TransactionCommand, Tran
                         cmd.getUserId().equals(state().getTransaction().get().getWinner()))
                     ctx.reply(state());
                 else
-                    ctx.commandFailed(new Forbidden("Only the item owner and the auction winner can see transaction details"));
+                    throw new Forbidden("Only the item owner and the auction winner can see transaction details");
             }
             else
-                ctx.commandFailed(new NotFound("Transaction for item " + entityId() + " not found"));
+                throw new NotFound("Transaction for item " + entityId() + " not found");
         });
     }
 

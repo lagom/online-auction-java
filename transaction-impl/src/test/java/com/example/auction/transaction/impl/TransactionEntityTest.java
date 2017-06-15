@@ -61,7 +61,7 @@ public class TransactionEntityTest {
     }
 
     @Test
-    public void shouldEmitEvenWhenCreatingTransaction() {
+    public void shouldEmitEventWhenCreatingTransaction() {
         Outcome<TransactionEvent, TransactionState> outcome = driver.run(startTransaction);
 
         assertThat(outcome.state().getStatus(), equalTo(TransactionStatus.NEGOTIATING_DELIVERY));
@@ -78,13 +78,11 @@ public class TransactionEntityTest {
     }
 
     @Test(expected = Forbidden.class)
-    @Ignore
     public void shouldForbidSubmittingDeliveryDetailsByNonBuyer() throws Throwable{
         driver.run(startTransaction);
         UUID hacker = UUID.randomUUID();
         SubmitDeliveryDetails invalid = new SubmitDeliveryDetails(hacker, deliveryData);
-        Outcome<TransactionEvent, TransactionState> outcome = driver.run(invalid);
-        expectRethrows(outcome);
+        driver.run(invalid);
     }
 
     @Test
@@ -95,18 +93,11 @@ public class TransactionEntityTest {
     }
 
     @Test(expected = Forbidden.class)
-    @Ignore
     public void shouldForbidSeeTransactionByNonWinnerNonCreator() throws Throwable{
         driver.run(startTransaction);
         UUID hacker = UUID.randomUUID();
         GetTransaction invalid = new GetTransaction(hacker);
-        Outcome<TransactionEvent, TransactionState> outcome = driver.run(invalid);
-        expectRethrows(outcome);
-    }
-
-    private void expectRethrows(Outcome<TransactionEvent, TransactionState> outcome) throws Throwable {
-        PersistentEntityTestDriver.Reply sideEffect = (PersistentEntityTestDriver.Reply) outcome.sideEffects().get(0);
-        throw (Throwable) sideEffect.msg();
+        driver.run(invalid);
     }
 }
 
