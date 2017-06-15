@@ -16,6 +16,14 @@
                     <li><a href="@routes.Main.index()">@message("lagomAuction")</a></li>
                     <li><a href="@routes.Main.createUserForm()">@message("createUser")</a></li>
                     <li><a href="@routes.ItemController.createItemForm()">@message("createItem")</a></li>
+                    <li><a href="@routes.Main.logoutUser()" class="logout">
+                    @if(nav.getUser.isPresent) {
+                      @message("logout")}</a></li>
+
+                    <li><a href="@routes.Main.loginUserForm()">
+                        @if(!nav.getUser.isPresent) {
+                            @message("loginWith")
+                        } </a></li>
                 </ul>
             </div>
             <div class="top-bar-right">

@@ -27,7 +27,6 @@ public class Main extends AbstractController {
         super(messagesApi, userService);
         this.userService = userService;
         this.formFactory = formFactory;
-
         showInlineInstruction = config.getBoolean("online-auction.instruction.show");
     }
 
@@ -85,6 +84,18 @@ public class Main extends AbstractController {
                     });
                 })
         );
+    }
+    public CompletionStage<Result> logoutUser() {
+        Http.Context ctx = ctx();
+        return withUser(ctx, userId ->
+                loadNav(userId).thenCompose(nav -> {
+                    return userService.logout(userId.get()).invoke().thenApply(id -> {
+                        ctx.session().clear();
+                        return  ok(views.html.logout.render(nav));
+                    });
+                })
+        );
+
     }
 
     public CompletionStage<Result> loginUserForm() {

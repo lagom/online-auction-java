@@ -87,6 +87,18 @@ public class UserServiceImpl implements UserService {
         };
     }
 
+
+    @Override
+    public ServiceCall<NotUsed, Done> logout(UUID userId) {
+        return req -> {
+            return entityRef(userId).ask(UserCommand.GetUser.INSTANCE)
+                    .thenApply(maybeCredential-> {
+                        return Done.getInstance();
+                    });
+        };
+    }
+
+
     @Override
     public ServiceCall<NotUsed, PSequence<User>> getUsers() {
         // Note this should never make production....

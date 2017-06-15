@@ -24,6 +24,7 @@ public interface UserService extends Service {
 
     ServiceCall<Credential, String> login();
     ServiceCall<Credential, Done> updateCredential();
+    ServiceCall<NotUsed, Done> logout(UUID userId);
 
     @Override
     default Descriptor descriptor() {
@@ -32,6 +33,7 @@ public interface UserService extends Service {
                 pathCall("/api/user/:id", this::getUser),
                 pathCall("/api/user", this::getUsers),
                 pathCall("/api/user/login", this::login),
+                pathCall("/api/user/logout/:userId", this::logout),
                 pathCall("/api/user/update-auth", this::updateCredential)
         ).withPathParamSerializer(UUID.class, PathParamSerializers.required("UUID", UUID::fromString, UUID::toString));
     }
