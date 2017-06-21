@@ -7,7 +7,8 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SearchItemForm {
+@Constraints.Validate
+public class SearchItemForm implements Constraints.Validatable<List<ValidationError>> {
 
 
     @Constraints.Required
@@ -22,6 +23,7 @@ public class SearchItemForm {
     private String itemStatus; // ???
     private String category; // ???
     private String username; // ???
+
 
     public List<ValidationError> validate() {
         List<ValidationError> errors = new ArrayList<>();

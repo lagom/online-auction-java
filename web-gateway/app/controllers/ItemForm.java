@@ -1,6 +1,6 @@
 package controllers;
 
-import play.data.validation.Constraints;
+import play.data.validation.Constraints.*;
 import play.data.validation.ValidationError;
 
 import java.math.BigDecimal;
@@ -9,24 +9,26 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ItemForm {
+@Validate
+public class ItemForm implements Validatable<List<ValidationError>> {
 
     private String id;
-    @Constraints.Required
+    @Required
     private String title;
-    @Constraints.Required
+    @Required
     private String description;
-    @Constraints.Required
+    @Required
     private String currency = "USD";
-    @Constraints.Required
+    @Required
     private BigDecimal increment = BigDecimal.valueOf(0.5);
-    @Constraints.Required
+    @Required
     private BigDecimal reserve = BigDecimal.ZERO;
-    @Constraints.Required
+    @Required
     private int duration = 10;
-    @Constraints.Required
+    @Required
     private String durationUnits;
 
+    @Override
     public List<ValidationError> validate() {
         List<ValidationError> errors = new ArrayList<>();
         
