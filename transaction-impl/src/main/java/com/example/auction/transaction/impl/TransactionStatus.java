@@ -1,14 +1,22 @@
 package com.example.auction.transaction.impl;
 
+import com.example.auction.transaction.api.TransactionInfoStatus;
+
 public enum TransactionStatus {
-    NOT_STARTED,
-    NEGOTIATING_DELIVERY,
-    PAYMENT_SUBMITTED,
-    PAYMENT_FAILED,
-    PAYMENT_CONFIRMED,
-    ITEM_DISPATCHED,
-    ITEM_RECEIVED,
-    CANCELED,
-    REFUNDING,
-    REFUNDED
+    NOT_STARTED(null),
+    NEGOTIATING_DELIVERY(TransactionInfoStatus.NEGOTIATING_DELIVERY),
+    PAYMENT_SUBMITTED(TransactionInfoStatus.PAYMENT_SUBMITTED),
+    PAYMENT_FAILED(TransactionInfoStatus.PAYMENT_FAILED),
+    PAYMENT_CONFIRMED(TransactionInfoStatus.PAYMENT_CONFIRMED),
+    ITEM_DISPATCHED(TransactionInfoStatus.ITEM_DISPATCHED),
+    ITEM_RECEIVED(TransactionInfoStatus.ITEM_RECEIVED),
+    CANCELLED(TransactionInfoStatus.CANCELLED),
+    REFUNDING(TransactionInfoStatus.REFUNDING),
+    REFUNDED(TransactionInfoStatus.REFUNDED);
+
+    public final TransactionInfoStatus transactionStatus;
+
+    TransactionStatus(TransactionInfoStatus transactionStatus) {
+        this.transactionStatus = transactionStatus;
+    }
 }

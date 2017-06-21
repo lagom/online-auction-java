@@ -102,3 +102,19 @@ instruction.auctionCancelled=The auction has been cancelled for this item.
 
 instruction.search=Here you can search for auctioned items. You can filter your search by specifying the maximum price of items to search for and the currency to search in.
 instruction.enableSearch=Search functionality can be enabled by downloading and running a local instance of elasticsearch. Steps for doing this can be found in {0}. If the lagom system is up and running, you don't need to restart the system after installing and running elasticsearch; the search service becomes functional once it starts.
+
+instruction.deliveryDetails=Here you can view/submit the delivery details for the transaction
+instruction.transactionInfo=Here you can see all transaction details
+
+transactionInfo=Transaction information
+aboutItem=About item
+aboutGeneral=General information
+viewDeliveryDetails=View delivery details
+deliveryDetails=Delivery Details
+submitDeliveryDetails=Submit
+addressLine1=Adress Line 1
+addressLine2=Adress Line 2
+city=City
+state=State
+postalCode=Postal code
+country=Country

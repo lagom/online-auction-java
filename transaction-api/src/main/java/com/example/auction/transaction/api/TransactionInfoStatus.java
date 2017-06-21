@@ -1,6 +1,6 @@
 package com.example.auction.transaction.api;
 
-public enum TransactionStatus {
+public enum TransactionInfoStatus {
     /**
      * Negotiating delivery details.
      */
@@ -10,6 +10,11 @@ public enum TransactionStatus {
      * Buyer has submitted payment details.
      */
     PAYMENT_SUBMITTED,
+
+    /**
+     * Payment is rejected
+     */
+    PAYMENT_FAILED,
 
     /**
      * Payment is confirmed.

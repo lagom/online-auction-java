@@ -5,6 +5,7 @@ import com.lightbend.lagom.serialization.Jsonable;
 import lombok.Value;
 
 import java.util.Optional;
+import java.util.function.Function;
 
 /**
  * The transaction state.
@@ -12,9 +13,6 @@ import java.util.Optional;
 @Value
 public class TransactionState implements Jsonable {
 
-    /**
-     * The transaction details.
-     */
     private final Optional<Transaction> transaction;
     private final TransactionStatus status;
 
@@ -30,5 +28,14 @@ public class TransactionState implements Jsonable {
 
     public static TransactionState start(Transaction transaction) {
         return new TransactionState(Optional.of(transaction), TransactionStatus.NEGOTIATING_DELIVERY);
+    }
+
+    public TransactionState updateDeliveryData(DeliveryData deliveryData) {
+        return update(i -> i.withDeliveryData(deliveryData), status);
+    }
+
+    private TransactionState update(Function<Transaction, Transaction> updateFunction, TransactionStatus status) {
+        assert transaction.isPresent();
+        return new TransactionState(transaction.map(updateFunction), status);
     }
 }

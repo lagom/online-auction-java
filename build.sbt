@@ -129,7 +129,7 @@ lazy val transactionApi = (project in file("transaction-api"))
       lombok
     )
   )
-  .dependsOn(security)
+  .dependsOn(security, itemApi)
 
 lazy val transactionImpl = (project in file("transaction-impl"))
   .settings(commonSettings: _*)
