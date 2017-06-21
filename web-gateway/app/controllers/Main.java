@@ -1,6 +1,7 @@
 package controllers;
 
 import com.example.auction.user.api.User;
+import com.example.auction.user.api.UserRegistration;
 import com.example.auction.user.api.UserService;
 import play.data.FormFactory;
 import play.i18n.MessagesApi;
@@ -54,10 +55,12 @@ public class Main extends AbstractController {
                         return CompletableFuture.completedFuture(ok(views.html.createUser.render(showInlineInstruction, form, nav)));
                     }
 
-                    return userService.createUser().invoke(new User(form.get().getName())).thenApply(user -> {
-                        ctx.session().put("user", user.getId().toString());
-                        return redirect(ProfileController.defaultProfilePage());
-                    });
+                    return userService.createUser()
+                            .invoke(new UserRegistration(form.get().getName(), form.get().getEmail(), form.get().getPassword()))
+                            .thenApply(user -> {
+                                ctx.session().put("user", user.getId().toString());
+                                return redirect(ProfileController.defaultProfilePage());
+                            });
                 })
         );
     }

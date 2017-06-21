@@ -11,10 +11,12 @@ public interface UserCommand extends Jsonable {
     @Value
     final class CreateUser implements UserCommand, PersistentEntity.ReplyType<PUser> {
         private final String name;
+        private final String email;
 
         @JsonCreator
         public CreateUser(PUser user) {
             this.name = user.getName();
+            this.email = user.getEmail();
         }
     }
 

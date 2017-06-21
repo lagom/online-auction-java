@@ -13,7 +13,7 @@ import static com.lightbend.lagom.javadsl.api.Service.*;
 
 public interface UserService extends Service {
 
-    ServiceCall<User, User> createUser();
+    ServiceCall<UserRegistration, User> createUser();
 
     ServiceCall<NotUsed, User> getUser(UUID userId);
 

@@ -12,11 +12,13 @@ public final class PUser {
 
     private final UUID id;
     private final String name;
+    private  final String email;
 
     @JsonCreator
-    public PUser(@JsonProperty("id") UUID id, @JsonProperty("name") String name) {
+    public PUser(@JsonProperty("id") UUID id, @JsonProperty("name") String name, @JsonProperty("email") String email) {
         this.id = id;
         this.name = name;
+        this.email = email;
     }
 
 }
