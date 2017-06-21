@@ -5,6 +5,9 @@ search=Search
 formErrors=There are some errors in your form.
 
 name=Name
+email=Email
+password=Password
+confirmPassword=Confirm Password
 createUser=Create user
 
 title=Title

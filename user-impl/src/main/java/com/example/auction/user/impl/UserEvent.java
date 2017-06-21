@@ -10,9 +10,9 @@ public interface UserEvent extends Jsonable, AggregateEvent<UserEvent> {
 
     @Value
     final class UserCreated implements UserEvent {
-        private final User user;
+        private final PUser user;
 
-        public UserCreated(User user) {
+        public UserCreated(PUser user) {
             this.user = user;
         }
     }

@@ -1,4 +1,5 @@
 @import helper._
+@import java.util.Optional
 
 @(showInlineInstruction: Boolean, createUser: Form[CreateUserForm])(implicit nav: Nav)
 
@@ -7,14 +8,38 @@
     <h2>@message("createUser")</h2>
 
     @foundationForm(createUser, routes.Main.createUser()) {
+        @if(showInlineInstruction == true) {
+            <p>@message("instruction.createUser")</p>
+        }
+        @if(createUser.hasGlobalErrors) {
+            <p class="error">
+            @for(error <- createUser.globalErrors) {
+                <p>@Messages(error.messages, error.arguments.toArray: _*)</p>
+            }
+            </p>
+        }
+
+
         <div class="row">
             <div class="medium-6 columns">
-                @if(showInlineInstruction == true) {
-                        <p>@message("instruction.createUser")</p>
-                }
-                @inputText(createUser("name"))
+            @inputText(createUser("name"))
             </div>
         </div>
+            <div class="row">
+                <div class="medium-6 columns">
+                @inputText(createUser("email"))
+                </div>
+            </div>
+            <div class="row">
+                <div class="medium-6 columns">
+                @inputPassword(createUser("password"))
+                </div>
+            </div>
+            <div class="row">
+                <div class="medium-6 columns">
+                @inputPassword(createUser("confirmPassword"))
+                </div>
+            </div>
         <input class="button" type="submit" value="@message("createUser")"/>
     }
 }

@@ -40,20 +40,22 @@ public class UserServiceImpl implements UserService {
     public ServiceCall<User, User> createUser() {
         return user -> {
             UUID uuid = UUID.randomUUID();
-            return entityRef(uuid).ask(new UserCommand.CreateUser(user.getName()));
+            PUser pUser = new PUser(uuid, user.getName());
+            return entityRef(uuid)
+                    .ask(new UserCommand.CreateUser(pUser))
+                    .thenApply(done -> Mappers.toApi(pUser));
         };
     }
 
     @Override
     public ServiceCall<NotUsed, User> getUser(UUID userId) {
-        return req -> {
-            return entityRef(userId).ask(UserCommand.GetUser.INSTANCE)
-                    .thenApply(maybeUser ->
-                            maybeUser.orElseGet(() -> {
-                                throw new NotFound("User " + userId + " not found");
-                            })
-            );
-        };
+        return req -> entityRef(userId).ask(UserCommand.GetUser.INSTANCE).thenApply(maybeUser -> {
+            if (maybeUser.isPresent()) {
+                return Mappers.toApi(maybeUser.get());
+            } else {
+                throw new NotFound("user " + userId + " not found");
+            }
+        });
     }
 
     @Override
@@ -63,7 +65,7 @@ public class UserServiceImpl implements UserService {
                 .filter(id -> id.startsWith("UserEntity"))
                 .mapAsync(4, id -> entityRef(id.substring(10)).ask(UserCommand.GetUser.INSTANCE))
                 .filter(Optional::isPresent)
-                .map(Optional::get)
+                .map(user -> Mappers.toApi(user.get()))
                 .runWith(Sink.seq(), mat)
                 .thenApply(TreePVector::from);
     }
