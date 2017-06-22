@@ -7,20 +7,20 @@ import lombok.Value;
 
 import java.util.Optional;
 
-public interface UserCommand extends Jsonable {
+public interface PUserCommand extends Jsonable {
     @Value
-    final class CreateUser implements UserCommand, PersistentEntity.ReplyType<PUser> {
+    final class CreatePUser implements PUserCommand, PersistentEntity.ReplyType<PUser> {
         private final String name;
         private final String email;
 
         @JsonCreator
-        public CreateUser(PUser user) {
+        public CreatePUser(PUser user) {
             this.name = user.getName();
             this.email = user.getEmail();
         }
     }
 
-    enum GetUser implements UserCommand, PersistentEntity.ReplyType<Optional<PUser>> {
+    enum GetPUser implements PUserCommand, PersistentEntity.ReplyType<Optional<PUser>> {
         INSTANCE
     }
 }
