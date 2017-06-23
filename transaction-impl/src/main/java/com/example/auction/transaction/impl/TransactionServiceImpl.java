@@ -3,18 +3,16 @@ package com.example.auction.transaction.impl;
 import akka.Done;
 import akka.NotUsed;
 import akka.stream.javadsl.Flow;
-import com.example.auction.transaction.api.TransactionInfo;
+import com.example.auction.item.api.*;
+import com.example.auction.pagination.PaginatedSequence;
+import com.example.auction.transaction.api.*;
 import com.example.auction.transaction.impl.TransactionCommand.*;
-import com.example.auction.item.api.Item;
-import com.example.auction.item.api.ItemEvent;
-import com.example.auction.item.api.ItemService;
-import com.example.auction.transaction.api.DeliveryInfo;
-import com.example.auction.transaction.api.TransactionService;
 import com.lightbend.lagom.javadsl.api.ServiceCall;
 import com.lightbend.lagom.javadsl.persistence.PersistentEntityRef;
 import com.lightbend.lagom.javadsl.persistence.PersistentEntityRegistry;
 
 import javax.inject.Inject;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
@@ -22,11 +20,16 @@ import static com.example.auction.security.ServerSecurity.authenticated;
 
 public class TransactionServiceImpl implements TransactionService {
 
+    private static final Integer DEFAULT_PAGE_SIZE = 10;
+
     private final PersistentEntityRegistry registry;
+    private final TransactionRepository transactions;
 
     @Inject
-    public TransactionServiceImpl(PersistentEntityRegistry registry, ItemService itemService) {
+    public TransactionServiceImpl(PersistentEntityRegistry registry, ItemService itemService, TransactionRepository transactions) {
         this.registry = registry;
+        this.transactions = transactions;
+
         registry.register(TransactionEntity.class);
         // Subscribe to the events from the item service.
         itemService.itemEvents().subscribe().atLeastOnce(Flow.<ItemEvent>create().mapAsync(1, itemEvent -> {
@@ -71,6 +74,12 @@ public class TransactionServiceImpl implements TransactionService {
                     });
         });
 
+    }
+
+    @Override
+    public ServiceCall<NotUsed, PaginatedSequence<TransactionSummary>> getTransactionsForUser(
+            UUID userId, TransactionInfoStatus status, Optional<Integer> pageNo, Optional<Integer> pageSize) {
+        return req -> transactions.getTransactionsForUser(userId, status, pageNo.orElse(0), pageSize.orElse(DEFAULT_PAGE_SIZE));
     }
 
     private PersistentEntityRef<TransactionCommand> entityRef(UUID itemId) {

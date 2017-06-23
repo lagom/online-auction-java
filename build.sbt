@@ -141,7 +141,8 @@ lazy val transactionImpl = (project in file("transaction-impl"))
     libraryDependencies ++= Seq(
       lagomJavadslPersistenceCassandra,
       lagomJavadslTestKit,
-      lagomJavadslKafkaBroker
+      lagomJavadslKafkaBroker,
+      "com.datastax.cassandra" % "cassandra-driver-extras" % "3.0.0"
     )
   )
 

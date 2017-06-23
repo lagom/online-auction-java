@@ -5,13 +5,14 @@ import static com.lightbend.lagom.javadsl.api.Service.pathCall;
 
 import akka.Done;
 import akka.NotUsed;
+import com.example.auction.pagination.PaginatedSequence;
 import com.example.auction.security.SecurityHeaderFilter;
 import com.lightbend.lagom.javadsl.api.Descriptor;
 import com.lightbend.lagom.javadsl.api.Service;
 import com.lightbend.lagom.javadsl.api.ServiceCall;
-import com.lightbend.lagom.javadsl.api.broker.Topic;
 import com.lightbend.lagom.javadsl.api.deser.PathParamSerializers;
 
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -40,6 +41,9 @@ public interface TransactionService extends Service {
     //ServiceCall<NotUsed, Done> initiateRefund(UUID itemId);
 
     ServiceCall<NotUsed, TransactionInfo> getTransaction(UUID itemId);
+
+    ServiceCall<NotUsed, PaginatedSequence<TransactionSummary>> getTransactionsForUser(
+            UUID userId, TransactionInfoStatus status, Optional<Integer> pageNo, Optional<Integer> pageSize);
 
     /**
      * The transaction events topic.
