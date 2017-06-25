@@ -54,10 +54,13 @@ public interface TransactionService extends Service {
     default Descriptor descriptor() {
         return named("transaction").withCalls(
                 pathCall("/api/transaction/:id", this::submitDeliveryDetails),
-                pathCall("/api/transaction/:id", this::getTransaction)
-        ).withPathParamSerializer(UUID.class, PathParamSerializers.required("UUID", UUID::fromString, UUID::toString))
-                .withHeaderFilter(SecurityHeaderFilter.INSTANCE);
-
+                pathCall("/api/transaction/:id", this::getTransaction),
+                pathCall("/api/transaction?userId&status&pageNo&pageSize", this::getTransactionsForUser)
+        ).withPathParamSerializer(
+                UUID.class, PathParamSerializers.required("UUID", UUID::fromString, UUID::toString))
+        .withPathParamSerializer(
+                TransactionInfoStatus.class, PathParamSerializers.required("TransactionInfoStatus", TransactionInfoStatus::valueOf, TransactionInfoStatus::toString)
+        ).withHeaderFilter(SecurityHeaderFilter.INSTANCE);
     }
 
 }
