@@ -34,7 +34,7 @@ public class UserServiceImpl implements UserService {
         this.currentIdsQuery =
                 PersistenceQuery.get(system).getReadJournalFor(CassandraReadJournal.class, CassandraReadJournal.Identifier());
 
-        registry.register(UserEntity.class);
+        registry.register(PUserEntity.class);
     }
 
     @Override
@@ -43,14 +43,14 @@ public class UserServiceImpl implements UserService {
             UUID uuid = UUID.randomUUID();
             PUser pUser = new PUser(uuid, user.getName(), user.getEmail());
             return entityRef(uuid)
-                    .ask(new UserCommand.CreateUser(pUser))
+                    .ask(new PUserCommand.CreatePUser(pUser))
                     .thenApply(done -> Mappers.toApi(pUser));
         };
     }
 
     @Override
     public ServiceCall<NotUsed, User> getUser(UUID userId) {
-        return req -> entityRef(userId).ask(UserCommand.GetUser.INSTANCE).thenApply(maybeUser -> {
+        return req -> entityRef(userId).ask(PUserCommand.GetPUser.INSTANCE).thenApply(maybeUser -> {
             if (maybeUser.isPresent()) {
                 return Mappers.toApi(maybeUser.get());
             } else {
@@ -63,19 +63,19 @@ public class UserServiceImpl implements UserService {
     public ServiceCall<NotUsed, PSequence<User>> getUsers() {
         // Note this should never make production....
         return req -> currentIdsQuery.currentPersistenceIds()
-                .filter(id -> id.startsWith("UserEntity"))
-                .mapAsync(4, id -> entityRef(id.substring(10)).ask(UserCommand.GetUser.INSTANCE))
+                .filter(id -> id.startsWith("PUserEntity"))
+                .mapAsync(4, id -> entityRef(id.substring(10)).ask(PUserCommand.GetPUser.INSTANCE))
                 .filter(Optional::isPresent)
                 .map(user -> Mappers.toApi(user.get()))
                 .runWith(Sink.seq(), mat)
                 .thenApply(TreePVector::from);
     }
 
-    private PersistentEntityRef<UserCommand> entityRef(UUID id) {
+    private PersistentEntityRef<PUserCommand> entityRef(UUID id) {
         return entityRef(id.toString());
     }
 
-    private PersistentEntityRef<UserCommand> entityRef(String id) {
-        return registry.refFor(UserEntity.class, id);
+    private PersistentEntityRef<PUserCommand> entityRef(String id) {
+        return registry.refFor(PUserEntity.class, id);
     }
 }

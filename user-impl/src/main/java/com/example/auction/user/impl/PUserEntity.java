@@ -1,14 +1,14 @@
 package com.example.auction.user.impl;
 
 import com.lightbend.lagom.javadsl.persistence.PersistentEntity;
-import com.example.auction.user.impl.UserCommand.*;
-import com.example.auction.user.impl.UserEvent.*;
+import com.example.auction.user.impl.PUserCommand.*;
+import com.example.auction.user.impl.PUserEvent.*;
 
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
 
-public class UserEntity extends PersistentEntity<UserCommand, UserEvent, Optional<PUser>> {
+public class PUserEntity extends PersistentEntity<PUserCommand, PUserEvent, Optional<PUser>> {
 
     @Override
     public Behavior initialBehavior(Optional<Optional<PUser>> snapshotState) {
@@ -24,11 +24,11 @@ public class UserEntity extends PersistentEntity<UserCommand, UserEvent, Optiona
     private Behavior created(PUser user) {
         BehaviorBuilder b = newBehaviorBuilder(Optional.of(user));
 
-        b.setReadOnlyCommandHandler(GetUser.class, (get, ctx) ->
+        b.setReadOnlyCommandHandler(GetPUser.class, (get, ctx) ->
                 ctx.reply(state())
         );
 
-        b.setReadOnlyCommandHandler(CreateUser.class, (create, ctx) ->
+        b.setReadOnlyCommandHandler(CreatePUser.class, (create, ctx) ->
             ctx.invalidCommand("User already exists.")
         );
 
@@ -38,16 +38,16 @@ public class UserEntity extends PersistentEntity<UserCommand, UserEvent, Optiona
     private Behavior notCreated() {
         BehaviorBuilder b = newBehaviorBuilder(Optional.empty());
 
-        b.setReadOnlyCommandHandler(GetUser.class, (get, ctx) ->
+        b.setReadOnlyCommandHandler(GetPUser.class, (get, ctx) ->
                 ctx.reply(state())
         );
 
-        b.setCommandHandler(CreateUser.class, (create, ctx) -> {
+        b.setCommandHandler(CreatePUser.class, (create, ctx) -> {
             PUser user = new PUser(UUID.fromString(entityId()), create.getName(), create.getEmail());
-            return ctx.thenPersist(new UserCreated(user), (e) -> ctx.reply(user));
+            return ctx.thenPersist(new PUserCreated(user), (e) -> ctx.reply(user));
         });
 
-        b.setEventHandlerChangingBehavior(UserCreated.class, user -> created(user.getUser()));
+        b.setEventHandlerChangingBehavior(PUserCreated.class, user -> created(user.getUser()));
 
         return b.build();
     }
