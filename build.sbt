@@ -162,7 +162,10 @@ lazy val userImpl = (project in file("user-impl"))
   .dependsOn(userApi)
   .settings(
     version := "1.0-SNAPSHOT",
-    libraryDependencies += lagomJavadslPersistenceCassandra
+    libraryDependencies ++= Seq(
+      lagomJavadslPersistenceCassandra,
+      lagomJavadslTestKit
+         )
   )
 
 lazy val webGateway = (project in file("web-gateway"))
