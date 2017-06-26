@@ -10,36 +10,47 @@ Lagom focuses on ensuring that your application realises the full potential of t
 
 This is a **sample Java auction system** using the Lagom Framework. A [Scala version](https://github.com/lagom/online-auction-scala) of the auction system is also available.
 
-## Getting started
+When you run the online auction, you access the interface with a browser. You can create user accounts and items for auction. Once the items are available, you can bid. By using different browsers, you can log in as different users and bid on the same item.
 
-To get started make sure you have sbt and git installed on your system. You will also need an active internet connection.
 
-### Running: Prerequisites
+## Prerequisites
+To download and run the online auction example you will need: 
+* An active internet connection 
+* sbt 
+* Git 
 
-You will need to install sbt:
+To use the online auction's search facility, you will also need Elasticsearch, which acts as the search database. You can run the example without Elasticsearch, but the search will not work. 
 
-* To install sbt on Mac you can have a look at [The SBT Documentation for Mac](http://www.scala-sbt.org/0.13/docs/Installing-sbt-on-Mac.html)
-* To install sbt on Windows you can have a look at [The SBT Documentation for Windows](http://www.scala-sbt.org/0.13/docs/Installing-sbt-on-Windows.html)
-* To install sbt on Linux you can have a look at [The SBT Documentation for Linux](http://www.scala-sbt.org/0.13/docs/Installing-sbt-on-Linux.html)
+1. To install sbt, refer to the content for your operating system (OS):
 
-You will need to download and run an Elastisearch server: (optional)
+   * [The SBT Documentation for MacOS](http://www.scala-sbt.org/0.13/docs/Installing-sbt-on-Mac.html)
+   * [The SBT Documentation for Windows OS](http://www.scala-sbt.org/0.13/docs/Installing-sbt-on-Windows.html)
+   * [The SBT Documentation for Linux OS](http://www.scala-sbt.org/0.13/docs/Installing-sbt-on-Linux.html)
 
-```
-curl -L -O https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-5.0.2.tar.gz
-tar -xvf elasticsearch-5.0.2.tar.gz
-cd elasticsearch-5.0.2/bin
-./elasticsearch
-```
+1. Download Elasticsearch server. For example, use a console that supports the `curl` and `tar` commands and enter the following commands one at a time:
+
+     1. `curl -L -O https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-5.0.2.tar.gz`
+     1. `tar -xvf elasticsearch-5.0.2.tar.gz`
+
+
 
 ## Running in Development Mode
+To run the online auction example on your local machine:
 
-On another terminal, clone this repo and run the sample app using the command `sbt runAll`:
+1. Open a terminal, change into the Elasticsearch `bin` directory and start Elastic search. For example:
+        1. `cd elasticsearch-5.0.2/bin`
+        1. `elasticsearch`
 
-```
-git clone git@github.com:lagom/online-auction-java.git
-cd online-auction-java
-sbt runAll
-```
+1. In another terminal, clone the online auction repo. For example:
+
+   `git clone git@github.com:lagom/online-auction-java.git`
+   
+1. Change to the top-level directory. For example: 
+   `cd online-auction-java`
+   
+1. Run the sample app using the command `sbt runAll`.
+
+
 
 ## Running in Production Mode
 
@@ -47,7 +58,7 @@ See [Running Online Auction in ConductR Sandbox](docs/running-in-conductr.md) fo
 
 ## Importing into IDEs (optional)
 
-* To import the online-auction-javaproject into IntellijIDEA you can have a look at [The Lagom Documentation for IDEA](http://www.lagomframework.com/documentation/1.3.x/java/IntellijSbtJava.html)
+* To import the online-auction-java project into IntellijIDEA you can have a look at [The Lagom Documentation for IDEA](http://www.lagomframework.com/documentation/1.3.x/java/IntellijSbtJava.html)
 * To import the online-auction-javaproject into Eclipse you can have a look at [The Lagom Documentation for Eclipse](http://www.lagomframework.com/documentation/1.3.x/java/EclipseSbt.html)
 * You will also need to add Lombok plugin in your IDE for annotations. Take a look at [The Lagom Documentation for Lombok](http://www.lagomframework.com/documentation/1.3.x/java/Immutable.html#Lombok)
 
