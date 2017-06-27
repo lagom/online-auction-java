@@ -7,6 +7,7 @@ import com.lightbend.lagom.javadsl.testkit.PersistentEntityTestDriver;
 import com.lightbend.lagom.javadsl.testkit.PersistentEntityTestDriver.Outcome;
 import org.junit.*;
 
+import java.util.Collections;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -55,6 +56,17 @@ public class UserEntityTest {
         Outcome<PUserEvent, Optional<PUser>> outcome = driver.run(
                 new CreatePUser(user));
         assertEquals(user, outcome.getReplies().get(0));
+        assertEquals(Collections.emptyList(), driver.getAllIssues());
+    }
+
+    @Test
+    public void testRejectDuplicateCreate() {
+        driver.run(new CreatePUser(user));
+        Outcome<PUserEvent, Optional<PUser>> outcome = driver.run(
+                new CreatePUser(user));
+        assertEquals(PUserEntity.InvalidCommandException.class, outcome.getReplies().get(0).getClass());
+        assertEquals(Collections.emptyList(), outcome.events());
+        assertEquals(Collections.emptyList(), driver.getAllIssues());
     }
 
 }
