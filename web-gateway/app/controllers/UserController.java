@@ -1,33 +1,17 @@
 package controllers;
 
-import akka.japi.Pair;
-import com.example.auction.bidding.api.*;
-import com.example.auction.item.api.Item;
-import com.example.auction.item.api.ItemData;
-import com.example.auction.item.api.ItemService;
-import com.example.auction.item.api.ItemStatus;
-import com.example.auction.user.api.User;
 import com.example.auction.user.api.UserRegistration;
 import com.example.auction.user.api.UserService;
-import com.lightbend.lagom.javadsl.api.transport.TransportException;
-import org.pcollections.PSequence;
 import play.Configuration;
 import play.data.Form;
 import play.data.FormFactory;
 import play.i18n.MessagesApi;
 import play.mvc.Http;
 import play.mvc.Result;
-import views.html.editItem;
 
 import javax.inject.Inject;
-import java.time.Duration;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
-
-import static com.example.auction.security.ClientSecurity.authenticate;
 
 public class UserController extends AbstractController {
 
