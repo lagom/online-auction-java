@@ -2,9 +2,9 @@
 GET         /                           controllers.Main.index
 
 # User management
-GET         /createuser                 controllers.Main.createUserForm
-POST        /user                       controllers.Main.createUser
-POST        /currentuser/:userId        controllers.Main.currentUser(userId)
+GET         /createuser                 controllers.UserController.createUserForm
+POST        /user                       controllers.UserController.createUser
+POST        /currentuser/:userId        controllers.UserController.currentUser(userId)
 
 # User profile
 GET         /my/items/:status           controllers.ProfileController.myItems(status, page: Int ?= controllers.ProfileController.DEFAULT_PAGE, pageSize: Int ?= controllers.ProfileController.DEFAULT_PAGE_SIZE)
