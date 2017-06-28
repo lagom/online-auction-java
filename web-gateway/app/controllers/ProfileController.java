@@ -10,7 +10,6 @@ import play.i18n.MessagesApi;
 import play.libs.concurrent.HttpExecutionContext;
 import play.mvc.Call;
 import play.mvc.Result;
-import play.Configuration;
 
 import javax.inject.Inject;
 import java.util.Locale;
