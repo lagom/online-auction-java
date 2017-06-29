@@ -99,7 +99,6 @@ lazy val searchImpl = (project in file("search-impl"))
   .settings(
     version := "1.0-SNAPSHOT",
     libraryDependencies ++= Seq(
-      lagomJavadslPersistenceCassandra,
       lagomJavadslTestKit,
       lagomJavadslKafkaClient,
       lombok
