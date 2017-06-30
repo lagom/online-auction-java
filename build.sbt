@@ -52,7 +52,7 @@ lazy val itemImpl = (project in file("item-impl"))
     )
   )
   .settings(lagomForkedTestSettings: _*)
-  .dependsOn(tools, itemApi, biddingApi)
+  .dependsOn(tools % "test -> test", itemApi, biddingApi)
 
 lazy val biddingApi = (project in file("bidding-api"))
   .settings(commonSettings: _*)
