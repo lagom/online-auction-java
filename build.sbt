@@ -52,7 +52,7 @@ lazy val itemImpl = (project in file("item-impl"))
     )
   )
   .settings(lagomForkedTestSettings: _*)
-  .dependsOn(tools, itemApi, biddingApi)
+  .dependsOn(tools % "test -> test", itemApi, biddingApi)
 
 lazy val biddingApi = (project in file("bidding-api"))
   .settings(commonSettings: _*)
@@ -99,7 +99,6 @@ lazy val searchImpl = (project in file("search-impl"))
   .settings(
     version := "1.0-SNAPSHOT",
     libraryDependencies ++= Seq(
-      lagomJavadslPersistenceCassandra,
       lagomJavadslTestKit,
       lagomJavadslKafkaClient,
       lombok
@@ -163,7 +162,10 @@ lazy val userImpl = (project in file("user-impl"))
   .dependsOn(userApi)
   .settings(
     version := "1.0-SNAPSHOT",
-    libraryDependencies += lagomJavadslPersistenceCassandra
+    libraryDependencies ++= Seq(
+      lagomJavadslPersistenceCassandra,
+      lagomJavadslTestKit
+         )
   )
 
 lazy val webGateway = (project in file("web-gateway"))

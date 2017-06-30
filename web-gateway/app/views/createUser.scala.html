@@ -7,7 +7,7 @@
 
     <h2>@message("createUser")</h2>
 
-    @foundationForm(createUser, routes.Main.createUser()) {
+    @foundationForm(createUser, routes.UserController.createUser()) {
         @if(showInlineInstruction == true) {
             <p>@message("instruction.createUser")</p>
         }

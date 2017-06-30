@@ -2,13 +2,14 @@ package com.example.auction.user.impl;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.lightbend.lagom.serialization.Jsonable;
 import lombok.Value;
 
 import java.util.Optional;
 import java.util.UUID;
 
 @Value
-public final class PUser {
+public final class PUser implements Jsonable {
 
     private final UUID id;
     private final String name;

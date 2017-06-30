@@ -2,7 +2,7 @@
 
 [![Gitter](https://img.shields.io/gitter/room/gitterHQ/gitter.svg)](https://gitter.im/lagom/lagom?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) [<img src="https://travis-ci.org/lagom/online-auction-java.svg?branch=master"/>](https://travis-ci.org/lagom/online-auction-java)
 
-# INTRO
+# Introduction
 
 Lagom is a Swedish word meaning just right, sufficient. Microservices are about creating services that are just the right size, that is, they have just the right level of functionality and isolation to be able to adequately implement a scalable and resilient system.
 
@@ -10,44 +10,54 @@ Lagom focuses on ensuring that your application realises the full potential of t
 
 This is a **sample Java auction system** using the Lagom Framework. A [Scala version](https://github.com/lagom/online-auction-scala) of the auction system is also available.
 
-## Getting started
+When you run the online auction, you access the interface with a browser. You can create user accounts and items for auction. Once the items are available, you can bid. 
 
-To get started make sure you have sbt and git installed on your system. You will also need an active internet connection.
 
-### Running: Prerequisites
+## Prerequisites
+To download and run the online auction example you will need: 
+* An active internet connection 
+* sbt 
+* Git 
 
-You will need to install sbt:
+To use the online auction's search facility, you will also need Elasticsearch, which acts as the search database. You can run the example without Elasticsearch, but the search will not work. 
 
-* To install sbt on Mac you can have a look at [The SBT Documentation for Mac](http://www.scala-sbt.org/0.13/docs/Installing-sbt-on-Mac.html)
-* To install sbt on Windows you can have a look at [The SBT Documentation for Windows](http://www.scala-sbt.org/0.13/docs/Installing-sbt-on-Windows.html)
-* To install sbt on Linux you can have a look at [The SBT Documentation for Linux](http://www.scala-sbt.org/0.13/docs/Installing-sbt-on-Linux.html)
+1. To install sbt, refer to the content for your operating system (OS):
 
-You will need to download and run an Elastisearch server: (optional)
+   * [The SBT Documentation for MacOS](http://www.scala-sbt.org/0.13/docs/Installing-sbt-on-Mac.html)
+   * [The SBT Documentation for Windows OS](http://www.scala-sbt.org/0.13/docs/Installing-sbt-on-Windows.html)
+   * [The SBT Documentation for Linux OS](http://www.scala-sbt.org/0.13/docs/Installing-sbt-on-Linux.html)
 
-```
-curl -L -O https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-5.0.2.tar.gz
-tar -xvf elasticsearch-5.0.2.tar.gz
-cd elasticsearch-5.0.2/bin
-./elasticsearch
-```
+1. Download Elasticsearch server. For example, use a console that supports the `curl` and `tar` commands and enter the following commands one at a time:
 
-## Running in Development Mode
+     1. `curl -L -O https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-5.0.2.tar.gz`
+     1. `tar -xvf elasticsearch-5.0.2.tar.gz`
 
-On another terminal, clone this repo and run the sample app using the command `sbt runAll`:
+## Running in development mode
+To run the online auction example on your local machine:
 
-```
-git clone git@github.com:lagom/online-auction-java.git
-cd online-auction-java
-sbt runAll
-```
+1. Clone the online auction github repository to your local machine. 
+1. Open a terminal, change into the Elasticsearch `bin` directory and start Elastic search. For example:
+        1. `cd elasticsearch-5.0.2/bin`
+        1. `elasticsearch`
+   
+1. Open another terminal and change to the top-level directory of the cloned online auction repository. For example: 
+   `cd online-auction-java`
+   
+1. Run the sample app using the command `sbt runAll`.
+1. Open a browser and enter:
+   `localhost:9000`
 
-## Running in Production Mode
+## Exercising the example
 
-See [Running Online Auction in ConductR Sandbox](docs/running-in-conductr.md) for instructions.
+To simulate an auction, you'll need to create at least two users and one item. Once created, you can bid on the item. By using different browsers, you can log in as different users and bid on the same item.
+
+## Running in production mode
+
+Lightbend ConductR is part of the Enterprise Suite. It allows you to easily deploy Lagom microservices in a distributed environment. You can freely run ConductR on one node, or by registering with Lightbend, on up to three nodes. See [Running Online Auction in ConductR Sandbox](docs/running-in-conductr.md) for instructions.
 
 ## Importing into IDEs (optional)
 
-* To import the online-auction-javaproject into IntellijIDEA you can have a look at [The Lagom Documentation for IDEA](http://www.lagomframework.com/documentation/1.3.x/java/IntellijSbtJava.html)
+* To import the online-auction-java project into IntellijIDEA you can have a look at [The Lagom Documentation for IDEA](http://www.lagomframework.com/documentation/1.3.x/java/IntellijSbtJava.html)
 * To import the online-auction-javaproject into Eclipse you can have a look at [The Lagom Documentation for Eclipse](http://www.lagomframework.com/documentation/1.3.x/java/EclipseSbt.html)
 * You will also need to add Lombok plugin in your IDE for annotations. Take a look at [The Lagom Documentation for Lombok](http://www.lagomframework.com/documentation/1.3.x/java/Immutable.html#Lombok)
 
@@ -55,7 +65,7 @@ See [Running Online Auction in ConductR Sandbox](docs/running-in-conductr.md) fo
 
 To get a better understanding of what can be done at each step of the application, inline instructions are displayed on the web UI. To disable these instructions, go to **[application.conf](web-gateway/conf/application.conf)** in the web-gateway micro-service and set **online-auction.instruction.show** to false.
 
-# Auction system - System architecture
+# Online auction system architecture
 
 The auction system is the sum of 5 micro-services and a web gateway:
 
