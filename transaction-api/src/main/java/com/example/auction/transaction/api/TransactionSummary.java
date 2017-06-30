@@ -8,16 +8,18 @@ import java.util.UUID;
 @Value
 public class TransactionSummary {
 
-    UUID itemId;
-    UUID creatorId;
-    UUID winnerId;
-    String itemTitle;
-    String currencyId;
-    int itemPrice;
-    TransactionInfoStatus status;
+    private final UUID userId;
+    private final UUID itemId;
+    private final UUID creatorId;
+    private final UUID winnerId;
+    private final String itemTitle;
+    private final String currencyId;
+    private final int itemPrice;
+    private final TransactionInfoStatus status;
 
     @JsonCreator
-    public TransactionSummary(UUID itemId, UUID creatorId, UUID winnerId, String itemTitle, String currencyId, int itemPrice, TransactionInfoStatus status) {
+    public TransactionSummary(UUID userId, UUID itemId, UUID creatorId, UUID winnerId, String itemTitle, String currencyId, int itemPrice, TransactionInfoStatus status) {
+        this.userId = userId;
         this.itemId = itemId;
         this.creatorId = creatorId;
         this.winnerId = winnerId;

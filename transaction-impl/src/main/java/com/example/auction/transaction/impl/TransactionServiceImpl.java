@@ -73,13 +73,14 @@ public class TransactionServiceImpl implements TransactionService {
                         return transactionInfo;
                     });
         });
-
     }
 
     @Override
     public ServiceCall<NotUsed, PaginatedSequence<TransactionSummary>> getTransactionsForUser(
-            UUID userId, TransactionInfoStatus status, Optional<Integer> pageNo, Optional<Integer> pageSize) {
-        return req -> transactions.getTransactionsForUser(userId, status, pageNo.orElse(0), pageSize.orElse(DEFAULT_PAGE_SIZE));
+            TransactionInfoStatus status, TransactionUserType userType, Optional<Integer> pageNo, Optional<Integer> pageSize) {
+        return authenticated(userId -> request ->
+            transactions.getTransactionsForUser(userId, status, userType, pageNo.orElse(0), pageSize.orElse(DEFAULT_PAGE_SIZE))
+        );
     }
 
     private PersistentEntityRef<TransactionCommand> entityRef(UUID itemId) {

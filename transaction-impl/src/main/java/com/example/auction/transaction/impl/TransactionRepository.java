@@ -6,6 +6,7 @@ import com.datastax.driver.extras.codecs.enums.EnumNameCodec;
 import com.example.auction.pagination.PaginatedSequence;
 import com.example.auction.transaction.api.TransactionInfoStatus;
 import com.example.auction.transaction.api.TransactionSummary;
+import com.example.auction.transaction.api.TransactionUserType;
 import com.lightbend.lagom.javadsl.persistence.AggregateEventTag;
 import com.lightbend.lagom.javadsl.persistence.ReadSide;
 import com.lightbend.lagom.javadsl.persistence.ReadSideProcessor;
@@ -38,42 +39,40 @@ public class TransactionRepository {
     }
 
     CompletionStage<PaginatedSequence<TransactionSummary>> getTransactionsForUser(
-            UUID userId, TransactionInfoStatus status, int page, int pageSize) {
-        return countTransactionSummary(userId, status)
+            UUID userId, TransactionInfoStatus status, TransactionUserType userType, int page, int pageSize) {
+        return countUserTransactions(userId, status)
                 .thenCompose(
                         count -> {
                             int offset = page * pageSize;
                             int limit = (page + 1) * pageSize;
                             CompletionStage<PSequence<TransactionSummary>> transactions = offset > count ?
                                     CompletableFuture.completedFuture(TreePVector.empty()) :
-                                    selectTransactionSummary(userId, status, offset, limit);
+                                    selectUserTransactions(userId, status, offset, limit);
                             return transactions.thenApply(seq -> new PaginatedSequence<>(seq, page, pageSize, count));
                         }
                 );
     }
 
-    private CompletionStage<Integer> countTransactionSummary(UUID userId, TransactionInfoStatus status) {
+    private CompletionStage<Integer> countUserTransactions(UUID userId, TransactionInfoStatus status) {
         return session
                 .selectOne(
-                        "SELECT COUNT(*) FROM transactionSummary " +
-                                "WHERE (creatorId = ? OR winnerId = ?) AND status = ? " +
-                                "ORDER BY itemId DESC",
-                        userId,
+                        "SELECT COUNT(*) FROM userTransactions " +
+                                "WHERE userId = ? AND status = ? " +
+                                "ORDER BY status ASC, itemId DESC",
                         userId,
                         status
                 )
                 .thenApply(row -> (int) row.get().getLong("count"));
     }
 
-    private CompletionStage<PSequence<TransactionSummary>> selectTransactionSummary(
+    private CompletionStage<PSequence<TransactionSummary>> selectUserTransactions(
             UUID userId, TransactionInfoStatus status, long offset, int limit) {
         return session
                 .selectAll(
-                        "SELECT * FROM transactionSummary " +
-                                "WHERE (creatorId = ? OR winnerId = ?) AND status = ? " +
-                                "ORDER BY itemId DESC " +
+                        "SELECT * FROM userTransactions " +
+                                "WHERE userId = ? AND status = ? " +
+                                "ORDER BY status ASC, itemId DESC " +
                                 "LIMIT ?",
-                        userId,
                         userId,
                         status,
                         limit
@@ -87,6 +86,7 @@ public class TransactionRepository {
 
     private static TransactionSummary toTransactionSummary(Row transaction) {
         return new TransactionSummary(
+                transaction.getUUID("userId"),
                 transaction.getUUID("itemId"),
                 transaction.getUUID("creatorId"),
                 transaction.getUUID("winnerId"),
@@ -101,7 +101,7 @@ public class TransactionRepository {
         private final CassandraSession session;
         private final CassandraReadSide readSide;
 
-        private PreparedStatement insertTransactionStatement;
+        private PreparedStatement insertUserTransactionsStatement;
 
         @Inject
         public TransactionEventProcessor(CassandraSession session, CassandraReadSide readSide) {
@@ -115,7 +115,7 @@ public class TransactionRepository {
                     .setGlobalPrepare(this::createTable)
                     .setPrepare(tag -> prepareStatements())
                     .setEventHandler(TransactionEvent.TransactionStarted.class,
-                            e -> insertTransaction(e.getItemId(), e.getTransaction()))
+                            e -> insertUserTransactions(e.getItemId(), e.getTransaction()))
                     .build();
         }
 
@@ -126,8 +126,9 @@ public class TransactionRepository {
 
         private CompletionStage<Done> createTable() {
             return session.executeCreateTable(
-                    "CREATE TABLE IF NOT EXISTS transactionSummary (" +
-                            "itemId timeuuid PRIMARY KEY, " +
+                    "CREATE TABLE IF NOT EXISTS userTransactions (" +
+                            "userId UUID, " +
+                            "itemId timeuuid, " +
                             "creatorId UUID, " +
                             "winnerId UUID, " +
                             "itemTitle text, " +
@@ -135,7 +136,7 @@ public class TransactionRepository {
                             "itemPrice int, " +
                             "status text" +
                             ") " +
-                            "WITH CLUSTERING ORDER BY (itemId DESC)"
+                            "WITH CLUSTERING ORDER BY (status ASC, itemId DESC)"
             );
         }
 
@@ -150,7 +151,8 @@ public class TransactionRepository {
 
         private CompletionStage<Done> prepareInsertTransactionStatement() {
             return session.
-                    prepare("INSERT INTO transactionSummary(" +
+                    prepare("INSERT INTO userTransactions (" +
+                            "userId UUID, " +
                             "itemId timeuuid, " +
                             "creatorId UUID, " +
                             "winnerId UUID, " +
@@ -159,6 +161,7 @@ public class TransactionRepository {
                             "itemPrice int, " +
                             "status text" +
                             ") VALUES (" +
+                            "?, " + // userId
                             "?, " + // itemId
                             "?, " + // creatorId
                             "?, " + // winnerId
@@ -168,24 +171,36 @@ public class TransactionRepository {
                             "?" +   // status
                             ")"
                     )
-                    .thenApply(accept(s -> insertTransactionStatement = s));
+                    .thenApply(accept(s -> insertUserTransactionsStatement = s));
         }
 
-        private CompletionStage<List<BoundStatement>> insertTransaction(UUID itemId, Transaction transaction) {
+        private CompletionStage<List<BoundStatement>> insertUserTransactions(UUID itemId, Transaction transaction) {
             return CassandraReadSide.completedStatements(
                     Arrays.asList(
-                        insertTransactionStatement.bind(
-                                itemId,
-                                transaction.getCreator(),
-                                transaction.getWinner(),
-                                transaction.getItemData().getTitle(),
-                                transaction.getItemData().getCurrencyId(),
-                                transaction.getItemPrice(),
-                                TransactionInfoStatus.NEGOTIATING_DELIVERY
+                            insertUserTransactionsStatement.bind(
+                                    transaction.getCreator(),
+                                    itemId,
+                                    transaction.getCreator(),
+                                    transaction.getWinner(),
+                                    transaction.getItemData().getTitle(),
+                                    transaction.getItemData().getCurrencyId(),
+                                    transaction.getItemPrice(),
+                                    TransactionInfoStatus.NEGOTIATING_DELIVERY
 
-                        )
+                            ),
+                            insertUserTransactionsStatement.bind(
+                                    transaction.getWinner(),
+                                    itemId,
+                                    transaction.getCreator(),
+                                    transaction.getWinner(),
+                                    transaction.getItemData().getTitle(),
+                                    transaction.getItemData().getCurrencyId(),
+                                    transaction.getItemPrice(),
+                                    TransactionInfoStatus.NEGOTIATING_DELIVERY
+
+                            )
                     )
-                );
+            );
         }
 
         private void registerCodec(Session session, TypeCodec<?> codec) {
