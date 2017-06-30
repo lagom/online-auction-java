@@ -1,4 +1,4 @@
-package com.example.auction.item.impl.testkit;
+package com.example.core;
 
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ExecutionException;

@@ -27,6 +27,16 @@ lazy val security = (project in file("security"))
     )
   )
 
+
+lazy val testkit = (project in file("testkit"))
+  .settings(commonSettings: _*)
+  .settings(
+    version := "1.0-SNAPSHOT",
+    libraryDependencies ++= Seq(
+      lagomJavadslApi
+    )
+  )
+
 lazy val itemApi = (project in file("item-api"))
   .settings(commonSettings: _*)
   .settings(
@@ -52,7 +62,12 @@ lazy val itemImpl = (project in file("item-impl"))
     )
   )
   .settings(lagomForkedTestSettings: _*)
-  .dependsOn(tools % "test -> test", itemApi, biddingApi)
+  .dependsOn(
+    tools % "test -> test",
+    testkit % "test -> test",
+    itemApi,
+    biddingApi
+  )
 
 lazy val biddingApi = (project in file("bidding-api"))
   .settings(commonSettings: _*)
