@@ -64,7 +64,7 @@ public class UserServiceImpl implements UserService {
         // Note this should never make production....
         return req -> currentIdsQuery.currentPersistenceIds()
                 .filter(id -> id.startsWith("PUserEntity"))
-                .mapAsync(4, id -> entityRef(id.substring(10)).ask(PUserCommand.GetPUser.INSTANCE))
+                .mapAsync(4, id -> entityRef(id.substring(11)).ask(PUserCommand.GetPUser.INSTANCE))
                 .filter(Optional::isPresent)
                 .map(user -> Mappers.toApi(user.get()))
                 .runWith(Sink.seq(), mat)
