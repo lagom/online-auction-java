@@ -6,7 +6,7 @@ import com.example.auction.item.api.ItemSummary;
 import com.example.auction.pagination.PaginatedSequence;
 import com.example.auction.item.impl.testkit.Await;
 import com.example.auction.item.impl.testkit.DoNothingTopicFactory;
-import com.example.auction.item.impl.testkit.ReadSideTestDriver;
+import com.example.core.ReadSideTestDriver;
 import com.lightbend.lagom.internal.javadsl.api.broker.TopicFactory;
 import com.lightbend.lagom.javadsl.persistence.Offset;
 import com.lightbend.lagom.javadsl.persistence.ReadSide;
