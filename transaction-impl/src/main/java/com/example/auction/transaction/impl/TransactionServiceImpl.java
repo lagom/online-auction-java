@@ -77,9 +77,9 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Override
     public ServiceCall<NotUsed, PaginatedSequence<TransactionSummary>> getTransactionsForUser(
-            TransactionInfoStatus status, TransactionUserType userType, Optional<Integer> pageNo, Optional<Integer> pageSize) {
+            TransactionInfoStatus status, Optional<Integer> pageNo, Optional<Integer> pageSize) {
         return authenticated(userId -> request ->
-            transactions.getTransactionsForUser(userId, status, userType, pageNo.orElse(0), pageSize.orElse(DEFAULT_PAGE_SIZE))
+            transactions.getTransactionsForUser(userId, status, pageNo.orElse(0), pageSize.orElse(DEFAULT_PAGE_SIZE))
         );
     }
 

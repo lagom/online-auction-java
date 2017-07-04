@@ -48,7 +48,7 @@ lazy val itemImpl = (project in file("item-impl"))
       lagomJavadslPersistenceCassandra,
       lagomJavadslTestKit,
       lagomJavadslKafkaBroker,
-      "com.datastax.cassandra" % "cassandra-driver-extras" % "3.0.0"
+      cassandraExtras
     )
   )
   .settings(lagomForkedTestSettings: _*)
@@ -141,7 +141,7 @@ lazy val transactionImpl = (project in file("transaction-impl"))
       lagomJavadslPersistenceCassandra,
       lagomJavadslTestKit,
       lagomJavadslKafkaBroker,
-      "com.datastax.cassandra" % "cassandra-driver-extras" % "3.0.0"
+      cassandraExtras
     )
   )
 
@@ -188,6 +188,7 @@ lazy val webGateway = (project in file("web-gateway"))
   )
 
 val lombok = "org.projectlombok" % "lombok" % "1.16.10"
+val cassandraExtras = "com.datastax.cassandra" % "cassandra-driver-extras" % "3.0.0"
 
 def elasticsearch : String = {
   val enableElasticsearch = sys.props.getOrElse("enableElasticsearch", default = "false")

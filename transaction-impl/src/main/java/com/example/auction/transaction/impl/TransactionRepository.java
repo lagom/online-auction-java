@@ -39,7 +39,7 @@ public class TransactionRepository {
     }
 
     CompletionStage<PaginatedSequence<TransactionSummary>> getTransactionsForUser(
-            UUID userId, TransactionInfoStatus status, TransactionUserType userType, int page, int pageSize) {
+            UUID userId, TransactionInfoStatus status, int page, int pageSize) {
         return countUserTransactions(userId, status)
                 .thenCompose(
                         count -> {
@@ -86,7 +86,6 @@ public class TransactionRepository {
 
     private static TransactionSummary toTransactionSummary(Row transaction) {
         return new TransactionSummary(
-                transaction.getUUID("userId"),
                 transaction.getUUID("itemId"),
                 transaction.getUUID("creatorId"),
                 transaction.getUUID("winnerId"),

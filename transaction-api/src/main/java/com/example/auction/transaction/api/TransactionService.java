@@ -43,7 +43,7 @@ public interface TransactionService extends Service {
     ServiceCall<NotUsed, TransactionInfo> getTransaction(UUID itemId);
 
     ServiceCall<NotUsed, PaginatedSequence<TransactionSummary>> getTransactionsForUser(
-            TransactionInfoStatus status, TransactionUserType userType, Optional<Integer> pageNo, Optional<Integer> pageSize);
+            TransactionInfoStatus status, Optional<Integer> pageNo, Optional<Integer> pageSize);
 
     /**
      * The transaction events topic.
@@ -55,13 +55,11 @@ public interface TransactionService extends Service {
         return named("transaction").withCalls(
                 pathCall("/api/transaction/:id", this::submitDeliveryDetails),
                 pathCall("/api/transaction/:id", this::getTransaction),
-                pathCall("/api/transaction?userId&status&pageNo&pageSize", this::getTransactionsForUser)
+                pathCall("/api/transaction?status&pageNo&pageSize", this::getTransactionsForUser)
         ).withPathParamSerializer(
                 UUID.class, PathParamSerializers.required("UUID", UUID::fromString, UUID::toString)
         ).withPathParamSerializer(
                 TransactionInfoStatus.class, PathParamSerializers.required("TransactionInfoStatus", TransactionInfoStatus::valueOf, TransactionInfoStatus::toString)
-        ).withPathParamSerializer(
-                TransactionUserType.class, PathParamSerializers.required("TransactionUserType", TransactionUserType::valueOf, TransactionUserType::toString)
         ).withHeaderFilter(SecurityHeaderFilter.INSTANCE);
     }
 
