@@ -21,8 +21,8 @@ public class Main extends AbstractController {
     public CompletionStage<Result> index() {
         return withUser(ctx(), userId ->
                 loadNav(userId).thenApplyAsync(nav ->
-                                ok(views.html.index.render(nav))
-                        , ec.current())
+                                ok(views.html.index.render(nav)),
+                        ec.current())
         );
     }
 

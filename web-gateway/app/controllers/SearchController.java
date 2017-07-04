@@ -40,7 +40,7 @@ public class SearchController extends AbstractController {
                             FormFactory formFactory,
                             SearchService searchService,
                             HttpExecutionContext ec
-                            ) {
+    ) {
         super(messagesApi, userService);
         this.formFactory = formFactory;
         this.searchService = searchService;
@@ -54,8 +54,8 @@ public class SearchController extends AbstractController {
         Form<SearchItemForm> form = formFactory.form(SearchItemForm.class).bindFromRequest(ctx.request());
 
         return loadNav(Optional.empty()).thenApplyAsync(nav ->
-                ok(views.html.searchItem.render(showInlineInstruction, form, Optional.empty(), nav))
-                ,ec.current());
+                        ok(views.html.searchItem.render(showInlineInstruction, form, Optional.empty(), nav)),
+                ec.current());
     }
 
     public CompletionStage<Result> search() {
@@ -81,14 +81,14 @@ public class SearchController extends AbstractController {
                                                                     searchResult.getPageSize(),
                                                                     searchResult.getCount());
                                                     return ok(searchItem.render(showInlineInstruction, form, Optional.of(page), nav));
-                                                }
-                                                ,ec.current()
+                                                },
+                                                ec.current()
                                         ).exceptionally(exception ->
                                                 ok(views.html.searchItem.render(showInlineInstruction, form, Optional.empty(), nav))
                                         );
                             }
-                        }
-                        ,ec.current() )
+                        },
+                        ec.current())
         );
     }
 

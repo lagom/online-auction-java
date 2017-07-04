@@ -57,8 +57,8 @@ public class ItemController extends AbstractController {
     public CompletionStage<Result> createItemForm() {
         return requireUser(ctx(), user ->
                 loadNav(user).thenApplyAsync(nav ->
-                                ok(views.html.createItem.render(showInlineInstruction, formFactory.form(ItemForm.class).fill(new ItemForm()), nav))
-                        , ec.current())
+                                ok(views.html.createItem.render(showInlineInstruction, formFactory.form(ItemForm.class).fill(new ItemForm()), nav)),
+                        ec.current())
         );
     }
 
@@ -70,8 +70,8 @@ public class ItemController extends AbstractController {
 
             if (form.hasErrors()) {
                 return loadNav(user).thenApplyAsync(nav ->
-                                ok(views.html.createItem.render(showInlineInstruction, form, nav))
-                        , ec.current());
+                                ok(views.html.createItem.render(showInlineInstruction, form, nav)),
+                        ec.current());
             } else {
                 ItemData payload = fromForm(form.get());
                 return itemService
@@ -128,8 +128,8 @@ public class ItemController extends AbstractController {
                                                         Optional.empty(),
                                                         nav)
                                         );
-                                    }
-                                    , ec.current());
+                                    },
+                                    ec.current());
                         }
                 )
         );
@@ -273,8 +273,8 @@ public class ItemController extends AbstractController {
         return requireUser(ctx(), user ->
                 itemService.startAuction(UUID.fromString(itemId))
                         .handleRequestHeader(authenticate(user)).invoke().thenApplyAsync(done ->
-                                redirect(routes.ItemController.getItem(itemId))
-                        , ec.current())
+                                redirect(routes.ItemController.getItem(itemId)),
+                        ec.current())
         );
     }
 
@@ -299,8 +299,8 @@ public class ItemController extends AbstractController {
                                     ctx.flash().put("bidResultStatus", bidResult.getStatus().name());
                                     ctx.flash().put("bidResultPrice", Integer.toString(bidResult.getCurrentPrice()));
                                     return redirect(routes.ItemController.getItem(itemId));
-                                }
-                                , ec.current());
+                                },
+                                ec.current());
             }
         });
     }

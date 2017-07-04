@@ -46,8 +46,8 @@ public class ProfileController extends AbstractController {
         return requireUser(ctx(),
                 userId -> loadNav(userId).thenCombineAsync(
                         getItemsForUser(userId, status, page, pageSize), (nav, items) ->
-                                ok(views.html.myItems.render(showInlineInstruction, status, items, nav))
-                        , ec.current())
+                                ok(views.html.myItems.render(showInlineInstruction, status, items, nav)),
+                        ec.current())
         );
     }
 
