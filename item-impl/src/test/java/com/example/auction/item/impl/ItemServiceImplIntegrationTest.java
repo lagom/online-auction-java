@@ -7,7 +7,7 @@ import akka.stream.javadsl.Source;
 import com.example.auction.bidding.api.*;
 import com.example.auction.item.api.*;
 import com.example.auction.item.api.Item;
-import com.example.core.Await;
+import com.example.testkit.Await;
 import com.example.auction.pagination.PaginatedSequence;
 import com.lightbend.lagom.javadsl.api.ServiceCall;
 import com.lightbend.lagom.javadsl.api.broker.Topic;

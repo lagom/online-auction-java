@@ -1,4 +1,4 @@
-package com.example.core;
+package com.example.testkit;
 
 import akka.Done;
 import akka.stream.javadsl.Flow;

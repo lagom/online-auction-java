@@ -1,4 +1,4 @@
-package com.example.core;
+package com.example.testkit;
 
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ExecutionException;

@@ -8,7 +8,7 @@ EclipseKeys.projectFlavor in Global := EclipseProjectFlavor.Java
 lazy val root = (project in file("."))
   .settings(name := "online-auction-java")
   .aggregate(
-    tools,
+    tools, testkit, security,
     itemApi, itemImpl,
     biddingApi, biddingImpl,
     userApi, userImpl,
@@ -33,9 +33,11 @@ lazy val testkit = (project in file("testkit"))
   .settings(
     version := "1.0-SNAPSHOT",
     libraryDependencies ++= Seq(
-      lagomJavadslApi
+      lagomJavadslApi,
+      lagomJavadslPersistenceCassandra
     )
   )
+  .dependsOn(tools)
 
 lazy val itemApi = (project in file("item-api"))
   .settings(commonSettings: _*)
@@ -63,8 +65,8 @@ lazy val itemImpl = (project in file("item-impl"))
   )
   .settings(lagomForkedTestSettings: _*)
   .dependsOn(
-    tools % "test -> test",
-    testkit % "test -> test",
+    tools,
+    testkit % "test",
     itemApi,
     biddingApi
   )
@@ -128,9 +130,8 @@ lazy val tools = (project in file("tools"))
     version := "1.0-SNAPSHOT",
     libraryDependencies ++= Seq(
       lagomJavadslApi,
-      lagomJavadslTestKit,
       lombok
-    ) ++ lagomJUnitDeps
+    )
   )
 
 
