@@ -6,10 +6,12 @@ import com.example.auction.item.api.*;
 import com.example.auction.user.api.User;
 import com.example.auction.user.api.UserService;
 import com.lightbend.lagom.javadsl.api.transport.TransportException;
+import com.typesafe.config.Config;
 import org.pcollections.PSequence;
 import play.data.Form;
 import play.data.FormFactory;
 import play.i18n.MessagesApi;
+import play.libs.concurrent.HttpExecutionContext;
 import play.mvc.Http;
 import play.mvc.Result;
 import views.html.editItem;
@@ -33,23 +35,30 @@ public class ItemController extends AbstractController {
     private final BiddingService bidService;
 
     private final Boolean showInlineInstruction;
+    private HttpExecutionContext ec;
 
     @Inject
-    public ItemController(Configuration config, MessagesApi messagesApi, UserService userService, FormFactory formFactory,
-                          ItemService itemService, BiddingService bidService) {
+    public ItemController(Config config,
+                          MessagesApi messagesApi,
+                          UserService userService,
+                          FormFactory formFactory,
+                          ItemService itemService,
+                          BiddingService bidService,
+                          HttpExecutionContext ec) {
         super(messagesApi, userService);
         this.formFactory = formFactory;
         this.itemService = itemService;
         this.bidService = bidService;
 
         showInlineInstruction = config.getBoolean("online-auction.instruction.show");
+        this.ec = ec;
     }
 
     public CompletionStage<Result> createItemForm() {
         return requireUser(ctx(), user ->
-                loadNav(user).thenApply(nav ->
-                        ok(views.html.createItem.render(showInlineInstruction, formFactory.form(ItemForm.class).fill(new ItemForm()), nav))
-                )
+                loadNav(user).thenApplyAsync(nav ->
+                                ok(views.html.createItem.render(showInlineInstruction, formFactory.form(ItemForm.class).fill(new ItemForm()), nav)),
+                        ec.current())
         );
     }
 
@@ -60,9 +69,9 @@ public class ItemController extends AbstractController {
             Form<ItemForm> form = formFactory.form(ItemForm.class).bindFromRequest(ctx.request());
 
             if (form.hasErrors()) {
-                return loadNav(user).thenApply(nav ->
-                        ok(views.html.createItem.render(showInlineInstruction, form, nav))
-                );
+                return loadNav(user).thenApplyAsync(nav ->
+                                ok(views.html.createItem.render(showInlineInstruction, form, nav)),
+                        ec.current());
             } else {
                 ItemData payload = fromForm(form.get());
                 return itemService
@@ -93,7 +102,7 @@ public class ItemController extends AbstractController {
                 loadNav(user).thenCompose(nav -> {
                             UUID itemUuid = UUID.fromString(itemId);
                             CompletionStage<Item> itemFuture = itemService.getItem(itemUuid).handleRequestHeader(authenticate(user)).invoke();
-                            return itemFuture.thenApply(item -> {
+                            return itemFuture.thenApplyAsync(item -> {
                                         ItemForm itemForm = new ItemForm();
                                         ItemData data = item.getItemData();
 
@@ -119,8 +128,8 @@ public class ItemController extends AbstractController {
                                                         Optional.empty(),
                                                         nav)
                                         );
-                                    }
-                            );
+                                    },
+                                    ec.current());
                         }
                 )
         );
@@ -153,7 +162,7 @@ public class ItemController extends AbstractController {
                                 return loadNav(user).thenApply(nav -> ok(
                                         editItem.render(showInlineInstruction, itemId, form, itemStatus, Optional.of(msg), nav)));
                             }
-                        }).thenCompose((x) -> x);
+                        }).thenComposeAsync((x) -> x, ec.current());
             }
         });
     }
@@ -163,7 +172,7 @@ public class ItemController extends AbstractController {
     }
 
     private CompletionStage<Result> doGetItem(Http.Context ctx, String itemId, Form<BidForm> bidForm) {
-        return requireUser(ctx, user -> loadNav(user).thenCompose(nav -> {
+        return requireUser(ctx, user -> loadNav(user).thenComposeAsync(nav -> {
             UUID itemUuid = UUID.fromString(itemId);
             CompletionStage<Item> itemFuture = itemService.getItem(itemUuid)
                     .handleRequestHeader(authenticate(user)).invoke();
@@ -214,8 +223,8 @@ public class ItemController extends AbstractController {
                 Optional<BidResult> bidResult = loadBidResult(ctx.flash());
 
                 return ok(views.html.item.render(showInlineInstruction, item, bidForm, anonymizeBids(user, currency, bidHistory), user, currency, seller, winner, currentBidMaximum, bidResult, nav));
-            });
-        }));
+            }, ec.current());
+        }, ec.current()));
     }
 
     private List<AnonymousBid> anonymizeBids(UUID userId, Currency currency, List<Bid> bids) {
@@ -263,9 +272,9 @@ public class ItemController extends AbstractController {
     public CompletionStage<Result> startAuction(String itemId) {
         return requireUser(ctx(), user ->
                 itemService.startAuction(UUID.fromString(itemId))
-                        .handleRequestHeader(authenticate(user)).invoke().thenApply(done ->
-                        redirect(routes.ItemController.getItem(itemId))
-                )
+                        .handleRequestHeader(authenticate(user)).invoke().thenApplyAsync(done ->
+                                redirect(routes.ItemController.getItem(itemId)),
+                        ec.current())
         );
     }
 
@@ -286,11 +295,12 @@ public class ItemController extends AbstractController {
 
                 return bidService.placeBid(itemUuid)
                         .handleRequestHeader(authenticate(user))
-                        .invoke(new PlaceBid(bidPrice)).thenApply(bidResult -> {
-                            ctx.flash().put("bidResultStatus", bidResult.getStatus().name());
-                            ctx.flash().put("bidResultPrice", Integer.toString(bidResult.getCurrentPrice()));
-                            return redirect(routes.ItemController.getItem(itemId));
-                        });
+                        .invoke(new PlaceBid(bidPrice)).thenApplyAsync(bidResult -> {
+                                    ctx.flash().put("bidResultStatus", bidResult.getStatus().name());
+                                    ctx.flash().put("bidResultPrice", Integer.toString(bidResult.getCurrentPrice()));
+                                    return redirect(routes.ItemController.getItem(itemId));
+                                },
+                                ec.current());
             }
         });
     }
