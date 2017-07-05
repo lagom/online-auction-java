@@ -163,7 +163,8 @@ lazy val userImpl = (project in file("user-impl"))
     version := "1.0-SNAPSHOT",
     libraryDependencies ++= Seq(
       lagomJavadslPersistenceCassandra,
-      lagomJavadslTestKit
+      lagomJavadslTestKit,
+      "de.svenkubiak" % "jBCrypt" % "0.4"
     )
   )
 

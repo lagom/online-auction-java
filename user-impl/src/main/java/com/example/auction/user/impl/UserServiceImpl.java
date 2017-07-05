@@ -41,7 +41,8 @@ public class UserServiceImpl implements UserService {
     public ServiceCall<UserRegistration, User> createUser() {
         return user -> {
             UUID uuid = UUID.randomUUID();
-            PUser pUser = new PUser(uuid, user.getName(), user.getEmail());
+            String password = PUserCommand.hashPassword(user.getPassword());
+            PUser pUser = new PUser(uuid, user.getName(), user.getEmail(),password);
             return entityRef(uuid)
                     .ask(new PUserCommand.CreatePUser(pUser))
                     .thenApply(done -> Mappers.toApi(pUser));
