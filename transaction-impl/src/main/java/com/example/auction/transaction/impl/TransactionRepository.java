@@ -6,7 +6,6 @@ import com.datastax.driver.extras.codecs.enums.EnumNameCodec;
 import com.example.auction.pagination.PaginatedSequence;
 import com.example.auction.transaction.api.TransactionInfoStatus;
 import com.example.auction.transaction.api.TransactionSummary;
-import com.example.auction.transaction.api.TransactionUserType;
 import com.lightbend.lagom.javadsl.persistence.AggregateEventTag;
 import com.lightbend.lagom.javadsl.persistence.ReadSide;
 import com.lightbend.lagom.javadsl.persistence.ReadSideProcessor;
