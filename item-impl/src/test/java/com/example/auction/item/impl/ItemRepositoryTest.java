@@ -29,7 +29,7 @@ import static com.lightbend.lagom.javadsl.testkit.ServiceTest.defaultSetup;
 import static org.junit.Assert.assertEquals;
 
 
-public class ItemEventProcessorTest {
+public class ItemRepositoryTest {
 
     private final static ServiceTest.Setup setup = defaultSetup().withCassandra(true)
             .configureBuilder(b ->
