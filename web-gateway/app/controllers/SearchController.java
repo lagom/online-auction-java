@@ -5,9 +5,11 @@ import com.example.auction.search.api.SearchItem;
 import com.example.auction.search.api.SearchRequest;
 import com.example.auction.search.api.SearchService;
 import com.example.auction.user.api.UserService;
+import com.typesafe.config.Config;
 import play.data.Form;
 import play.data.FormFactory;
 import play.i18n.MessagesApi;
+import play.libs.concurrent.HttpExecutionContext;
 import play.mvc.Http;
 import play.mvc.Result;
 import views.html.searchItem;
@@ -29,34 +31,38 @@ public class SearchController extends AbstractController {
     private final SearchService searchService;
 
     private final Boolean showInlineInstruction;
+    private HttpExecutionContext ec;
 
     @Inject
-    public SearchController(Configuration config,
+    public SearchController(Config config,
                             MessagesApi messagesApi,
                             UserService userService,
                             FormFactory formFactory,
-                            SearchService searchService) {
+                            SearchService searchService,
+                            HttpExecutionContext ec
+    ) {
         super(messagesApi, userService);
         this.formFactory = formFactory;
         this.searchService = searchService;
 
         showInlineInstruction = config.getBoolean("online-auction.instruction.show");
+        this.ec = ec;
     }
 
     public CompletionStage<Result> searchForm() {
         Http.Context ctx = ctx();
         Form<SearchItemForm> form = formFactory.form(SearchItemForm.class).bindFromRequest(ctx.request());
 
-        return loadNav(Optional.empty()).thenApply(nav ->
-                ok(views.html.searchItem.render(showInlineInstruction, form, Optional.empty(), nav))
-        );
+        return loadNav(Optional.empty()).thenApplyAsync(nav ->
+                        ok(views.html.searchItem.render(showInlineInstruction, form, Optional.empty(), nav)),
+                ec.current());
     }
 
     public CompletionStage<Result> search() {
         Http.Context ctx = ctx();
         Form<SearchItemForm> form = formFactory.form(SearchItemForm.class).bindFromRequest(ctx.request());
         return withUser(ctx, maybeUser ->
-                loadNav(maybeUser).thenCompose(nav -> {
+                loadNav(maybeUser).thenComposeAsync(nav -> {
                             if (form.hasErrors()) {
                                 return CompletableFuture.completedFuture(ok(views.html.searchItem.render(showInlineInstruction, form, Optional.empty(), nav)));
                             } else {
@@ -68,20 +74,21 @@ public class SearchController extends AbstractController {
                                 return searchService
                                         .search(pageNumber, DEFAULT_PAGE_SIZE)
                                         .invoke(buildSearchRequest(searchItemForm))
-                                        .thenApply(searchResult -> {
+                                        .thenApplyAsync(searchResult -> {
                                                     PaginatedSequence<SearchItem> page =
                                                             new PaginatedSequence<>(searchResult.getItems(),
                                                                     searchResult.getPage(),
                                                                     searchResult.getPageSize(),
                                                                     searchResult.getCount());
                                                     return ok(searchItem.render(showInlineInstruction, form, Optional.of(page), nav));
-                                                }
+                                                },
+                                                ec.current()
                                         ).exceptionally(exception ->
                                                 ok(views.html.searchItem.render(showInlineInstruction, form, Optional.empty(), nav))
                                         );
                             }
-                        }
-                )
+                        },
+                        ec.current())
         );
     }
 

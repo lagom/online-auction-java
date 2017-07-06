@@ -5,7 +5,9 @@ import com.example.auction.item.api.ItemStatus;
 import com.example.auction.item.api.ItemSummary;
 import com.example.auction.pagination.PaginatedSequence;
 import com.example.auction.user.api.UserService;
+import com.typesafe.config.Config;
 import play.i18n.MessagesApi;
+import play.libs.concurrent.HttpExecutionContext;
 import play.mvc.Call;
 import play.mvc.Result;
 import play.Configuration;
@@ -24,13 +26,19 @@ public class ProfileController extends AbstractController {
     private final ItemService itemService;
 
     private final Boolean showInlineInstruction;
+    private HttpExecutionContext ec;
 
     @Inject
-    public ProfileController(Configuration config, MessagesApi messagesApi, UserService userService, ItemService itemService) {
+    public ProfileController(Config config,
+                             MessagesApi messagesApi,
+                             UserService userService,
+                             ItemService itemService,
+                             HttpExecutionContext ec) {
         super(messagesApi, userService);
         this.itemService = itemService;
 
         showInlineInstruction = config.getBoolean("online-auction.instruction.show");
+        this.ec = ec;
     }
 
     public CompletionStage<Result> myItems(String statusParam, int page, int pageSize) {
@@ -38,8 +46,8 @@ public class ProfileController extends AbstractController {
         return requireUser(ctx(),
                 userId -> loadNav(userId).thenCombineAsync(
                         getItemsForUser(userId, status, page, pageSize), (nav, items) ->
-                                ok(views.html.myItems.render(showInlineInstruction, status, items, nav))
-                )
+                                ok(views.html.myItems.render(showInlineInstruction, status, items, nav)),
+                        ec.current())
         );
     }
 
