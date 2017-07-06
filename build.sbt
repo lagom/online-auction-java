@@ -150,8 +150,12 @@ lazy val transactionImpl = (project in file("transaction-impl"))
   .settings(commonSettings: _*)
   .settings(kafkaSettings: _*)
   .enablePlugins(LagomJava)
-  .dependsOn(transactionApi, itemApi)
-  .settings(
+  .dependsOn(
+    transactionApi,
+    itemApi,
+    tools,
+    testkit % "test"
+  ).settings(
     version := "1.0-SNAPSHOT",
     libraryDependencies ++= Seq(
       lagomJavadslPersistenceCassandra,
