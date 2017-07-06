@@ -42,10 +42,16 @@ public class UserServiceImpl implements UserService {
         return user -> {
             UUID uuid = UUID.randomUUID();
             String password = PUserCommand.hashPassword(user.getPassword());
-            PUser pUser = new PUser(uuid, user.getName(), user.getEmail(),password);
-            return entityRef(uuid)
-                    .ask(new PUserCommand.CreatePUser(pUser))
-                    .thenApply(done -> Mappers.toApi(pUser));
+            entityRef(uuid)
+                    .ask(new PUserCommand.CreatePUser(user.getName(), user.getEmail(),password));
+
+            return entityRef(uuid).ask(PUserCommand.GetPUser.INSTANCE).thenApply(maybeUser -> {
+                if (maybeUser.isPresent()) {
+                    return Mappers.toApi(maybeUser.get());
+                } else {
+                    throw new NotFound("user " + uuid + " not created");
+                }
+            });
         };
     }
 

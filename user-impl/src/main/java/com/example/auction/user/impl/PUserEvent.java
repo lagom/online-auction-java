@@ -10,10 +10,6 @@ public interface PUserEvent extends Jsonable, AggregateEvent<PUserEvent> {
     @Value
     final class PUserCreated implements PUserEvent {
         private final PUser user;
-
-        public PUserCreated(PUser user) {
-            this.user = user;
-        }
     }
 
     @Override

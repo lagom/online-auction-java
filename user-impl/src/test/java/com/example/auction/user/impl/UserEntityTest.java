@@ -55,16 +55,16 @@ public class UserEntityTest {
     @Test
     public void testCreateUser() {
         Outcome<PUserEvent, Optional<PUser>> outcome = driver.run(
-                new CreatePUser(user));
+                new CreatePUser(user.getName(), user.getEmail(), user.getPasswordHash()));
         assertEquals(user, outcome.getReplies().get(0));
         assertEquals(Collections.emptyList(), driver.getAllIssues());
     }
 
     @Test
     public void testRejectDuplicateCreate() {
-        driver.run(new CreatePUser(user));
+        driver.run(new CreatePUser(user.getName(), user.getEmail(), user.getPasswordHash()));
         Outcome<PUserEvent, Optional<PUser>> outcome = driver.run(
-                new CreatePUser(user));
+                new CreatePUser(user.getName(), user.getEmail(), user.getPasswordHash()));
         assertEquals(PUserEntity.InvalidCommandException.class, outcome.getReplies().get(0).getClass());
         assertEquals(Collections.emptyList(), outcome.events());
         assertEquals(Collections.emptyList(), driver.getAllIssues());

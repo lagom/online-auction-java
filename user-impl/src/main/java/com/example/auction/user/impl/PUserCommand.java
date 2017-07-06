@@ -14,13 +14,6 @@ public interface PUserCommand extends Jsonable {
         private final String name;
         private final String email;
         private final String passwordHash;
-
-        @JsonCreator
-        public CreatePUser(PUser user) {
-            this.name = user.getName();
-            this.email = user.getEmail();
-            this.passwordHash = user.getPasswordHash();
-        }
     }
         public static String hashPassword(String password_plaintext) {
             String salt = BCrypt.gensalt(12);
