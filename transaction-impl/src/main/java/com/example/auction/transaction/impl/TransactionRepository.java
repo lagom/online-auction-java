@@ -132,7 +132,8 @@ public class TransactionRepository {
                             "itemTitle text, " +
                             "currencyId text, " +
                             "itemPrice int, " +
-                            "status text" +
+                            "status text, " +
+                            "PRIMARY KEY (userId, status, itemId)" +
                             ") " +
                             "WITH CLUSTERING ORDER BY (status ASC, itemId DESC)"
             );
@@ -149,15 +150,15 @@ public class TransactionRepository {
 
         private CompletionStage<Done> prepareInsertTransactionStatement() {
             return session.
-                    prepare("INSERT INTO userTransactions (" +
-                            "userId UUID, " +
-                            "itemId timeuuid, " +
-                            "creatorId UUID, " +
-                            "winnerId UUID, " +
-                            "itemTitle text, " +
-                            "currencyId text, " +
-                            "itemPrice int, " +
-                            "status text" +
+                    prepare("INSERT INTO userTransactions(" +
+                            "userId, " +
+                            "itemId, " +
+                            "creatorId, " +
+                            "winnerId, " +
+                            "itemTitle, " +
+                            "currencyId, " +
+                            "itemPrice, " +
+                            "status" +
                             ") VALUES (" +
                             "?, " + // userId
                             "?, " + // itemId

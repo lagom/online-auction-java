@@ -1,7 +1,7 @@
 package com.example.auction.transaction.impl;
 
+import com.datastax.driver.core.utils.UUIDs;
 import com.example.auction.item.api.ItemData;
-import com.example.auction.item.api.ItemSummary;
 import com.example.auction.pagination.PaginatedSequence;
 import com.example.auction.transaction.api.TransactionInfoStatus;
 import com.example.auction.transaction.api.TransactionSummary;
@@ -55,7 +55,7 @@ public class TransactionRepositoryTest {
     private TransactionRepository transactionRepository = testServer.injector().instanceOf(TransactionRepository.class);
     private AtomicInteger offset;
 
-    private final UUID itemId = UUID.randomUUID();
+    private final UUID itemId = UUIDs.timeBased();
     private final UUID creatorId = UUID.randomUUID();
     private final UUID winnerId = UUID.randomUUID();
     private final String itemTitle = "title";
@@ -79,10 +79,7 @@ public class TransactionRepositoryTest {
     }
 
     private PaginatedSequence<TransactionSummary> getTransactions(UUID userId, TransactionInfoStatus transactionStatus) throws InterruptedException, ExecutionException, TimeoutException {
-        return Await.result(
-                transactionRepository
-                        .getTransactionsForUser(userId, transactionStatus, 0, 10)
-        );
+        return Await.result(transactionRepository.getTransactionsForUser(userId, transactionStatus, 0, 10));
     }
 
     private void feed(TransactionEvent transactionEvent) throws InterruptedException, ExecutionException, TimeoutException {
