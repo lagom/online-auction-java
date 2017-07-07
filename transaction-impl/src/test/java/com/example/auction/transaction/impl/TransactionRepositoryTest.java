@@ -1,6 +1,7 @@
 package com.example.auction.transaction.impl;
 
 import com.example.auction.item.api.ItemData;
+import com.example.auction.item.api.ItemSummary;
 import com.example.auction.pagination.PaginatedSequence;
 import com.example.auction.transaction.api.TransactionInfoStatus;
 import com.example.auction.transaction.api.TransactionSummary;
@@ -23,9 +24,9 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static com.example.auction.security.ClientSecurity.authenticate;
 import static com.lightbend.lagom.javadsl.testkit.ServiceTest.bind;
 import static com.lightbend.lagom.javadsl.testkit.ServiceTest.defaultSetup;
+import static org.junit.Assert.assertEquals;
 
 public class TransactionRepositoryTest {
 
@@ -55,10 +56,13 @@ public class TransactionRepositoryTest {
     private AtomicInteger offset;
 
     private final UUID itemId = UUID.randomUUID();
-    private final UUID creator = UUID.randomUUID();
-    private final UUID winner = UUID.randomUUID();
-    private final ItemData itemData = new ItemData("title", "desc", "EUR", 1, 10, Duration.ofMinutes(10), Optional.empty());
-    private final Transaction transaction  = new Transaction(itemId, creator, winner, itemData, 2000);
+    private final UUID creatorId = UUID.randomUUID();
+    private final UUID winnerId = UUID.randomUUID();
+    private final String itemTitle = "title";
+    private final String currencyId = "EUR";
+    private final int itemPrice = 2000;
+    private final ItemData itemData = new ItemData(itemTitle, "desc", currencyId, 1, 10, Duration.ofMinutes(10), Optional.empty());
+    private final Transaction transaction  = new Transaction(itemId, creatorId, winnerId, itemData, itemPrice);
 
     @Before
     public void restartOffset() {
@@ -68,7 +72,10 @@ public class TransactionRepositoryTest {
     @Test
     public void shouldGetTransactionStarted() throws InterruptedException, ExecutionException, TimeoutException {
         feed(new TransactionEvent.TransactionStarted(itemId, transaction));
-        // WIP
+        PaginatedSequence<TransactionSummary> transactions = getTransactions(creatorId, TransactionInfoStatus.NEGOTIATING_DELIVERY);
+        assertEquals(1, transactions.getCount());
+        TransactionSummary expected = new TransactionSummary(itemId, creatorId, winnerId, itemTitle, currencyId, itemPrice, TransactionInfoStatus.NEGOTIATING_DELIVERY);
+        assertEquals(expected, transactions.getItems().get(0));
     }
 
     private PaginatedSequence<TransactionSummary> getTransactions(UUID userId, TransactionInfoStatus transactionStatus) throws InterruptedException, ExecutionException, TimeoutException {
