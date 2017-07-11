@@ -7,10 +7,11 @@ import com.example.auction.transaction.api.TransactionService;
 import com.example.auction.user.api.User;
 import com.example.auction.user.api.UserService;
 import com.lightbend.lagom.javadsl.api.transport.TransportException;
-import play.Configuration;
+import com.typesafe.config.Config;
 import play.data.Form;
 import play.data.FormFactory;
 import play.i18n.MessagesApi;
+import play.libs.concurrent.HttpExecutionContext;
 import play.mvc.Http;
 import play.mvc.Result;
 
@@ -27,24 +28,30 @@ public class TransactionController extends AbstractController {
     private final TransactionService transactionService;
 
     private final Boolean showInlineInstruction;
+    private HttpExecutionContext ec;
 
     @Inject
-    public TransactionController(Configuration config, MessagesApi messagesApi, UserService userService, FormFactory formFactory,
-                                 TransactionService transactionService) {
+    public TransactionController(Config config,
+                                 MessagesApi messagesApi,
+                                 UserService userService,
+                                 FormFactory formFactory,
+                                 TransactionService transactionService,
+                                 HttpExecutionContext ec) {
         super(messagesApi, userService);
         this.formFactory = formFactory;
         this.transactionService = transactionService;
 
         showInlineInstruction = config.getBoolean("online-auction.instruction.show");
+        this.ec = ec;
     }
 
     public CompletionStage<Result> getTransaction(String id) {
         return requireUser(ctx(), user ->
-                loadNav(user).thenCompose(nav -> {
+                loadNav(user).thenComposeAsync(nav -> {
                     UUID itemId = UUID.fromString(id);
                     CompletionStage<TransactionInfo> transactionFuture = transactionService.getTransaction(itemId).handleRequestHeader(authenticate(user)).invoke();
-                    return transactionFuture.handle((transaction, exception) ->{
-                        if(exception == null) {
+                    return transactionFuture.handle((transaction, exception) -> {
+                        if (exception == null) {
                             Optional<User> seller = Optional.empty();
                             Optional<User> winner = Optional.empty();
                             for (User u : nav.getUsers()) {
@@ -57,50 +64,49 @@ public class TransactionController extends AbstractController {
                             }
                             Currency currency = Currency.valueOf(transaction.getItemData().getCurrencyId());
                             return ok(views.html.transaction.render(showInlineInstruction, Optional.of(transaction), seller, winner, Optional.of(currency), Optional.empty(), nav));
-                        }
-                        else {
+                        } else {
                             String msg = ((TransportException) exception.getCause()).exceptionMessage().detail();
                             return ok(views.html.transaction.render(showInlineInstruction, Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.of(msg), nav));
                         }
                     });
-                })
+                }, ec.current())
         );
     }
 
     public CompletionStage<Result> submitDeliveryDetailsForm(String id) {
         return requireUser(ctx(), user ->
-            loadNav(user).thenCompose(nav -> {
-                UUID itemId = UUID.fromString(id);
-                CompletionStage<TransactionInfo> transactionFuture = transactionService.getTransaction(itemId).handleRequestHeader(authenticate(user)).invoke();
-                return transactionFuture.handle((transaction, exception) ->{
-                    if(exception == null) {
-                        DeliveryDetailsForm form = new DeliveryDetailsForm();
-                        Optional<DeliveryInfo> maybeDeliveryInfo = transaction.getDeliveryInfo();
-                        if(maybeDeliveryInfo.isPresent()) {
-                            form.setAddressLine1(maybeDeliveryInfo.get().getAddressLine1());
-                            form.setAddressLine2(maybeDeliveryInfo.get().getAddressLine2());
-                            form.setCity(maybeDeliveryInfo.get().getCity());
-                            form.setState(maybeDeliveryInfo.get().getState());
-                            form.setPostalCode(maybeDeliveryInfo.get().getPostalCode());
-                            form.setCountry(maybeDeliveryInfo.get().getCountry());
-                        }
-                        return ok(
-                                views.html.deliveryDetails.render(
-                                        showInlineInstruction,
-                                        !transaction.getCreator().equals(user),
-                                        itemId,
-                                        formFactory.form(DeliveryDetailsForm.class).fill(form),
-                                        transaction.getStatus(),
-                                        Optional.empty(),
-                                        nav)
-                        );
-                    }
-                    else {
-                        String msg = ((TransportException) exception.getCause()).exceptionMessage().detail();
-                        return ok(views.html.deliveryDetails.render(showInlineInstruction, false, itemId, formFactory.form(DeliveryDetailsForm.class), TransactionInfoStatus.NEGOTIATING_DELIVERY, Optional.of(msg), nav));
-                    }
-                });
-            })
+                loadNav(user).thenComposeAsync(nav -> {
+                            UUID itemId = UUID.fromString(id);
+                            CompletionStage<TransactionInfo> transactionFuture = transactionService.getTransaction(itemId).handleRequestHeader(authenticate(user)).invoke();
+                            return transactionFuture.handle((transaction, exception) -> {
+                                if (exception == null) {
+                                    DeliveryDetailsForm form = new DeliveryDetailsForm();
+                                    Optional<DeliveryInfo> maybeDeliveryInfo = transaction.getDeliveryInfo();
+                                    if (maybeDeliveryInfo.isPresent()) {
+                                        form.setAddressLine1(maybeDeliveryInfo.get().getAddressLine1());
+                                        form.setAddressLine2(maybeDeliveryInfo.get().getAddressLine2());
+                                        form.setCity(maybeDeliveryInfo.get().getCity());
+                                        form.setState(maybeDeliveryInfo.get().getState());
+                                        form.setPostalCode(maybeDeliveryInfo.get().getPostalCode());
+                                        form.setCountry(maybeDeliveryInfo.get().getCountry());
+                                    }
+                                    return ok(
+                                            views.html.deliveryDetails.render(
+                                                    showInlineInstruction,
+                                                    !transaction.getCreator().equals(user),
+                                                    itemId,
+                                                    formFactory.form(DeliveryDetailsForm.class).fill(form),
+                                                    transaction.getStatus(),
+                                                    Optional.empty(),
+                                                    nav)
+                                    );
+                                } else {
+                                    String msg = ((TransportException) exception.getCause()).exceptionMessage().detail();
+                                    return ok(views.html.deliveryDetails.render(showInlineInstruction, false, itemId, formFactory.form(DeliveryDetailsForm.class), TransactionInfoStatus.NEGOTIATING_DELIVERY, Optional.of(msg), nav));
+                                }
+                            });
+                        },
+                        ec.current())
         );
     }
 
@@ -113,23 +119,24 @@ public class TransactionController extends AbstractController {
             TransactionInfoStatus status = TransactionInfoStatus.valueOf(transactionStatus);
 
             if (form.hasErrors()) {
-                return loadNav(user).thenApply(nav ->
-                        ok(views.html.deliveryDetails.render(showInlineInstruction, isBuyer, itemId, form, status, Optional.empty(), nav))
+                return loadNav(user).thenApplyAsync(nav ->
+                                ok(views.html.deliveryDetails.render(showInlineInstruction, isBuyer, itemId, form, status, Optional.empty(), nav)),
+                        ec.current()
                 );
             } else {
                 return transactionService.submitDeliveryDetails(itemId)
                         .handleRequestHeader(authenticate(user))
                         .invoke(fromForm(form.get()))
                         .handle((done, exception) -> {
-                            if(exception == null) {
+                            if (exception == null) {
                                 return CompletableFuture.completedFuture(redirect(routes.TransactionController.getTransaction(id)));
-                                //return CompletableFuture.completedFuture(redirect(controllers.routes.TransactionController.submitDeliveryDetailsForm(id)));
                             } else {
                                 String msg = ((TransportException) exception.getCause()).exceptionMessage().detail();
-                                return loadNav(user).thenApply(nav ->
-                                    ok(views.html.deliveryDetails.render(showInlineInstruction, isBuyer, itemId, form, status, Optional.of(msg), nav)));
+                                return loadNav(user).thenApplyAsync(nav ->
+                                                ok(views.html.deliveryDetails.render(showInlineInstruction, isBuyer, itemId, form, status, Optional.of(msg), nav)),
+                                        ec.current());
                             }
-                        }).thenCompose(x -> x);
+                        }).thenComposeAsync(x -> x, ec.current());
             }
         });
     }
