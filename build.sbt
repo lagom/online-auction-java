@@ -154,6 +154,8 @@ lazy val transactionImpl = (project in file("transaction-impl"))
     transactionApi,
     itemApi,
     tools,
+    // TODO: Remove this dependency when completedStatement with varargs it's included on lagom core
+    itemImpl,
     testkit % "test"
   ).settings(
     version := "1.0-SNAPSHOT",

@@ -16,13 +16,13 @@ import org.pcollections.TreePVector;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.stream.Collectors;
 
+import static com.example.auction.item.impl.CassandraReadSideUtils.*;
 import static com.example.core.CompletionStageUtils.accept;
 import static com.example.core.CompletionStageUtils.doAll;
 
@@ -174,30 +174,27 @@ public class TransactionRepository {
         }
 
         private CompletionStage<List<BoundStatement>> insertUserTransactions(UUID itemId, Transaction transaction) {
-            return CassandraReadSide.completedStatements(
-                    Arrays.asList(
-                            insertUserTransactionsStatement.bind(
-                                    transaction.getCreator(),
-                                    itemId,
-                                    transaction.getCreator(),
-                                    transaction.getWinner(),
-                                    transaction.getItemData().getTitle(),
-                                    transaction.getItemData().getCurrencyId(),
-                                    transaction.getItemPrice(),
-                                    TransactionInfoStatus.NEGOTIATING_DELIVERY
-
-                            ),
-                            insertUserTransactionsStatement.bind(
-                                    transaction.getWinner(),
-                                    itemId,
-                                    transaction.getCreator(),
-                                    transaction.getWinner(),
-                                    transaction.getItemData().getTitle(),
-                                    transaction.getItemData().getCurrencyId(),
-                                    transaction.getItemPrice(),
-                                    TransactionInfoStatus.NEGOTIATING_DELIVERY
-
-                            )
+            // TODO: Use completedStatement with varargs from lagom core
+            return completedStatements(
+                    insertUserTransactionsStatement.bind(
+                            transaction.getCreator(),
+                            itemId,
+                            transaction.getCreator(),
+                            transaction.getWinner(),
+                            transaction.getItemData().getTitle(),
+                            transaction.getItemData().getCurrencyId(),
+                            transaction.getItemPrice(),
+                            TransactionInfoStatus.NEGOTIATING_DELIVERY
+                    ),
+                    insertUserTransactionsStatement.bind(
+                            transaction.getWinner(),
+                            itemId,
+                            transaction.getCreator(),
+                            transaction.getWinner(),
+                            transaction.getItemData().getTitle(),
+                            transaction.getItemData().getCurrencyId(),
+                            transaction.getItemPrice(),
+                            TransactionInfoStatus.NEGOTIATING_DELIVERY
                     )
             );
         }
