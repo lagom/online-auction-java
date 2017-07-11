@@ -5,6 +5,7 @@ import com.example.auction.item.api.ItemData;
 import com.example.auction.pagination.PaginatedSequence;
 import com.example.auction.transaction.api.TransactionInfoStatus;
 import com.example.auction.transaction.api.TransactionSummary;
+import com.example.auction.transaction.impl.TransactionEvent.*;
 import com.example.testkit.Await;
 import com.example.testkit.DoNothingTopicFactory;
 import com.example.testkit.ReadSideTestDriver;
@@ -71,11 +72,30 @@ public class TransactionRepositoryTest {
 
     @Test
     public void shouldGetTransactionStarted() throws InterruptedException, ExecutionException, TimeoutException {
-        feed(new TransactionEvent.TransactionStarted(itemId, transaction));
+        feed(new TransactionStarted(itemId, transaction));
         PaginatedSequence<TransactionSummary> transactions = getTransactions(creatorId, TransactionInfoStatus.NEGOTIATING_DELIVERY);
         assertEquals(1, transactions.getCount());
         TransactionSummary expected = new TransactionSummary(itemId, creatorId, winnerId, itemTitle, currencyId, itemPrice, TransactionInfoStatus.NEGOTIATING_DELIVERY);
         assertEquals(expected, transactions.getItems().get(0));
+    }
+
+    @Test
+    public void shouldPaginateTransactionRetrieval() throws InterruptedException, ExecutionException, TimeoutException {
+        for (int i = 0; i < 35; i++) {
+            UUID itemId = UUIDs.timeBased();
+            feed(new TransactionStarted(itemId, buildFixture(itemId, i)));
+        }
+
+        PaginatedSequence<TransactionSummary> createdItems = Await.result(transactionRepository.getTransactionsForUser(creatorId, TransactionInfoStatus.NEGOTIATING_DELIVERY, 2, 10));
+        assertEquals(35, createdItems.getCount());
+        assertEquals(10, createdItems.getItems().size());
+        // default ordering is time DESC so page 2 of size 10 over a set of 35 returns item ids 5-14. On that seq, the fifth item is id=10
+        assertEquals("title10", createdItems.getItems().get(4).getItemTitle());
+    }
+
+    private Transaction buildFixture(UUID itemId, int id) {
+        ItemData data = new ItemData("title" + id, "desc" + id, "USD", 10, 100, Duration.ofMinutes(10), Optional.empty());
+        return new Transaction(itemId, creatorId, UUID.randomUUID(), data, 2000);
     }
 
     private PaginatedSequence<TransactionSummary> getTransactions(UUID userId, TransactionInfoStatus transactionStatus) throws InterruptedException, ExecutionException, TimeoutException {
