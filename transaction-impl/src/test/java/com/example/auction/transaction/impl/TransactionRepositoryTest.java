@@ -72,21 +72,22 @@ public class TransactionRepositoryTest {
 
     @Test
     public void shouldGetTransactionStartedForCreator() throws InterruptedException, ExecutionException, TimeoutException {
+        shouldGetTransactionStarted(creatorId);
+    }
+
+    @Test
+    public void shouldGetTransactionStartedForWinner() throws InterruptedException, ExecutionException, TimeoutException {
+        shouldGetTransactionStarted(winnerId);
+    }
+
+    public void shouldGetTransactionStarted(UUID userId) throws InterruptedException, ExecutionException, TimeoutException {
         feed(new TransactionStarted(itemId, transaction));
-        PaginatedSequence<TransactionSummary> transactions = getTransactions(creatorId, TransactionInfoStatus.NEGOTIATING_DELIVERY);
+        PaginatedSequence<TransactionSummary> transactions = getTransactions(userId, TransactionInfoStatus.NEGOTIATING_DELIVERY);
         assertEquals(1, transactions.getCount());
         TransactionSummary expected = new TransactionSummary(itemId, creatorId, winnerId, itemTitle, currencyId, itemPrice, TransactionInfoStatus.NEGOTIATING_DELIVERY);
         assertEquals(expected, transactions.getItems().get(0));
     }
 
-    @Test
-    public void shouldGetTransactionStartedForWinner() throws InterruptedException, ExecutionException, TimeoutException {
-        feed(new TransactionStarted(itemId, transaction));
-        PaginatedSequence<TransactionSummary> transactions = getTransactions(winnerId, TransactionInfoStatus.NEGOTIATING_DELIVERY);
-        assertEquals(1, transactions.getCount());
-        TransactionSummary expected = new TransactionSummary(itemId, creatorId, winnerId, itemTitle, currencyId, itemPrice, TransactionInfoStatus.NEGOTIATING_DELIVERY);
-        assertEquals(expected, transactions.getItems().get(0));
-    }
 
     @Test
     public void shouldPaginateTransactionRetrieval() throws InterruptedException, ExecutionException, TimeoutException {
