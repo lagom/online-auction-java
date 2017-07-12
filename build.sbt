@@ -194,6 +194,7 @@ lazy val userImpl = (project in file("user-impl"))
 lazy val webGateway = (project in file("web-gateway"))
   .settings(commonSettings: _*)
   .enablePlugins(PlayJava && LagomPlay)
+  .disablePlugins(PlayLayoutPlugin) // use the standard sbt layout... src/main/java, etc.
   .dependsOn(tools, transactionApi, biddingApi, itemApi, searchApi, userApi, searchApi)
   .settings(
     version := "1.0-SNAPSHOT",
@@ -203,6 +204,9 @@ lazy val webGateway = (project in file("web-gateway"))
       "org.webjars" % "foundation" % "6.2.3",
       "org.webjars" % "foundation-icon-fonts" % "d596a3cfb3"
     ),
+
+    PlayKeys.playMonitoredFiles ++= (sourceDirectories in (Compile, TwirlKeys.compileTemplates)).value,
+
     // Workaround for https://github.com/lagom/online-auction-java/issues/22
     // Uncomment the commented out line and remove the Scala line when issue #22 is fixed
     EclipseKeys.projectFlavor in Global := EclipseProjectFlavor.Scala,
