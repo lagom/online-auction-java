@@ -5,13 +5,14 @@ import static com.lightbend.lagom.javadsl.api.Service.pathCall;
 
 import akka.Done;
 import akka.NotUsed;
+import com.example.auction.pagination.PaginatedSequence;
 import com.example.auction.security.SecurityHeaderFilter;
 import com.lightbend.lagom.javadsl.api.Descriptor;
 import com.lightbend.lagom.javadsl.api.Service;
 import com.lightbend.lagom.javadsl.api.ServiceCall;
-import com.lightbend.lagom.javadsl.api.broker.Topic;
 import com.lightbend.lagom.javadsl.api.deser.PathParamSerializers;
 
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -41,6 +42,9 @@ public interface TransactionService extends Service {
 
     ServiceCall<NotUsed, TransactionInfo> getTransaction(UUID itemId);
 
+    ServiceCall<NotUsed, PaginatedSequence<TransactionSummary>> getTransactionsForUser(
+            TransactionInfoStatus status, Optional<Integer> pageNo, Optional<Integer> pageSize);
+
     /**
      * The transaction events topic.
      */
@@ -50,10 +54,13 @@ public interface TransactionService extends Service {
     default Descriptor descriptor() {
         return named("transaction").withCalls(
                 pathCall("/api/transaction/:id", this::submitDeliveryDetails),
-                pathCall("/api/transaction/:id", this::getTransaction)
-        ).withPathParamSerializer(UUID.class, PathParamSerializers.required("UUID", UUID::fromString, UUID::toString))
-                .withHeaderFilter(SecurityHeaderFilter.INSTANCE);
-
+                pathCall("/api/transaction/:id", this::getTransaction),
+                pathCall("/api/transaction?status&pageNo&pageSize", this::getTransactionsForUser)
+        ).withPathParamSerializer(
+                UUID.class, PathParamSerializers.required("UUID", UUID::fromString, UUID::toString)
+        ).withPathParamSerializer(
+                TransactionInfoStatus.class, PathParamSerializers.required("TransactionInfoStatus", TransactionInfoStatus::valueOf, TransactionInfoStatus::toString)
+        ).withHeaderFilter(SecurityHeaderFilter.INSTANCE);
     }
 
 }

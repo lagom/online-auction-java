@@ -11,7 +11,7 @@ import java.util.concurrent.CompletionStage;
 // TODO: move to core?
 public class CassandraReadSideUtils {
 
-    static CompletionStage<List<BoundStatement>> completedStatements(BoundStatement... statements) {
+    public static CompletionStage<List<BoundStatement>> completedStatements(BoundStatement... statements) {
         return CassandraReadSide.completedStatements(Arrays.asList(statements));
     }
 
