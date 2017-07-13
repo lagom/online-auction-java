@@ -274,7 +274,7 @@ public class ItemEntityTest {
 
     //  ---------------------------------------------------------------------------------------------------------
 
-    private <T> void expectEvents(Outcome<T, ?> outcome, T... expected) {
+    private void expectEvents(Outcome<?, ?> outcome, Object... expected) {
         if (!outcome.events().equals(Arrays.asList(expected))) {
             throw new AssertionError("Failed expectation. Expected [" + Arrays.asList(expected) + "] was not equal to [" + outcome.events() + "].");
         }
