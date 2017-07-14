@@ -33,8 +33,8 @@ public class UserController extends AbstractController {
     public CompletionStage<Result> createUserForm() {
         return withUser(ctx(), userId ->
                 loadNav(userId).thenApplyAsync(nav ->
-                        ok(views.html.createUser.render(showInlineInstruction, formFactory.form(CreateUserForm.class), nav))
-                         ,httpExecutionContext.current())
+                                ok(views.html.createUser.render(showInlineInstruction, formFactory.form(CreateUserForm.class), nav)),
+                        httpExecutionContext.current())
         );
     }
 
