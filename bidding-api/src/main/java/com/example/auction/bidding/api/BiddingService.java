@@ -55,7 +55,7 @@ public interface BiddingService extends Service {
     return named("bidding").withCalls(
             pathCall("/api/item/:id/bids", this::placeBid),
             pathCall("/api/item/:id/bids", this::getBids)
-    ).publishing(
+    ).withTopics(
             topic(TOPIC_ID, this::bidEvents)
     ).withPathParamSerializer(UUID.class, PathParamSerializers.required("UUID", UUID::fromString, UUID::toString))
             .withHeaderFilter(SecurityHeaderFilter.INSTANCE);
