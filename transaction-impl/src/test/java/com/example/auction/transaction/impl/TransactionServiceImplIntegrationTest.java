@@ -8,6 +8,7 @@ import com.example.auction.transaction.api.DeliveryInfo;
 import com.example.auction.transaction.api.TransactionInfo;
 import com.example.auction.transaction.api.TransactionInfoStatus;
 import com.example.auction.transaction.api.TransactionService;
+import com.example.testkit.Await;
 import com.lightbend.lagom.javadsl.api.ServiceCall;
 import com.lightbend.lagom.javadsl.api.broker.Topic;
 import com.lightbend.lagom.javadsl.api.transport.NotFound;
@@ -24,8 +25,6 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeoutException;
 
 import static com.example.auction.security.ClientSecurity.authenticate;
 import static com.lightbend.lagom.javadsl.testkit.ServiceTest.bind;
@@ -76,11 +75,7 @@ public class TransactionServiceImplIntegrationTest {
         itemProducerStub.send(auctionFinished);
 
         eventually(new FiniteDuration(10, SECONDS), () -> {
-            TransactionInfo retrievedTransaction = transactionService.getTransaction(itemId)
-                    .handleRequestHeader(authenticate(creatorId))
-                    .invoke()
-                    .toCompletableFuture()
-                    .get(5, SECONDS);
+            TransactionInfo retrievedTransaction = retrieveTransaction(itemId, creatorId);
             assertEquals(retrievedTransaction, transactionInfoStarted);
         });
     }
@@ -91,41 +86,40 @@ public class TransactionServiceImplIntegrationTest {
         Item itemWithNoWinner = new Item(itemIdWithNoWinner, creatorId, itemData, 5000, ItemStatus.COMPLETED, Optional.of(Instant.now()), Optional.of(Instant.now()), Optional.empty());
         ItemEvent.AuctionFinished auctionFinishedWithNoWinner = new ItemEvent.AuctionFinished(itemIdWithNoWinner, itemWithNoWinner);
         itemProducerStub.send(auctionFinishedWithNoWinner);
-
         try {
-            transactionService.getTransaction(itemIdWithNoWinner)
-                    .handleRequestHeader(authenticate(creatorId))
-                    .invoke()
-                    .toCompletableFuture()
-                    .get(5, SECONDS);
-        }
-        catch(ExecutionException re) {
-            throw re.getCause();
-        }
-        catch (InterruptedException | TimeoutException e) {
-            throw e;
+            retrieveTransaction(itemIdWithNoWinner, creatorId);
+        } catch (RuntimeException re) {
+            throw re // the RuntimeException throw by Await
+                    .getCause(); // the NotFound exception I'm expecting
         }
     }
 
     @Test
     public void shouldSubmitDeliveryDetails() throws Throwable {
         itemProducerStub.send(auctionFinished);
-
-        transactionService.submitDeliveryDetails(itemId)
-                .handleRequestHeader(authenticate(winnerId))
-                .invoke(deliveryInfo)
-                .toCompletableFuture()
-                .get(5, SECONDS);
+        submitDeliveryDetails(itemId, winnerId, deliveryInfo);
 
         eventually(new FiniteDuration(15, SECONDS), () -> {
-            TransactionInfo retrievedTransaction = transactionService.getTransaction(itemId)
-                    .handleRequestHeader(authenticate(creatorId))
-                    .invoke()
-                    .toCompletableFuture()
-                    .get(5, SECONDS);
-
+            TransactionInfo retrievedTransaction = retrieveTransaction(itemId, creatorId);
             assertEquals(retrievedTransaction, transactionInfoWithDelivery);
         });
+    }
+
+    private TransactionInfo retrieveTransaction(UUID itemId, UUID creatorId) {
+        return Await.result(
+                transactionService
+                        .getTransaction(itemId)
+                        .handleRequestHeader(authenticate(creatorId))
+                        .invoke()
+        );
+    }
+
+    private Done submitDeliveryDetails(UUID itemId, UUID winnerId, DeliveryInfo deliveryInfo){
+        return Await.result(
+                transactionService.submitDeliveryDetails(itemId)
+                        .handleRequestHeader(authenticate(winnerId))
+                        .invoke(deliveryInfo)
+        );
     }
 
     private static class ItemStub implements ItemService {
