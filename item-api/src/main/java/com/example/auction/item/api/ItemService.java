@@ -85,7 +85,7 @@ public interface ItemService extends Service {
                 pathCall("/api/item/:id", this::getItem),
                 restCall(Method.PUT, "/api/item/:id", this::updateItem),
                 pathCall("/api/item?userId&status&pageNo&pageSize", this::getItemsForUser)
-        ).publishing(
+        ).withTopics(
                 topic(TOPIC_ID, this::itemEvents)
         ).withPathParamSerializer(
                 UUID.class, PathParamSerializers.required("UUID", UUID::fromString, UUID::toString)

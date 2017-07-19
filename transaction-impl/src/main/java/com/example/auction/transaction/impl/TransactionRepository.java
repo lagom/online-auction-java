@@ -22,9 +22,9 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.stream.Collectors;
 
-import static com.example.auction.item.impl.CassandraReadSideUtils.*;
 import static com.example.core.CompletionStageUtils.accept;
 import static com.example.core.CompletionStageUtils.doAll;
+import static com.lightbend.lagom.javadsl.persistence.cassandra.CassandraReadSide.completedStatements;
 
 @Singleton
 public class TransactionRepository {
@@ -174,7 +174,6 @@ public class TransactionRepository {
         }
 
         private CompletionStage<List<BoundStatement>> insertUserTransactions(UUID itemId, Transaction transaction) {
-            // TODO: Use completedStatement with varargs from lagom core
             return completedStatements(
                     insertUserTransactionsStatement.bind(
                             transaction.getCreator(),

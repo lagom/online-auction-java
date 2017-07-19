@@ -24,8 +24,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.stream.Collectors;
 
-import static com.example.auction.item.impl.CassandraReadSideUtils.*;
 import static com.example.core.CompletionStageUtils.*;
+import static com.lightbend.lagom.javadsl.persistence.cassandra.CassandraReadSide.completedStatements;
 
 @Singleton
 public class ItemRepository {
