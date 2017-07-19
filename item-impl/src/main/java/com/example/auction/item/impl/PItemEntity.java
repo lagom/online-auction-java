@@ -165,7 +165,7 @@ public class PItemEntity extends PersistentEntity<PItemCommand, PItemEvent, PIte
      * be {{{@link PItemEntity#emitUpdatedEvent(UpdateItem, CommandContext, PItem)}}} but extra logic may be
      * required in some cases.
      */
-    private Persist updateItem(UpdateItem cmd, CommandContext ctx, PItem pItem, Supplier<Persist> onSuccess) {
+    private Persist updateItem(UpdateItem cmd, CommandContext<PItem> ctx, PItem pItem, Supplier<Persist> onSuccess) {
         if (!pItem.getCreator().equals(cmd.getCommander())) {
             ctx.commandFailed(UpdateFailureException.CANT_EDIT_ITEM_OF_ANOTHER_USER);
             return ctx.done();
@@ -177,7 +177,7 @@ public class PItemEntity extends PersistentEntity<PItemCommand, PItemEvent, PIte
         }
     }
 
-    private Persist emitUpdatedEvent(UpdateItem cmd, CommandContext ctx, PItem pItem) {
+    private Persist emitUpdatedEvent(UpdateItem cmd, CommandContext<PItem> ctx, PItem pItem) {
         return ctx.thenPersist(
                 new ItemUpdated(pItem.getId(), pItem.getCreator(), cmd.getItemData(), pItem.getStatus()),
                 // when the command is accepted for processing we return a copy of the
