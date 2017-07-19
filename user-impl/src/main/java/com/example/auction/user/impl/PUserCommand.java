@@ -1,16 +1,19 @@
 package com.example.auction.user.impl;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.lightbend.lagom.javadsl.persistence.PersistentEntity;
 import com.lightbend.lagom.serialization.Jsonable;
 import lombok.Value;
 import org.mindrot.jbcrypt.BCrypt;
 
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.Optional;
+import java.util.UUID;
 
 public interface PUserCommand extends Jsonable {
     @Value
     final class CreatePUser implements PUserCommand, PersistentEntity.ReplyType<PUser> {
+        private final Timestamp createdAt;
         private final String name;
         private final String email;
         private final String passwordHash;

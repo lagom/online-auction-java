@@ -1,9 +1,9 @@
 package com.example.auction.user.impl;
 
-import com.example.auction.user.api.UserRegistration;
+import com.example.auction.user.impl.PUserCommand.CreatePUser;
+import com.example.auction.user.impl.PUserCommand.GetPUser;
+import com.example.auction.user.impl.PUserEvent.PUserCreated;
 import com.lightbend.lagom.javadsl.persistence.PersistentEntity;
-import com.example.auction.user.impl.PUserCommand.*;
-import com.example.auction.user.impl.PUserEvent.*;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -45,7 +45,7 @@ public class PUserEntity extends PersistentEntity<PUserCommand, PUserEvent, Opti
 
         b.setCommandHandler(CreatePUser.class, (create, ctx) -> {
 
-            PUser user = new PUser(UUID.fromString(entityId()), create.getName(), create.getEmail(), create.getPasswordHash());
+            PUser user = new PUser(UUID.fromString(entityId()),create.getCreatedAt(), create.getName(), create.getEmail(), create.getPasswordHash());
             return ctx.thenPersist(new PUserCreated(user), (e) -> ctx.reply(user));
         });
 
