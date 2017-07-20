@@ -1,0 +1,71 @@
+@import controllers.Currency
+@import TransactionController.transactionsPage
+@import com.example.auction.pagination.PaginatedSequence
+@import com.example.auction.transaction.api.TransactionInfoStatus
+@import com.example.auction.transaction.api.TransactionSummary
+@import routes.TransactionController.getTransaction
+
+@(showInlineInstruction: Boolean, status: TransactionInfoStatus, paginatedTransactions: PaginatedSequence[TransactionSummary])(implicit nav: Nav)
+
+@defining(nav.getUser.get) { user =>
+    @main(user.getName) {
+        <h1>@user.getName</h1>
+
+        <div class="row">
+            <ul class="menu vertical large-3 columns">
+            @for(menuStatus <- TransactionInfoStatus.values) {
+                <li class="@if(menuStatus == status) {active}">
+                    <a href="@transactionsPage(menuStatus)">@message("transactions." + menuStatus)</a>
+                </li>
+            }
+            </ul>
+
+            <div class="large-9 columns">
+            @if(paginatedTransactions.isEmpty) {
+                <em>@message("noTransactions." + status)</em>
+            } else {
+                @if(showInlineInstruction == true) {
+                    <p>@message("instruction.itemMessage")</p>
+                }
+                <table>
+                    <caption>@message("transactions.caption", message("transactions." + status), paginatedTransactions.getCount)</caption>
+
+                    <thead>
+                        <tr>
+                            <th>@message("itemTitle")</th>
+                            <th>@message("transactionStatus")</th>
+                            <th>@message("im")</th>
+                            <th>@message("currency")</th>
+                            <th>@message("itemPrice")</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                    @for(transaction <- paginatedTransactions.getItems) {
+                        @defining(Currency.valueOf(transaction.getCurrencyId)) { currency =>
+                            <tr>
+                                <td>
+                                    <a href="@getTransaction(transaction.getItemId.toString)">@transaction.getItemTitle</a>
+                                </td>
+                                <td>@transaction.getStatus</td>
+                                @if(user.getId == transaction.getCreatorId){
+                                    <td>@message("seller")</td>
+                                }else{
+                                    <td>@message("buyer")</td>
+                                }
+                                <td>@currency.getDisplayName</td>
+                                <td>@currency.format(transaction.getItemPrice)</td>
+                            </tr>
+                        }
+                    }
+                    </tbody>
+                </table>
+
+                @paginate(paginatedTransactions){ (pageNumber,  label) =>
+                        <a href="@transactionsPage(status, pageNumber, paginatedTransactions.getPageSize)" aria-label="@label">@label</a>
+                }
+            }
+            </div>
+        </div>
+    }
+}
