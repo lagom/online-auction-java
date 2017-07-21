@@ -1,7 +1,6 @@
 package controllers;
 
 import java.math.BigDecimal;
-import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.Locale;
 
@@ -51,10 +50,6 @@ public enum Currency {
         } else {
             return Integer.toString(value);
         }
-    }
-
-    public double getDecimalStep() {
-        return toDecimal(step);
     }
 
     public int toPriceUnits(double value) {
