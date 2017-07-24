@@ -2,13 +2,12 @@ package com.example.auction.user.impl;
 
 import akka.actor.ActorSystem;
 import akka.testkit.JavaTestKit;
-import com.datastax.driver.core.utils.UUIDs;
 import com.example.auction.user.impl.PUserCommand.CreatePUser;
 import com.lightbend.lagom.javadsl.testkit.PersistentEntityTestDriver;
 import com.lightbend.lagom.javadsl.testkit.PersistentEntityTestDriver.Outcome;
 import org.junit.*;
 
-import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.Collections;
 import java.util.Optional;
 import java.util.UUID;
@@ -33,14 +32,14 @@ public class UserEntityTest {
     }
 
     private final UUID id = UUID.randomUUID();
-    private final Timestamp createdAt = new Timestamp(System.currentTimeMillis());
+    private final Instant createdAt = Instant.now();
     private final String name = "admin";
     private final String email = "admin@gmail.com";
 
     private final String password = PUserCommand.hashPassword("admin");
 
 
-    private final PUser user = new PUser(id,createdAt, name, email, password);
+    private final PUser user = new PUser(id, Instant.now(), name, email, password);
 
 
     @Before
@@ -59,16 +58,21 @@ public class UserEntityTest {
     @Test
     public void testCreateUser() {
         Outcome<PUserEvent, Optional<PUser>> outcome = driver.run(
-                new CreatePUser(user.getCreatedAt(),user.getName(), user.getEmail(), user.getPasswordHash()));
-        assertEquals(user, outcome.getReplies().get(0));
+                new CreatePUser(user.getName(), user.getEmail(), user.getPasswordHash()));
+
+        assertEquals(name, ((PUserEvent.PUserCreated) outcome.events().get(0)).getUser().getName());
+        assertEquals(email, ((PUserEvent.PUserCreated) outcome.events().get(0)).getUser().getEmail());
+        assertEquals(id, ((PUserEvent.PUserCreated) outcome.events().get(0)).getUser().getId());
+        assertEquals(password, ((PUserEvent.PUserCreated) outcome.events().get(0)).getUser().getPasswordHash());
+
         assertEquals(Collections.emptyList(), driver.getAllIssues());
     }
 
     @Test
     public void testRejectDuplicateCreate() {
-        driver.run(new CreatePUser(user.getCreatedAt(),user.getName(), user.getEmail(), user.getPasswordHash()));
+        driver.run(new CreatePUser(user.getName(), user.getEmail(), user.getPasswordHash()));
         Outcome<PUserEvent, Optional<PUser>> outcome = driver.run(
-                new CreatePUser(user.getCreatedAt(),user.getName(), user.getEmail(), user.getPasswordHash()));
+                new CreatePUser(user.getName(), user.getEmail(), user.getPasswordHash()));
         assertEquals(PUserEntity.InvalidCommandException.class, outcome.getReplies().get(0).getClass());
         assertEquals(Collections.emptyList(), outcome.events());
         assertEquals(Collections.emptyList(), driver.getAllIssues());

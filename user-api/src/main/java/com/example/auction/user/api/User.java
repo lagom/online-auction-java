@@ -13,16 +13,10 @@ import java.util.UUID;
 public final class User {
 
     private final UUID id;
-    private final Timestamp createdAt;
+    private final Instant createdAt;
     private final String name;
     private final String email;
 
-    @JsonCreator
-    public User(@JsonProperty("id") UUID id, @JsonProperty("createdAt") Timestamp createdAt , @JsonProperty("name") String name, @JsonProperty("email") String email) {
-        this.id = id;
-        this.createdAt = createdAt;
-        this.name = name;
-        this.email = email;
-    }
+
 
 }

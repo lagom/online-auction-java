@@ -5,6 +5,7 @@ import com.example.auction.user.impl.PUserCommand.GetPUser;
 import com.example.auction.user.impl.PUserEvent.PUserCreated;
 import com.lightbend.lagom.javadsl.persistence.PersistentEntity;
 
+import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
@@ -30,7 +31,7 @@ public class PUserEntity extends PersistentEntity<PUserCommand, PUserEvent, Opti
         );
 
         b.setReadOnlyCommandHandler(CreatePUser.class, (create, ctx) ->
-            ctx.invalidCommand("User already exists.")
+                ctx.invalidCommand("User already exists.")
         );
 
         return b.build();
@@ -45,7 +46,7 @@ public class PUserEntity extends PersistentEntity<PUserCommand, PUserEvent, Opti
 
         b.setCommandHandler(CreatePUser.class, (create, ctx) -> {
 
-            PUser user = new PUser(UUID.fromString(entityId()),create.getCreatedAt(), create.getName(), create.getEmail(), create.getPasswordHash());
+            PUser user = new PUser(UUID.fromString(entityId()), Instant.now(), create.getName(), create.getEmail(), create.getPasswordHash());
             return ctx.thenPersist(new PUserCreated(user), (e) -> ctx.reply(user));
         });
 

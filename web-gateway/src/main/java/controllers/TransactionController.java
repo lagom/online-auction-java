@@ -1,9 +1,8 @@
 package controllers;
 
-import com.example.auction.transaction.api.DeliveryInfo;
-import com.example.auction.transaction.api.TransactionInfo;
-import com.example.auction.transaction.api.TransactionInfoStatus;
-import com.example.auction.transaction.api.TransactionService;
+import com.example.auction.item.api.ItemStatus;
+import com.example.auction.pagination.PaginatedSequence;
+import com.example.auction.transaction.api.*;
 import com.example.auction.user.api.User;
 import com.example.auction.user.api.UserService;
 import com.lightbend.lagom.javadsl.api.transport.TransportException;
@@ -12,10 +11,12 @@ import play.data.Form;
 import play.data.FormFactory;
 import play.i18n.MessagesApi;
 import play.libs.concurrent.HttpExecutionContext;
+import play.mvc.Call;
 import play.mvc.Http;
 import play.mvc.Result;
 
 import javax.inject.Inject;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -24,6 +25,10 @@ import java.util.concurrent.CompletionStage;
 import static com.example.auction.security.ClientSecurity.authenticate;
 
 public class TransactionController extends AbstractController {
+
+    public static final int DEFAULT_PAGE = 0;
+    public static final int DEFAULT_PAGE_SIZE = 15;
+
     private final FormFactory formFactory;
     private final TransactionService transactionService;
 
@@ -43,6 +48,32 @@ public class TransactionController extends AbstractController {
 
         showInlineInstruction = config.getBoolean("online-auction.instruction.show");
         this.ec = ec;
+    }
+
+    public CompletionStage<Result> myTransactions(String statusParam, int page, int pageSize) {
+        TransactionInfoStatus status = TransactionInfoStatus.valueOf(statusParam.toUpperCase(Locale.ENGLISH));
+        return requireUser(ctx(),
+                userId -> loadNav(userId).thenCombineAsync(
+                        getTransactionsForUser(userId, status, page, pageSize), (nav, items) ->
+                                ok(views.html.myTransactions.render(showInlineInstruction, status, items, nav)),
+                        ec.current())
+        );
+    }
+
+    private CompletionStage<PaginatedSequence<TransactionSummary>> getTransactionsForUser(
+            UUID userId, TransactionInfoStatus status, int page, int pageSize) {
+        return transactionService
+                .getTransactionsForUser(status, Optional.of(page), Optional.of(pageSize))
+                .handleRequestHeader(authenticate(userId))
+                .invoke();
+    }
+
+    public static Call transactionsPage(TransactionInfoStatus status) {
+        return transactionsPage(status, DEFAULT_PAGE, DEFAULT_PAGE_SIZE);
+    }
+
+    public static Call transactionsPage(TransactionInfoStatus status, int page, int pageSize) {
+        return routes.TransactionController.myTransactions(status.name().toLowerCase(Locale.ENGLISH), page, pageSize);
     }
 
     public CompletionStage<Result> getTransaction(String id) {

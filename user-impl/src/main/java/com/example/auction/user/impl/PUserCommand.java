@@ -5,36 +5,33 @@ import com.lightbend.lagom.serialization.Jsonable;
 import lombok.Value;
 import org.mindrot.jbcrypt.BCrypt;
 
-import java.sql.Timestamp;
-import java.time.Instant;
 import java.util.Optional;
-import java.util.UUID;
 
 public interface PUserCommand extends Jsonable {
     @Value
     final class CreatePUser implements PUserCommand, PersistentEntity.ReplyType<PUser> {
-        private final Timestamp createdAt;
         private final String name;
         private final String email;
         private final String passwordHash;
     }
-        public static String hashPassword(String password_plaintext) {
-            String salt = BCrypt.gensalt(12);
-            String hashed_password = BCrypt.hashpw(password_plaintext, salt);
 
-            return (hashed_password);
-        }
+    public static String hashPassword(String password_plaintext) {
+        String salt = BCrypt.gensalt(12);
+        String hashed_password = BCrypt.hashpw(password_plaintext, salt);
 
-        public static boolean checkPassword(String password_plaintext, String stored_hash) {
-            boolean password_verified = false;
+        return (hashed_password);
+    }
 
-            if (null == stored_hash)
-                throw new java.lang.IllegalArgumentException("Invalid hash provided for comparison");
+    public static boolean checkPassword(String password_plaintext, String stored_hash) {
+        boolean password_verified = false;
 
-            password_verified = BCrypt.checkpw(password_plaintext, stored_hash);
+        if (null == stored_hash)
+            throw new java.lang.IllegalArgumentException("Invalid hash provided for comparison");
 
-            return (password_verified);
-        }
+        password_verified = BCrypt.checkpw(password_plaintext, stored_hash);
+
+        return (password_verified);
+    }
 
 
     enum GetPUser implements PUserCommand, PersistentEntity.ReplyType<Optional<PUser>> {

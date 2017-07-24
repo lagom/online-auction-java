@@ -1,7 +1,6 @@
 package com.example.auction.user.impl;
 
 import akka.NotUsed;
-import com.datastax.driver.core.utils.UUIDs;
 import com.example.auction.pagination.PaginatedSequence;
 import com.example.auction.user.api.User;
 import com.example.auction.user.api.UserRegistration;
@@ -12,14 +11,14 @@ import com.lightbend.lagom.javadsl.persistence.PersistentEntityRef;
 import com.lightbend.lagom.javadsl.persistence.PersistentEntityRegistry;
 
 import javax.inject.Inject;
-import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 
 public class UserServiceImpl implements UserService {
 
     private final PersistentEntityRegistry registry;
-      private static final Integer DEFAULT_PAGE_SIZE = 10;
+    private static final Integer DEFAULT_PAGE_SIZE = 10;
     private final UserRepository userRepository;
 
     @Inject
@@ -34,11 +33,11 @@ public class UserServiceImpl implements UserService {
     public ServiceCall<UserRegistration, User> createUser() {
         return user -> {
             UUID uuid = UUID.randomUUID();
-            Timestamp createdAt =new Timestamp(System.currentTimeMillis());
+            Instant createdAt = Instant.now();
             String password = PUserCommand.hashPassword(user.getPassword());
-            PUser createdUser = new PUser(uuid,createdAt, user.getName(), user.getEmail(), password);
+            PUser createdUser = new PUser(uuid, createdAt, user.getName(), user.getEmail(), password);
             return entityRef(uuid)
-                    .ask(new PUserCommand.CreatePUser(createdAt,user.getName(), user.getEmail(), password))
+                    .ask(new PUserCommand.CreatePUser(user.getName(), user.getEmail(), password))
                     .thenApply(done -> Mappers.toApi(createdUser));
         };
     }

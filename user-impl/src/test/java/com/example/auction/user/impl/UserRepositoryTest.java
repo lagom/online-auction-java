@@ -14,7 +14,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
@@ -48,14 +48,14 @@ public class UserRepositoryTest {
     }
 
     private ReadSideTestDriver testDriver = testServer.injector().instanceOf(ReadSideTestDriver.class);
-    private UserRepository UserRepository = testServer.injector().instanceOf(UserRepository.class);
+    private UserRepository userRepository = testServer.injector().instanceOf(UserRepository.class);
     private AtomicInteger offset;
 
     private final UUID userId = UUID.randomUUID();
     private final String name = "admin";
     private final String email = "admin@gmail.com";
     private final String password = PUserCommand.hashPassword("admin");
-    private final Timestamp createdAt = new Timestamp(System.currentTimeMillis());
+    private final Instant createdAt = Instant.now();
 
     private final PUser userCreated = new PUser(userId, createdAt, name, email, password);
 
@@ -66,7 +66,7 @@ public class UserRepositoryTest {
 
 
     public PaginatedSequence<User> shouldGetUsers() throws InterruptedException, ExecutionException, TimeoutException {
-        return Await.result(UserRepository.getUsers(0, 10));
+        return Await.result(userRepository.getUsers(0, 10));
     }
 
     @Test
@@ -87,7 +87,7 @@ public class UserRepositoryTest {
             feed(new PUserEvent.PUserCreated(buildFixture(createdAt, i)));
         }
 
-        PaginatedSequence<User> createdUsers = Await.result(UserRepository.getUsers(1, 10));
+        PaginatedSequence<User> createdUsers = Await.result(userRepository.getUsers(1, 10));
         assertEquals(25, createdUsers.getCount());
         assertEquals(10, createdUsers.getItems().size());
         // default ordering is time DESC so page 2 of size 10 over a set of 25 returns item ids 5-14. On that seq, the fifth item is id=10
@@ -95,7 +95,7 @@ public class UserRepositoryTest {
 
     }
 
-    private PUser buildFixture(Timestamp createdAt, int i) {
+    private PUser buildFixture(Instant createdAt, int i) {
 
         return new PUser(UUID.randomUUID(), createdAt, name + i, email + i, password);
     }

@@ -11,11 +11,6 @@ public final class UserRegistration {
     private final String email;
     private final String password;
 
-    @JsonCreator
-    public UserRegistration( @JsonProperty("name") String name, @JsonProperty("email") String email, @JsonProperty("password") String password) {
-        this.name = name;
-        this.email = email;
-        this.password = password;
-    }
+
 
 }

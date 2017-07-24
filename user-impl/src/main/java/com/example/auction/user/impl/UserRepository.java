@@ -4,6 +4,8 @@ import akka.Done;
 import com.datastax.driver.core.BoundStatement;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.Row;
+import com.datastax.driver.core.Session;
+import com.datastax.driver.extras.codecs.jdk8.InstantCodec;
 import com.example.auction.pagination.PaginatedSequence;
 import com.example.auction.user.api.User;
 import com.lightbend.lagom.javadsl.persistence.AggregateEventTag;
@@ -16,7 +18,6 @@ import org.pcollections.TreePVector;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -57,8 +58,8 @@ public class UserRepository {
     private CompletionStage<Integer> countUsers() {
         return session
                 .selectOne(
-                        "SELECT COUNT(*) FROM UserInfo" +
-                        "ORDER BY createdAt DESC "
+                        "SELECT COUNT(*) FROM UserInfo  " +
+                                "ORDER BY createdAt DESC "
                 )
                 .thenApply(row -> (int) row.get().getLong("count"));
     }
@@ -84,7 +85,7 @@ public class UserRepository {
         return new User(
 
                 user.getUUID("UserId"),
-                (Timestamp) user.getTimestamp("createdAt"),
+                user.get("createdAt", InstantCodec.instance),
                 user.getString("Name"),
 
                 user.getString("email")
@@ -115,6 +116,10 @@ public class UserRepository {
                     .build();
         }
 
+        private void registerCodec(Session session, InstantCodec codec) {
+            session.getCluster().getConfiguration().getCodecRegistry().register(codec);
+        }
+
         @Override
         public PSequence<AggregateEventTag<PUserEvent>> aggregateTags() {
             return PUserEvent.TAG.allTags();
@@ -125,20 +130,23 @@ public class UserRepository {
                     session.executeCreateTable(
                             "CREATE TABLE IF NOT EXISTS UserInfo (" +
                                     "UserId UUID , " +
-                                    "createdAt Timestamp , " +
+                                    "createdAt timestamp , " +
                                     "Name text, " +
-                                    "email text " +
-                                    "PRIMARY KEY (createdAt, userId) " +
+                                    "email text, " +
+                                    "PRIMARY KEY (userId, createdAt) " +
                                     ")" +
-                            "WITH CLUSTERING ORDER BY (createdAt DESC)"
+                                    "WITH CLUSTERING ORDER BY (createdAt DESC)"
                     )
 
             );
         }
 
         private CompletionStage<Done> prepareStatements() {
-            return
-                    prepareInsertUserStatement();
+            return doAll(
+                    session.underlying()
+                            .thenAccept(s -> registerCodec(s, InstantCodec.instance))
+                            .thenApply(x -> Done.getInstance()),
+                    prepareInsertUserStatement());
 
 
         }
