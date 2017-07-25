@@ -16,11 +16,11 @@ public class Transaction implements Jsonable {
     private final UUID winner;
     private final ItemData itemData;
     private final int itemPrice;
-    private final int deliveryPrice;
+    private final Optional<Integer> deliveryPrice;
     private final Optional<DeliveryData> deliveryData;
 
     @JsonCreator
-    private Transaction(UUID itemId, UUID creator, UUID winner, ItemData itemData, int itemPrice, int deliveryPrice, Optional<DeliveryData> deliveryData) {
+    private Transaction(UUID itemId, UUID creator, UUID winner, ItemData itemData, int itemPrice, Optional<Integer> deliveryPrice, Optional<DeliveryData> deliveryData) {
         this.itemId = itemId;
         this.creator = creator;
         this.winner = winner;
@@ -36,7 +36,7 @@ public class Transaction implements Jsonable {
         this.winner = winner;
         this.itemData = itemData;
         this.itemPrice = itemPrice;
-        this.deliveryPrice = 0;
+        this.deliveryPrice = Optional.empty();
         this.deliveryData = Optional.empty();
     }
 

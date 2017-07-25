@@ -107,7 +107,7 @@ public class TransactionEntityTest {
         driver.run(startTransaction);
         Outcome<TransactionEvent, TransactionState> outcome = driver.run(setDeliveryPrice);
         assertThat(outcome.state().getStatus(), equalTo(TransactionStatus.NEGOTIATING_DELIVERY));
-        assertThat(outcome.state().getTransaction().get().getDeliveryPrice(), equalTo(deliveryPrice));
+        assertThat(outcome.state().getTransaction().get().getDeliveryPrice().get(), equalTo(deliveryPrice));
         assertThat(outcome.events(), hasItem(new DeliveryPriceUpdated(itemId, deliveryPrice)));
     }
 

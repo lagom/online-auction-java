@@ -63,6 +63,12 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
+    public ServiceCall<Integer, Done> setDeliveryPrice(UUID itemId) {
+        // WIP ...
+        return null;
+    }
+
+    @Override
     public ServiceCall<NotUsed, TransactionInfo> getTransaction(UUID itemId) {
         return authenticated(userId -> request -> {
             GetTransaction get = new GetTransaction(userId);

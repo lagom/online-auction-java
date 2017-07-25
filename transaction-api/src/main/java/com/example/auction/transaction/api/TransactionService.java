@@ -30,7 +30,7 @@ public interface TransactionService extends Service {
 
     ServiceCall<DeliveryInfo, Done> submitDeliveryDetails(UUID itemId);
 
-    //ServiceCall<Integer, Done> setDeliveryPrice(UUID itemId);
+    ServiceCall<Integer, Done> setDeliveryPrice(UUID itemId);
 
     //ServiceCall<PaymentInfo, Done> submitPaymentDetails(UUID itemId);
 

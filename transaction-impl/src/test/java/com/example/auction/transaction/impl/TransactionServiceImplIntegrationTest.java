@@ -65,10 +65,11 @@ public class TransactionServiceImplIntegrationTest {
     private final ItemEvent.AuctionFinished auctionFinished = new ItemEvent.AuctionFinished(itemId, item);
 
     private final DeliveryInfo deliveryInfo = new DeliveryInfo("ADDR1", "ADDR2", "CITY", "STATE", 27, "COUNTRY");
+    private final int deliveryPrice = 500;
 
-    private final TransactionInfo transactionInfoStarted = new TransactionInfo(itemId, creatorId, winnerId, itemData, item.getPrice(), 0, Optional.empty(), TransactionInfoStatus.NEGOTIATING_DELIVERY);
-    private final TransactionInfo transactionInfoWithDelivery = new TransactionInfo(itemId, creatorId, winnerId, itemData, item.getPrice(), 0, Optional.of(deliveryInfo), TransactionInfoStatus.NEGOTIATING_DELIVERY);
-
+    private final TransactionInfo transactionInfoStarted = new TransactionInfo(itemId, creatorId, winnerId, itemData, item.getPrice(), Optional.empty(), Optional.empty(), TransactionInfoStatus.NEGOTIATING_DELIVERY);
+    private final TransactionInfo transactionInfoWithDeliveryInfo = new TransactionInfo(itemId, creatorId, winnerId, itemData, item.getPrice(), Optional.empty(), Optional.of(deliveryInfo), TransactionInfoStatus.NEGOTIATING_DELIVERY);
+    private final TransactionInfo transactionInfoWithDeliveryPrice = new TransactionInfo(itemId, creatorId, winnerId, itemData, item.getPrice(), Optional.of(deliveryPrice), Optional.empty(), TransactionInfoStatus.NEGOTIATING_DELIVERY);
 
     @Test
     public void shouldCreateTransactionOnAuctionFinished() {
@@ -101,8 +102,35 @@ public class TransactionServiceImplIntegrationTest {
 
         eventually(new FiniteDuration(15, SECONDS), () -> {
             TransactionInfo retrievedTransaction = retrieveTransaction(itemId, creatorId);
-            assertEquals(retrievedTransaction, transactionInfoWithDelivery);
+            assertEquals(retrievedTransaction, transactionInfoWithDeliveryInfo);
         });
+    }
+
+    @Test
+    public void shouldSetDeliveryPrice() throws Throwable {
+        itemProducerStub.send(auctionFinished);
+        setDeliveryPrice(itemId, creatorId, deliveryPrice);
+
+        eventually(new FiniteDuration(15, SECONDS), () -> {
+            TransactionInfo retrievedTransaction = retrieveTransaction(itemId, creatorId);
+            assertEquals(retrievedTransaction, transactionInfoWithDeliveryPrice);
+        });
+    }
+
+    private Done submitDeliveryDetails(UUID itemId, UUID winnerId, DeliveryInfo deliveryInfo){
+        return Await.result(
+                transactionService.submitDeliveryDetails(itemId)
+                        .handleRequestHeader(authenticate(winnerId))
+                        .invoke(deliveryInfo)
+        );
+    }
+
+    private Done setDeliveryPrice(UUID itemId, UUID creatorId, int deliveryPrice){
+        return Await.result(
+                transactionService.setDeliveryPrice(itemId)
+                .handleRequestHeader(authenticate(creatorId))
+                .invoke(deliveryPrice)
+        );
     }
 
     private TransactionInfo retrieveTransaction(UUID itemId, UUID creatorId) {
@@ -111,14 +139,6 @@ public class TransactionServiceImplIntegrationTest {
                         .getTransaction(itemId)
                         .handleRequestHeader(authenticate(creatorId))
                         .invoke()
-        );
-    }
-
-    private Done submitDeliveryDetails(UUID itemId, UUID winnerId, DeliveryInfo deliveryInfo){
-        return Await.result(
-                transactionService.submitDeliveryDetails(itemId)
-                        .handleRequestHeader(authenticate(winnerId))
-                        .invoke(deliveryInfo)
         );
     }
 
