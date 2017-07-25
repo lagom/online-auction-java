@@ -105,6 +105,7 @@ instruction.enableSearch=Search functionality can be enabled by downloading and 
 
 instruction.deliveryDetails=Here you can view/submit the delivery details for the transaction
 instruction.transactionInfo=Here you can see all transaction details
+instruction.transactionsMessage=Click on a transacton to view/edit its details.
 
 transactionInfo=Transaction information
 aboutItem=About item

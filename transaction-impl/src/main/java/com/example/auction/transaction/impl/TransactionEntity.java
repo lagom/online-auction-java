@@ -69,6 +69,20 @@ public class TransactionEntity extends PersistentEntity<TransactionCommand, Tran
                 state().updateDeliveryData(evt.getDeliveryData())
         );
 
+        builder.setCommandHandler(SetDeliveryPrice.class, (cmd, ctx) -> {
+            if(cmd.getUserId().equals(state().getTransaction().get().getCreator())) {
+                return ctx.thenPersist(new DeliveryPriceUpdated(entityUUID(), cmd.getDeliveryPrice()), (e) ->
+                        ctx.reply(Done.getInstance())
+                );
+            }
+            else
+                throw new Forbidden("Only the item creator can set the delivery price");
+        });
+
+        builder.setEventHandler(DeliveryPriceUpdated.class, evt ->
+                state().updateDeliveryPrice(evt.getDeliveryPrice())
+        );
+
         addGetTransactionHandler(builder);
 
         return builder.build();

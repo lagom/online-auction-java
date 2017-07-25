@@ -64,8 +64,10 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Override
     public ServiceCall<Integer, Done> setDeliveryPrice(UUID itemId) {
-        // WIP ...
-        return null;
+        return authenticated(userId -> deliveryPrice -> {
+            SetDeliveryPrice setDeliveryPrice = new SetDeliveryPrice(userId, deliveryPrice);
+            return entityRef(itemId).ask(setDeliveryPrice);
+        });
     }
 
     @Override
