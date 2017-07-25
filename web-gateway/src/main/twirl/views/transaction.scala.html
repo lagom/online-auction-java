@@ -42,6 +42,9 @@
             <dd>@currency.get().getDisplayName</dd>
         </dl>
 
-        <a href="@routes.TransactionController.submitDeliveryDetailsForm(transaction.get().getItemId.toString)" class="edit" >@message("viewDeliveryDetails")</a>
+        <dl>
+            <dt><a href="@routes.TransactionController.submitDeliveryDetailsForm(transaction.get().getItemId.toString)" class="edit" >@message("viewDeliveryDetails")</a></dt>
+            <dt><a href="@routes.TransactionController.setDeliveryPriceForm(transaction.get().getItemId.toString)" class="edit" >@message("viewDeliveryPrice")</a></dt>
+        </dl>
     }
 }

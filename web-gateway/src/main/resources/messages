@@ -104,6 +104,7 @@ instruction.search=Here you can search for auctioned items. You can filter your 
 instruction.enableSearch=Search functionality can be enabled by downloading and running a local instance of elasticsearch. Steps for doing this can be found in {0}. If the lagom system is up and running, you don''t need to restart the system after installing and running elasticsearch; the search service becomes functional once it starts.
 
 instruction.deliveryDetails=Here you can view/submit the delivery details for the transaction
+instruction.deliveryPrice=Here you can view/submit the delivery price for the transaction
 instruction.transactionInfo=Here you can see all transaction details
 instruction.transactionsMessage=Click on a transaction to view/edit its details.
 
@@ -145,3 +146,6 @@ transactionStatus=Transaction status
 im=I''m the ...
 itemPrice=Item price
 buyer=Buyer
+
+deliveryPrice=Delivery price
+viewDeliveryPrice=View delivery price
