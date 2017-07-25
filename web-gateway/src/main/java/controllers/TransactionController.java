@@ -1,6 +1,5 @@
 package controllers;
 
-import com.example.auction.item.api.ItemStatus;
 import com.example.auction.pagination.PaginatedSequence;
 import com.example.auction.transaction.api.*;
 import com.example.auction.user.api.User;
