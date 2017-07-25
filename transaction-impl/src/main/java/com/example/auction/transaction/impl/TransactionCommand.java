@@ -37,6 +37,18 @@ public interface TransactionCommand extends Jsonable {
     }
 
     @Value
+    final class SetDeliveryPrice implements TransactionCommand, ReplyType<Done> {
+        private final UUID userId;
+        private final int deliveryPrice;
+
+        @JsonCreator
+        public SetDeliveryPrice(UUID userId, int deliveryPrice) {
+            this.userId = userId;
+            this.deliveryPrice = deliveryPrice;
+        }
+    }
+
+    @Value
     final class GetTransaction implements TransactionCommand, ReplyType<TransactionState> {
         private final UUID userId;
 
