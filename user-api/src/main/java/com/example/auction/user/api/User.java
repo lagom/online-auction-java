@@ -1,12 +1,8 @@
 package com.example.auction.user.api;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Value;
 
-import java.sql.Timestamp;
 import java.time.Instant;
-import java.util.Optional;
 import java.util.UUID;
 
 @Value

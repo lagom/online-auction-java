@@ -3,7 +3,6 @@ package com.example.auction.user.impl;
 import com.lightbend.lagom.serialization.Jsonable;
 import lombok.Value;
 
-import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.UUID;
 

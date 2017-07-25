@@ -6,7 +6,6 @@ import com.example.auction.user.api.User;
 import com.example.auction.user.api.UserRegistration;
 import com.example.auction.user.api.UserService;
 import com.lightbend.lagom.javadsl.api.ServiceCall;
-import com.lightbend.lagom.javadsl.api.transport.NotFound;
 import com.lightbend.lagom.javadsl.persistence.PersistentEntityRef;
 import com.lightbend.lagom.javadsl.persistence.PersistentEntityRegistry;
 
@@ -38,19 +37,23 @@ public class UserServiceImpl implements UserService {
             PUser createdUser = new PUser(uuid, createdAt, user.getName(), user.getEmail(), password);
             return entityRef(uuid)
                     .ask(new PUserCommand.CreatePUser(user.getName(), user.getEmail(), password))
-                    .thenApply(done -> Mappers.toApi(createdUser));
+                    .thenApply(done -> Mappers.toApi(Optional.ofNullable(createdUser)));
         };
     }
 
     @Override
     public ServiceCall<NotUsed, User> getUser(UUID userId) {
-        return req -> entityRef(userId).ask(PUserCommand.GetPUser.INSTANCE).thenApply(maybeUser -> {
-            if (maybeUser.isPresent()) {
-                return Mappers.toApi(maybeUser.get());
-            } else {
-                throw new NotFound("user " + userId + " not found");
-            }
+
+        return request ->
+
+            entityRef(userId)
+                    .ask(PUserCommand.GetPUser.INSTANCE)
+                    .thenApply(maybeUser -> {
+                        User user = Mappers.toApi(((Optional<PUser>) maybeUser));
+                        return user;
+
         });
+
     }
 
     @Override

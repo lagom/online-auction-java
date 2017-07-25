@@ -9,7 +9,7 @@ import java.util.Optional;
 
 public interface PUserCommand extends Jsonable {
     @Value
-    final class CreatePUser implements PUserCommand, PersistentEntity.ReplyType<PUser> {
+    final class CreatePUser implements PUserCommand, PersistentEntity.ReplyType<Optional<PUser>> {
         private final String name;
         private final String email;
         private final String passwordHash;

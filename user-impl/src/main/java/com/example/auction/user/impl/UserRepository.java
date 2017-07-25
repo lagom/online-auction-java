@@ -58,8 +58,8 @@ public class UserRepository {
     private CompletionStage<Integer> countUsers() {
         return session
                 .selectOne(
-                        "SELECT COUNT(*) FROM UserInfo  " +
-                                "ORDER BY createdAt DESC "
+                        "SELECT COUNT(*) FROM UserInfo  "
+
                 )
                 .thenApply(row -> (int) row.get().getLong("count"));
     }
@@ -68,8 +68,7 @@ public class UserRepository {
 
         return session
                 .selectAll(
-                        "SELECT * FROM UserInfo " +
-                                "ORDER BY createdAt DESC " +
+                        "SELECT * FROM UserInfo  " +
                                 "LIMIT ?",
                         limit
                 )
@@ -129,8 +128,8 @@ public class UserRepository {
             return doAll(
                     session.executeCreateTable(
                             "CREATE TABLE IF NOT EXISTS UserInfo (" +
-                                    "UserId UUID , " +
-                                    "createdAt timestamp , " +
+                                    "UserId UUID, " +
+                                    "createdAt timestamp, " +
                                     "Name text, " +
                                     "email text, " +
                                     "PRIMARY KEY (userId, createdAt) " +

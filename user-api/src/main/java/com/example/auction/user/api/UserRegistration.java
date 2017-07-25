@@ -1,7 +1,5 @@
 package com.example.auction.user.api;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Value;
 
 @Value
