@@ -1,30 +1,32 @@
 
-GET         /                           controllers.Main.index
+GET         /                               controllers.Main.index
 
 # User management
-GET         /createuser                 controllers.UserController.createUserForm
-POST        /user                       controllers.UserController.createUser
-POST        /currentuser/:userId        controllers.UserController.currentUser(userId)
+GET         /createuser                     controllers.UserController.createUserForm
+POST        /user                           controllers.UserController.createUser
+POST        /currentuser/:userId            controllers.UserController.currentUser(userId)
 
 # User profile
-GET         /my/items/:status           controllers.ProfileController.myItems(status, page: Int ?= controllers.ProfileController.DEFAULT_PAGE, pageSize: Int ?= controllers.ProfileController.DEFAULT_PAGE_SIZE)
+GET         /my/items/:status               controllers.ProfileController.myItems(status, page: Int ?= controllers.ProfileController.DEFAULT_PAGE, pageSize: Int ?= controllers.ProfileController.DEFAULT_PAGE_SIZE)
 
 # Items
-GET         /createitem                 controllers.ItemController.createItemForm
-POST        /item                       controllers.ItemController.createItem
-GET         /item/:id                   controllers.ItemController.getItem(id)
-POST        /item/:id                   controllers.ItemController.editItem(id, itemStatus)
-GET         /item/:id/edit              controllers.ItemController.editItemForm(id)
-POST        /item/:id/auction           controllers.ItemController.startAuction(id)
-POST        /item/:id/bid               controllers.ItemController.placeBid(id)
+GET         /createitem                     controllers.ItemController.createItemForm
+POST        /item                           controllers.ItemController.createItem
+GET         /item/:id                       controllers.ItemController.getItem(id)
+POST        /item/:id                       controllers.ItemController.editItem(id, itemStatus)
+GET         /item/:id/edit                  controllers.ItemController.editItemForm(id)
+POST        /item/:id/auction               controllers.ItemController.startAuction(id)
+POST        /item/:id/bid                   controllers.ItemController.placeBid(id)
 
-GET         /search                     controllers.SearchController.searchForm()
-POST        /search                     controllers.SearchController.search()
+GET         /search                         controllers.SearchController.searchForm()
+POST        /search                         controllers.SearchController.search()
 
-GET         /assets/*file               controllers.Assets.at(path = "/public", file)
+GET         /assets/*file                   controllers.Assets.at(path = "/public", file)
 
 # Transaction
-GET         /my/transactions/:status    controllers.TransactionController.myTransactions(status, page: Int ?= controllers.TransactionController.DEFAULT_PAGE, pageSize: Int ?= controllers.TransactionController.DEFAULT_PAGE_SIZE)
-GET         /transaction/:id            controllers.TransactionController.getTransaction(id)
-GET         /transaction/:id/delivery   controllers.TransactionController.submitDeliveryDetailsForm(id)
-POST        /transaction/:id/delivery   controllers.TransactionController.submitDeliveryDetails(id, transactionStatus, isBuyer: Boolean)
+GET         /my/transactions/:status        controllers.TransactionController.myTransactions(status, page: Int ?= controllers.TransactionController.DEFAULT_PAGE, pageSize: Int ?= controllers.TransactionController.DEFAULT_PAGE_SIZE)
+GET         /transaction/:id                controllers.TransactionController.getTransaction(id)
+GET         /transaction/:id/delivery       controllers.TransactionController.submitDeliveryDetailsForm(id)
+POST        /transaction/:id/delivery       controllers.TransactionController.submitDeliveryDetails(id, transactionStatus, isBuyer: Boolean)
+GET         /transaction/:id/deliveryprice  controllers.TransactionController.setDeliveryPriceForm(id)
+POST        /transaction/:id/deliveryprice  controllers.TransactionController.setDeliveryPrice(id, transactionStatus, isSeller: Boolean)

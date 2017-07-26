@@ -40,11 +40,13 @@ public class TransactionEntityTest {
     private final UUID winner = UUID.randomUUID();
     private final ItemData itemData = new ItemData("title", "desc", "EUR", 1, 10, Duration.ofMinutes(10), Optional.empty());
     private final DeliveryData deliveryData = new DeliveryData("Addr1", "Addr2", "City", "State", 27, "Country");
+    private final int deliveryPrice = 500;
 
     private final Transaction transaction  = new Transaction(itemId, creator, winner, itemData, 2000);
 
     private final StartTransaction startTransaction = new StartTransaction(transaction);
     private final SubmitDeliveryDetails submitDeliveryDetails = new SubmitDeliveryDetails(winner, deliveryData);
+    private final SetDeliveryPrice setDeliveryPrice = new SetDeliveryPrice(creator, deliveryPrice);
     private final GetTransaction getTransaction = new GetTransaction(creator);
 
     @Before
@@ -93,10 +95,27 @@ public class TransactionEntityTest {
     }
 
     @Test(expected = Forbidden.class)
-    public void shouldForbidSeeTransactionByNonWinnerNonCreator() throws Throwable{
+    public void shouldForbidSeeTransactionByNonWinnerNonCreator() throws Throwable {
         driver.run(startTransaction);
         UUID hacker = UUID.randomUUID();
         GetTransaction invalid = new GetTransaction(hacker);
+        driver.run(invalid);
+    }
+
+    @Test
+    public void shouldEmitEventWhenSettingDeliveryPrice() {
+        driver.run(startTransaction);
+        Outcome<TransactionEvent, TransactionState> outcome = driver.run(setDeliveryPrice);
+        assertThat(outcome.state().getStatus(), equalTo(TransactionStatus.NEGOTIATING_DELIVERY));
+        assertThat(outcome.state().getTransaction().get().getDeliveryPrice().get(), equalTo(deliveryPrice));
+        assertThat(outcome.events(), hasItem(new DeliveryPriceUpdated(itemId, deliveryPrice)));
+    }
+
+    @Test(expected = Forbidden.class)
+    public void shouldForbidSettingDeliveryPriceByNonSeller() {
+        driver.run(startTransaction);
+        UUID hacker = UUID.randomUUID();
+        SetDeliveryPrice invalid = new SetDeliveryPrice(hacker, deliveryPrice);
         driver.run(invalid);
     }
 }

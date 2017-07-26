@@ -5,7 +5,6 @@
 @import com.example.auction.transaction.api.TransactionInfoStatus
 @(showInlineInstruction: Boolean, isBuyer: Boolean, itemId: UUID, deliveryForm: Form[DeliveryDetailsForm], transactionStatus: TransactionInfoStatus, errorMessage: Optional[String])(implicit nav: Nav)
 
-@* TODO: Get transaction status to show or not read-only inputs *@
 @main(message("deliveryDetails")) {
 
     <h2>@message("deliveryDetails")</h2>
