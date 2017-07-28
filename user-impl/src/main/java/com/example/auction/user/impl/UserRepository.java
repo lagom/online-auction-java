@@ -70,6 +70,7 @@ public class UserRepository {
                 .selectAll(
                         "SELECT * FROM UserInfo  " +
                                 "LIMIT ?",
+
                         limit
                 )
                 .thenApply(List::stream)
@@ -83,9 +84,9 @@ public class UserRepository {
     private static User convertUserSummary(Row user) {
         return new User(
 
-                user.getUUID("UserId"),
+                user.getUUID("userId"),
                 user.get("createdAt", InstantCodec.instance),
-                user.getString("Name"),
+                user.getString("name"),
 
                 user.getString("email")
         );
@@ -128,9 +129,9 @@ public class UserRepository {
             return doAll(
                     session.executeCreateTable(
                             "CREATE TABLE IF NOT EXISTS UserInfo (" +
-                                    "UserId UUID, " +
+                                    "userId UUID, " +
                                     "createdAt timestamp, " +
-                                    "Name text, " +
+                                    "name text, " +
                                     "email text, " +
                                     "PRIMARY KEY (userId, createdAt) " +
                                     ")" +
@@ -156,15 +157,15 @@ public class UserRepository {
             return session.
                     prepare("INSERT INTO UserInfo(" +
 
-                            "UserId, " +
+                            "userId, " +
                             "createdAt, " +
-                            "Name, " +
+                            "name, " +
                             "email" +
 
                             ") VALUES (" +
-                            "?, " + // UserId
+                            "?, " + // userId
                             "?, " + // createdAt
-                            "?, " + // Name
+                            "?, " + // name
                             "?" + // email
 
                             ")"
@@ -175,7 +176,7 @@ public class UserRepository {
 
         private CompletionStage<List<BoundStatement>> insertUser(PUser user) {
             return completedStatements(
-                    Arrays.asList(insertUserCreator(user))
+                   insertUserCreator(user)
 
             );
         }
@@ -191,7 +192,7 @@ public class UserRepository {
         }
 
         private CompletionStage<Optional<Row>> selectUser(UUID UserId) {
-            return session.selectOne("SELECT * FROM UserInfo WHERE UserId = ?", UserId);
+            return session.selectOne("SELECT * FROM UserInfo WHERE userId = ?", UserId);
         }
 
     }

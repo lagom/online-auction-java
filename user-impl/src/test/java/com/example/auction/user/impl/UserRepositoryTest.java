@@ -56,8 +56,8 @@ public class UserRepositoryTest {
     private final String email = "admin@gmail.com";
     private final String password = PUserCommand.hashPassword("admin");
     private final Instant createdAt = Instant.now();
-
     private final PUser userCreated = new PUser(userId, createdAt, name, email, password);
+
 
     @Before
     public void restartOffset() {
@@ -78,21 +78,21 @@ public class UserRepositoryTest {
         assertEquals(expected, users.getItems().get(0));
     }
 
-
     @Test
     public void shouldPaginateUserRetrieval() throws InterruptedException, ExecutionException, TimeoutException {
 
-        for (int i = 0; i < 25; i++) {
+        PaginatedSequence<User> usersCreatedBefore = Await.result(userRepository.getUsers(1, 10));
+        int initialCount = usersCreatedBefore.getCount();
+        int size = 25;
 
+        for (int i = 0; i < size; i++) {
             feed(new PUserEvent.PUserCreated(buildFixture(createdAt, i)));
         }
 
         PaginatedSequence<User> createdUsers = Await.result(userRepository.getUsers(1, 10));
-        assertEquals(25, createdUsers.getCount());
+        assertEquals(size + initialCount, createdUsers.getCount());
         assertEquals(10, createdUsers.getItems().size());
-        // default ordering is time DESC so page 2 of size 10 over a set of 25 returns item ids 5-14. On that seq, the fifth item is id=10
-        assertEquals("user10", createdUsers.getItems().get(4).getName());
-
+        assertEquals("admin11", createdUsers.getItems().get(4).getName());
     }
 
     private PUser buildFixture(Instant createdAt, int i) {
