@@ -118,5 +118,15 @@ public class TransactionEntityTest {
         SetDeliveryPrice invalid = new SetDeliveryPrice(hacker, deliveryPrice);
         driver.run(invalid);
     }
+
+    @Test
+    public void shouldEmitEventWhenSubmittingPaymentDetails() {
+
+    }
+
+    @Test(expected = Forbidden.class)
+    public void shouldForbidSubmittingPaymentDetailsByNonBuyer() {
+
+    }
 }
 

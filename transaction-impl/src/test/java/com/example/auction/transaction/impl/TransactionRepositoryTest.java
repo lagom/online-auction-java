@@ -88,6 +88,11 @@ public class TransactionRepositoryTest {
         assertEquals(expected, transactions.getItems().get(0));
     }
 
+    @Test
+    public void shouldUpdateStatusToPaymentSubmitted() {
+
+    }
+
 
     @Test
     public void shouldPaginateTransactionRetrieval() throws InterruptedException, ExecutionException, TimeoutException {

@@ -96,7 +96,7 @@ public class TransactionServiceImplIntegrationTest {
     }
 
     @Test
-    public void shouldSubmitDeliveryDetails() throws Throwable {
+    public void shouldSubmitDeliveryDetails() {
         itemProducerStub.send(auctionFinished);
         submitDeliveryDetails(itemId, winnerId, deliveryInfo);
 
@@ -107,7 +107,7 @@ public class TransactionServiceImplIntegrationTest {
     }
 
     @Test
-    public void shouldSetDeliveryPrice() throws Throwable {
+    public void shouldSetDeliveryPrice() {
         itemProducerStub.send(auctionFinished);
         setDeliveryPrice(itemId, creatorId, deliveryPrice);
 
@@ -115,6 +115,11 @@ public class TransactionServiceImplIntegrationTest {
             TransactionInfo retrievedTransaction = retrieveTransaction(itemId, creatorId);
             assertEquals(retrievedTransaction, transactionInfoWithDeliveryPrice);
         });
+    }
+
+    @Test
+    public void shouldSubmitPaymentDetails() {
+
     }
 
     private Done submitDeliveryDetails(UUID itemId, UUID winnerId, DeliveryInfo deliveryInfo){

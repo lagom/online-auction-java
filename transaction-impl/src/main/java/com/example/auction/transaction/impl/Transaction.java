@@ -16,18 +16,20 @@ public class Transaction implements Jsonable {
     private final UUID winner;
     private final ItemData itemData;
     private final int itemPrice;
-    private final Optional<Integer> deliveryPrice;
     private final Optional<DeliveryData> deliveryData;
+    private final Optional<Integer> deliveryPrice;
+    private final Optional<Payment> payment;
 
     @JsonCreator
-    private Transaction(UUID itemId, UUID creator, UUID winner, ItemData itemData, int itemPrice, Optional<Integer> deliveryPrice, Optional<DeliveryData> deliveryData) {
+    private Transaction(UUID itemId, UUID creator, UUID winner, ItemData itemData, int itemPrice, Optional<DeliveryData> deliveryData, Optional<Integer> deliveryPrice, Optional<Payment> payment) {
         this.itemId = itemId;
         this.creator = creator;
         this.winner = winner;
         this.itemData = itemData;
         this.itemPrice = itemPrice;
-        this.deliveryPrice = deliveryPrice;
         this.deliveryData = deliveryData;
+        this.deliveryPrice = deliveryPrice;
+        this.payment = payment;
     }
 
     public Transaction(UUID itemId, UUID creator, UUID winner, ItemData itemData, int itemPrice) {
@@ -36,15 +38,16 @@ public class Transaction implements Jsonable {
         this.winner = winner;
         this.itemData = itemData;
         this.itemPrice = itemPrice;
-        this.deliveryPrice = Optional.empty();
         this.deliveryData = Optional.empty();
+        this.deliveryPrice = Optional.empty();
+        this.payment = Optional.empty();
     }
 
     public Transaction withDeliveryData(DeliveryData deliveryData) {
-        return new Transaction(itemId, creator, winner, itemData, itemPrice, deliveryPrice, Optional.of(deliveryData));
+        return new Transaction(itemId, creator, winner, itemData, itemPrice, Optional.of(deliveryData), deliveryPrice, payment);
     }
 
     public Transaction withDeliveryPrice(int deliveryPrice) {
-        return new Transaction(itemId, creator, winner, itemData, itemPrice, Optional.of(deliveryPrice), deliveryData);
+        return new Transaction(itemId, creator, winner, itemData, itemPrice, deliveryData, Optional.of(deliveryPrice), payment);
     }
 }
