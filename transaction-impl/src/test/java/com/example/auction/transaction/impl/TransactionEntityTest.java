@@ -3,6 +3,7 @@ package com.example.auction.transaction.impl;
 import akka.actor.ActorSystem;
 import akka.testkit.JavaTestKit;
 import com.example.auction.item.api.ItemData;
+import com.example.auction.item.api.Location;
 import com.lightbend.lagom.javadsl.api.transport.Forbidden;
 import com.lightbend.lagom.javadsl.testkit.PersistentEntityTestDriver;
 import com.lightbend.lagom.javadsl.testkit.PersistentEntityTestDriver.Outcome;
@@ -41,12 +42,14 @@ public class TransactionEntityTest {
     private final ItemData itemData = new ItemData("title", "desc", "EUR", 1, 10, Duration.ofMinutes(10), Optional.empty());
     private final DeliveryData deliveryData = new DeliveryData("Addr1", "Addr2", "City", "State", 27, "Country");
     private final int deliveryPrice = 500;
+    private final Payment payment = new Payment.CreditCard("1234123412341234", "VISA", "John Doe", "123", "0522", "John", "Doe", "Main Street 456", new Location(Optional.of("Podunk"), Optional.of("New York"), Optional.of("USA")));
 
     private final Transaction transaction  = new Transaction(itemId, creator, winner, itemData, 2000);
 
     private final StartTransaction startTransaction = new StartTransaction(transaction);
     private final SubmitDeliveryDetails submitDeliveryDetails = new SubmitDeliveryDetails(winner, deliveryData);
     private final SetDeliveryPrice setDeliveryPrice = new SetDeliveryPrice(creator, deliveryPrice);
+    private final SubmitPaymentDetails submitPaymentDetails = new SubmitPaymentDetails(winner, payment);
     private final GetTransaction getTransaction = new GetTransaction(creator);
 
     @Before
@@ -121,12 +124,19 @@ public class TransactionEntityTest {
 
     @Test
     public void shouldEmitEventWhenSubmittingPaymentDetails() {
-
+        driver.run(startTransaction);
+        Outcome<TransactionEvent, TransactionState> outcome = driver.run(submitPaymentDetails);
+        assertThat(outcome.state().getStatus(), equalTo(TransactionStatus.PAYMENT_SUBMITTED));
+        assertThat(outcome.state().getTransaction().get().getPayment().get(), equalTo(payment));
+        assertThat(outcome.events(), hasItem(new PaymentDetailsSubmitted(itemId, payment)));
     }
 
     @Test(expected = Forbidden.class)
     public void shouldForbidSubmittingPaymentDetailsByNonBuyer() {
-
+        driver.run(startTransaction);
+        UUID hacker = UUID.randomUUID();
+        SubmitPaymentDetails invalid = new SubmitPaymentDetails(hacker, payment);
+        driver.run(invalid);
     }
 }
 

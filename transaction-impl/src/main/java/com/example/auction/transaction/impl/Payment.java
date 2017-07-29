@@ -6,18 +6,16 @@ import lombok.Value;
 public abstract class Payment {
 
     @Value
-    public final class CashOnDelivery extends Payment {
+    public static final class CashOnDelivery extends Payment {
     }
 
     @Value
-    public final class CreditCard extends Payment {
-
+    public static final class CreditCard extends Payment {
         private final String cardNumber;
         private final String cardType;
         private final String cardName;
         private final String cardCVC;
         private final String expirationDate;
-
         private final String firstName;
         private final String lastName;
         private final String billingAddress;
