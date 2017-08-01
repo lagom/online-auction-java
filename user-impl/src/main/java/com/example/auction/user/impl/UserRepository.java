@@ -18,7 +18,6 @@ import org.pcollections.TreePVector;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -55,7 +54,7 @@ public class UserRepository {
                 );
     }
 
-    private CompletionStage<Integer> countUsers() {
+    public CompletionStage<Integer> countUsers() {
         return session
                 .selectOne(
                         "SELECT COUNT(*) FROM UserInfo  "
@@ -69,6 +68,8 @@ public class UserRepository {
         return session
                 .selectAll(
                         "SELECT * FROM UserInfo  " +
+
+                                //   "ORDER BY createdAt DESC " +
                                 "LIMIT ?",
 
                         limit
@@ -176,7 +177,7 @@ public class UserRepository {
 
         private CompletionStage<List<BoundStatement>> insertUser(PUser user) {
             return completedStatements(
-                   insertUserCreator(user)
+                    insertUserCreator(user)
 
             );
         }

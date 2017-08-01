@@ -46,13 +46,13 @@ public class UserServiceImpl implements UserService {
 
         return request ->
 
-            entityRef(userId)
-                    .ask(PUserCommand.GetPUser.INSTANCE)
-                    .thenApply(maybeUser -> {
-                        User user = Mappers.toApi(((Optional<PUser>) maybeUser));
-                        return user;
+                entityRef(userId)
+                        .ask(PUserCommand.GetPUser.INSTANCE)
+                        .thenApply(maybeUser -> {
+                            User user = Mappers.toApi(((Optional<PUser>) maybeUser));
+                            return user;
 
-        });
+                        });
 
     }
 

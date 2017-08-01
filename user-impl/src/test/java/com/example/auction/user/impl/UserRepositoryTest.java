@@ -80,19 +80,17 @@ public class UserRepositoryTest {
 
     @Test
     public void shouldPaginateUserRetrieval() throws InterruptedException, ExecutionException, TimeoutException {
-
-        PaginatedSequence<User> usersCreatedBefore = Await.result(userRepository.getUsers(1, 10));
-        int initialCount = usersCreatedBefore.getCount();
+        int initialCount = Await.result(userRepository.countUsers());
         int size = 25;
 
         for (int i = 0; i < size; i++) {
             feed(new PUserEvent.PUserCreated(buildFixture(createdAt, i)));
         }
 
-        PaginatedSequence<User> createdUsers = Await.result(userRepository.getUsers(1, 10));
+        PaginatedSequence<User> createdUsers = Await.result(userRepository.getUsers(0, 10));
         assertEquals(size + initialCount, createdUsers.getCount());
         assertEquals(10, createdUsers.getItems().size());
-        assertEquals("admin11", createdUsers.getItems().get(4).getName());
+        assertEquals("admin4", createdUsers.getItems().get(4).getName());
     }
 
     private PUser buildFixture(Instant createdAt, int i) {
