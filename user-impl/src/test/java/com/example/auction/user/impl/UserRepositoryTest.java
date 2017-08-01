@@ -90,7 +90,6 @@ public class UserRepositoryTest {
         PaginatedSequence<User> createdUsers = Await.result(userRepository.getUsers(0, 10));
         assertEquals(size + initialCount, createdUsers.getCount());
         assertEquals(10, createdUsers.getItems().size());
-        assertEquals("admin4", createdUsers.getItems().get(4).getName());
     }
 
     private PUser buildFixture(Instant createdAt, int i) {

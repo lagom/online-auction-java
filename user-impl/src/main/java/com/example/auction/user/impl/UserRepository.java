@@ -68,8 +68,6 @@ public class UserRepository {
         return session
                 .selectAll(
                         "SELECT * FROM UserInfo  " +
-
-                                //   "ORDER BY createdAt DESC " +
                                 "LIMIT ?",
 
                         limit
@@ -135,8 +133,8 @@ public class UserRepository {
                                     "name text, " +
                                     "email text, " +
                                     "PRIMARY KEY (userId, createdAt) " +
-                                    ")" +
-                                    "WITH CLUSTERING ORDER BY (createdAt DESC)"
+                                    ")"
+
                     )
 
             );
