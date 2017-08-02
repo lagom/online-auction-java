@@ -3,20 +3,22 @@ package com.example.auction.transaction.impl;
 import akka.actor.ActorSystem;
 import akka.testkit.JavaTestKit;
 import com.example.auction.item.api.ItemData;
-import com.example.auction.item.api.Location;
+import com.example.auction.transaction.impl.TransactionCommand.*;
+import com.example.auction.transaction.impl.TransactionEvent.DeliveryDetailsSubmitted;
+import com.example.auction.transaction.impl.TransactionEvent.DeliveryPriceUpdated;
+import com.example.auction.transaction.impl.TransactionEvent.PaymentDetailsSubmitted;
+import com.example.auction.transaction.impl.TransactionEvent.TransactionStarted;
 import com.lightbend.lagom.javadsl.api.transport.Forbidden;
 import com.lightbend.lagom.javadsl.testkit.PersistentEntityTestDriver;
 import com.lightbend.lagom.javadsl.testkit.PersistentEntityTestDriver.Outcome;
 import org.junit.*;
 
-import com.example.auction.transaction.impl.TransactionCommand.*;
-import com.example.auction.transaction.impl.TransactionEvent.*;
-
 import java.time.Duration;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.hasItem;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
@@ -42,7 +44,7 @@ public class TransactionEntityTest {
     private final ItemData itemData = new ItemData("title", "desc", "EUR", 1, 10, Duration.ofMinutes(10), Optional.empty());
     private final DeliveryData deliveryData = new DeliveryData("Addr1", "Addr2", "City", "State", 27, "Country");
     private final int deliveryPrice = 500;
-    private final Payment payment = new Payment.CreditCard("1234123412341234", "VISA", "John Doe", "123", "0522", "John", "Doe", "Main Street 456", new Location(Optional.of("Podunk"), Optional.of("New York"), Optional.of("USA")));
+    private final Payment payment = new Payment.OfflinePayment("Payment sent via Paypal");
 
     private final Transaction transaction  = new Transaction(itemId, creator, winner, itemData, 2000);
 
@@ -139,4 +141,3 @@ public class TransactionEntityTest {
         driver.run(invalid);
     }
 }
-
