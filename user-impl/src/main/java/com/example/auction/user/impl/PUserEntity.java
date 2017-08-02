@@ -1,10 +1,11 @@
 package com.example.auction.user.impl;
 
-import com.example.auction.user.api.UserRegistration;
+import com.example.auction.user.impl.PUserCommand.CreatePUser;
+import com.example.auction.user.impl.PUserCommand.GetPUser;
+import com.example.auction.user.impl.PUserEvent.PUserCreated;
 import com.lightbend.lagom.javadsl.persistence.PersistentEntity;
-import com.example.auction.user.impl.PUserCommand.*;
-import com.example.auction.user.impl.PUserEvent.*;
 
+import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
@@ -30,7 +31,7 @@ public class PUserEntity extends PersistentEntity<PUserCommand, PUserEvent, Opti
         );
 
         b.setReadOnlyCommandHandler(CreatePUser.class, (create, ctx) ->
-            ctx.invalidCommand("User already exists.")
+                ctx.invalidCommand("User already exists.")
         );
 
         return b.build();
@@ -45,8 +46,8 @@ public class PUserEntity extends PersistentEntity<PUserCommand, PUserEvent, Opti
 
         b.setCommandHandler(CreatePUser.class, (create, ctx) -> {
 
-            PUser user = new PUser(UUID.fromString(entityId()), create.getName(), create.getEmail(), create.getPasswordHash());
-            return ctx.thenPersist(new PUserCreated(user), (e) -> ctx.reply(user));
+            PUser user = new PUser(UUID.fromString(entityId()), Instant.now(), create.getName(), create.getEmail(), create.getPasswordHash());
+            return ctx.thenPersist(new PUserCreated(user), (e) -> ctx.reply(Optional.ofNullable(user)));
         });
 
         b.setEventHandlerChangingBehavior(PUserCreated.class, user -> created(user.getUser()));

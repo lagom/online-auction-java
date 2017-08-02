@@ -156,14 +156,14 @@ lazy val transactionImpl = (project in file("transaction-impl"))
     tools,
     testkit % "test"
   ).settings(
-    version := "1.0-SNAPSHOT",
-    libraryDependencies ++= Seq(
-      lagomJavadslPersistenceCassandra,
-      lagomJavadslTestKit,
-      lagomJavadslKafkaBroker,
-      cassandraExtras
-    )
+  version := "1.0-SNAPSHOT",
+  libraryDependencies ++= Seq(
+    lagomJavadslPersistenceCassandra,
+    lagomJavadslTestKit,
+    lagomJavadslKafkaBroker,
+    cassandraExtras
   )
+)
 
 lazy val userApi = (project in file("user-api"))
   .settings(commonSettings: _*)
@@ -174,18 +174,21 @@ lazy val userApi = (project in file("user-api"))
       lombok
     )
   )
-  .dependsOn(security)
+  .dependsOn(security, tools)
 
 lazy val userImpl = (project in file("user-impl"))
   .settings(commonSettings: _*)
   .enablePlugins(LagomJava)
-  .dependsOn(userApi)
+  .dependsOn(userApi, tools,
+    testkit % "test"
+  )
   .settings(
     version := "1.0-SNAPSHOT",
     libraryDependencies ++= Seq(
       lagomJavadslPersistenceCassandra,
       lagomJavadslTestKit,
-      "de.svenkubiak" % "jBCrypt" % "0.4"
+      "de.svenkubiak" % "jBCrypt" % "0.4",
+      cassandraExtras
     )
   )
 
