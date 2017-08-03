@@ -71,6 +71,11 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
+    public ServiceCall<NotUsed, Done> approveDeliveryDetails(UUID itemId) {
+        return null;
+    }
+
+    @Override
     public ServiceCall<NotUsed, TransactionInfo> getTransaction(UUID itemId) {
         return authenticated(userId -> request -> {
             GetTransaction get = new GetTransaction(userId);
