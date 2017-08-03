@@ -89,21 +89,6 @@ public class TransactionEntityTest {
     }
 
     @Test
-    public void shouldAllowSeeTransactionByItemCreator() {
-        driver.run(startTransaction);
-        Outcome<TransactionEvent, TransactionState> outcome = driver.run(getTransaction);
-        assertThat(outcome.getReplies(), hasItem(outcome.state()));
-    }
-
-    @Test(expected = Forbidden.class)
-    public void shouldForbidSeeTransactionByNonWinnerNonCreator() throws Throwable {
-        driver.run(startTransaction);
-        UUID hacker = UUID.randomUUID();
-        GetTransaction invalid = new GetTransaction(hacker);
-        driver.run(invalid);
-    }
-
-    @Test
     public void shouldEmitEventWhenSettingDeliveryPrice() {
         driver.run(startTransaction);
         Outcome<TransactionEvent, TransactionState> outcome = driver.run(setDeliveryPrice);
@@ -141,10 +126,25 @@ public class TransactionEntityTest {
         ApproveDeliveryDetails invalid = new ApproveDeliveryDetails(hacker);
         driver.run(invalid);
     }
-    
+
     @Test(expected = Forbidden.class)
     public void shouldForbidApproveEmptyDeliveryDetails() {
         driver.run(startTransaction);
         driver.run(approveDeliveryDetails);
+    }
+
+    @Test
+    public void shouldAllowSeeTransactionByItemCreator() {
+        driver.run(startTransaction);
+        Outcome<TransactionEvent, TransactionState> outcome = driver.run(getTransaction);
+        assertThat(outcome.getReplies(), hasItem(outcome.state()));
+    }
+
+    @Test(expected = Forbidden.class)
+    public void shouldForbidSeeTransactionByNonWinnerNonCreator() throws Throwable {
+        driver.run(startTransaction);
+        UUID hacker = UUID.randomUUID();
+        GetTransaction invalid = new GetTransaction(hacker);
+        driver.run(invalid);
     }
 }
