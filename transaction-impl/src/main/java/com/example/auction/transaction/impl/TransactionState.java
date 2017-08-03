@@ -38,6 +38,10 @@ public class TransactionState implements Jsonable {
         return update(i -> i.withDeliveryPrice(deliveryPrice), status);
     }
 
+    public TransactionState withStatus(TransactionStatus status) {
+        return new TransactionState(transaction, status);
+    }
+
     private TransactionState update(Function<Transaction, Transaction> updateFunction, TransactionStatus status) {
         assert transaction.isPresent();
         return new TransactionState(transaction.map(updateFunction), status);
