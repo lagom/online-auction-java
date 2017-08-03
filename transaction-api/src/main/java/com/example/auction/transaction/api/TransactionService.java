@@ -1,8 +1,5 @@
 package com.example.auction.transaction.api;
 
-import static com.lightbend.lagom.javadsl.api.Service.named;
-import static com.lightbend.lagom.javadsl.api.Service.pathCall;
-
 import akka.Done;
 import akka.NotUsed;
 import com.example.auction.pagination.PaginatedSequence;
@@ -14,6 +11,9 @@ import com.lightbend.lagom.javadsl.api.deser.PathParamSerializers;
 
 import java.util.Optional;
 import java.util.UUID;
+
+import static com.lightbend.lagom.javadsl.api.Service.named;
+import static com.lightbend.lagom.javadsl.api.Service.pathCall;
 
 /**
  * The transaction services.
@@ -32,7 +32,7 @@ public interface TransactionService extends Service {
 
     ServiceCall<Integer, Done> setDeliveryPrice(UUID itemId);
 
-    //ServiceCall<PaymentInfo, Done> submitPaymentDetails(UUID itemId);
+    ServiceCall<PaymentInfo, Done> submitPaymentDetails(UUID itemId);
 
     //ServiceCall<NotUsed, Done> dispatchItem(UUID itemId);
 

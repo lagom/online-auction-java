@@ -44,7 +44,7 @@ public class TransactionEntityTest {
     private final ItemData itemData = new ItemData("title", "desc", "EUR", 1, 10, Duration.ofMinutes(10), Optional.empty());
     private final DeliveryData deliveryData = new DeliveryData("Addr1", "Addr2", "City", "State", 27, "Country");
     private final int deliveryPrice = 500;
-    private final Payment payment = new Payment.OfflinePayment("Payment sent via Paypal");
+    private final Payment payment = new Payment.Offline("Payment sent via wire transfer");
 
     private final Transaction transaction  = new Transaction(itemId, creator, winner, itemData, 2000);
 
