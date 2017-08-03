@@ -133,7 +133,6 @@ public class TransactionServiceImplIntegrationTest {
     @Test(expected = Forbidden.class)
     public void shouldForbidApproveEmptyDeliveryDetails() throws Throwable {
         itemProducerStub.send(auctionFinished);
-        approveDeliveryDetails(itemId, creatorId);
         try {
             approveDeliveryDetails(itemId, creatorId);
         } catch (RuntimeException re) {
