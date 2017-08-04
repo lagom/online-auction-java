@@ -16,15 +16,14 @@ import org.pcollections.TreePVector;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.stream.Collectors;
 
-import static com.example.core.CompletionStageUtils.*;
+import static com.example.core.CompletionStageUtils.accept;
+import static com.example.core.CompletionStageUtils.doAll;
 import static com.lightbend.lagom.javadsl.persistence.cassandra.CassandraReadSide.completedStatements;
 
 @Singleton
@@ -239,16 +238,22 @@ public class TransactionRepository {
 
         private CompletionStage<List<BoundStatement>> updateTransactionSummaryStatus(UUID itemId, TransactionInfoStatus status) {
             return selectTransactionUser(itemId)
-                    .thenApply(throwIfEmpty(() ->
-                            new IllegalStateException("No transactionUser found for itemId " + itemId))
+                    .thenApply(
+                            items -> {
+                                if(items.isEmpty())
+                                    throw new IllegalStateException("No itemCreator found for itemId " + itemId);
+                                else
+                                    return items;
+                            }
                     )
-                    .thenApply(row -> row.getUUID("userId"))
-                    .thenApply(userId -> updateTransactionSummaryStatusStatement.bind(status, userId, itemId))
-                    .thenApply(Collections::singletonList);
+                    .thenApply(List::stream)
+                    .thenApply(rows -> rows.map(row -> row.getUUID("userId")))
+                    .thenApply(userIds -> userIds.map(userId -> updateTransactionSummaryStatusStatement.bind(status, userId, itemId)))
+                    .thenApply(boundStatement -> boundStatement.collect(Collectors.toList()));
         }
 
-        private CompletionStage<Optional<Row>> selectTransactionUser(UUID itemId) {
-            return session.selectOne("SELECT * FROM transactionUser WHERE itemId = ?", itemId);
+        private CompletionStage<List<Row>> selectTransactionUser(UUID itemId) {
+            return session.selectAll("SELECT * FROM transactionUser WHERE itemId = ?", itemId);
         }
     }
 }
