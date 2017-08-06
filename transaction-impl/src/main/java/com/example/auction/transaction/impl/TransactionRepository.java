@@ -249,7 +249,8 @@ public class TransactionRepository {
                     .thenApply(List::stream)
                     .thenApply(rows -> rows.map(row -> row.getUUID("userId")))
                     .thenApply(userIds -> userIds.map(userId -> updateTransactionSummaryStatusStatement.bind(status, userId, itemId)))
-                    .thenApply(boundStatement -> boundStatement.collect(Collectors.toList()));
+                    .thenApply(boundStatement -> boundStatement.collect(Collectors.toList()))
+                    .thenCompose(boundStatements -> completedStatements(boundStatements));
         }
 
         private CompletionStage<List<Row>> selectTransactionUser(UUID itemId) {
