@@ -83,7 +83,7 @@ public class TransactionRepositoryTest {
         shouldGetTransactionStarted(winnerId);
     }
 
-    public void shouldGetTransactionStarted(UUID userId) throws InterruptedException, ExecutionException, TimeoutException {
+    private void shouldGetTransactionStarted(UUID userId) throws InterruptedException, ExecutionException, TimeoutException {
         feed(new TransactionStarted(itemId, transaction));
         PaginatedSequence<TransactionSummary> transactions = getTransactions(userId, TransactionInfoStatus.NEGOTIATING_DELIVERY);
         assertEquals(1, transactions.getCount());
@@ -92,18 +92,24 @@ public class TransactionRepositoryTest {
     }
 
     @Test
-    public void shouldUpdateStatusToPaymentPending() throws InterruptedException, ExecutionException, TimeoutException {
+    public void shouldUpdateStatusToPaymentPendingForCreator() throws InterruptedException, ExecutionException, TimeoutException {
+        shouldUpdateStatusToPaymentPending(creatorId);
+    }
+
+    @Test
+    public void shouldUpdateStatusToPaymentPendingForWinner() throws InterruptedException, ExecutionException, TimeoutException {
+        shouldUpdateStatusToPaymentPending(winnerId);
+    }
+
+    private void shouldUpdateStatusToPaymentPending(UUID userId) throws InterruptedException, ExecutionException, TimeoutException {
         feed(new TransactionStarted(itemId, transaction));
         feed(new DeliveryDetailsSubmitted(itemId, deliveryData));
         feed(new DeliveryPriceUpdated(itemId, deliveryPrice));
         feed(new DeliveryDetailsApproved(itemId));
-        PaginatedSequence<TransactionSummary> creatorTransactions = getTransactions(creatorId, TransactionInfoStatus.PAYMENT_PENDING);
-        PaginatedSequence<TransactionSummary> winnerTransactions = getTransactions(winnerId, TransactionInfoStatus.PAYMENT_PENDING);
-        assertEquals(1, creatorTransactions.getCount());
-        assertEquals(1, winnerTransactions.getCount());
+        PaginatedSequence<TransactionSummary> transactions = getTransactions(userId, TransactionInfoStatus.PAYMENT_PENDING);
+        assertEquals(1, transactions.getCount());
         TransactionSummary expected = new TransactionSummary(itemId, creatorId, winnerId, itemTitle, currencyId, itemPrice, TransactionInfoStatus.PAYMENT_PENDING);
-        assertEquals(expected, creatorTransactions.getItems().get(0));
-        assertEquals(expected, winnerTransactions.getItems().get(0));
+        assertEquals(expected, transactions.getItems().get(0));
     }
 
     @Test

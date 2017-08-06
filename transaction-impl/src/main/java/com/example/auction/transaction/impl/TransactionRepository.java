@@ -240,7 +240,7 @@ public class TransactionRepository {
             return selectTransactionUser(itemId)
                     .thenApply(
                             items -> {
-                                if(items.isEmpty())
+                                if (items.isEmpty())
                                     throw new IllegalStateException("No itemCreator found for itemId " + itemId);
                                 else
                                     return items;
