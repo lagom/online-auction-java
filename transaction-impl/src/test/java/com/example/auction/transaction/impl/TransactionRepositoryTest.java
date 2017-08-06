@@ -97,10 +97,13 @@ public class TransactionRepositoryTest {
         feed(new DeliveryDetailsSubmitted(itemId, deliveryData));
         feed(new DeliveryPriceUpdated(itemId, deliveryPrice));
         feed(new DeliveryDetailsApproved(itemId));
-        PaginatedSequence<TransactionSummary> transactions = getTransactions(creatorId, TransactionInfoStatus.PAYMENT_PENDING);
-        assertEquals(1, transactions.getCount());
+        PaginatedSequence<TransactionSummary> creatorTransactions = getTransactions(creatorId, TransactionInfoStatus.PAYMENT_PENDING);
+        PaginatedSequence<TransactionSummary> winnerTransactions = getTransactions(winnerId, TransactionInfoStatus.PAYMENT_PENDING);
+        assertEquals(1, creatorTransactions.getCount());
+        assertEquals(1, winnerTransactions.getCount());
         TransactionSummary expected = new TransactionSummary(itemId, creatorId, winnerId, itemTitle, currencyId, itemPrice, TransactionInfoStatus.PAYMENT_PENDING);
-        assertEquals(expected, transactions.getItems().get(0));
+        assertEquals(expected, creatorTransactions.getItems().get(0));
+        assertEquals(expected, winnerTransactions.getItems().get(0));
     }
 
     @Test
