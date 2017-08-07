@@ -10,7 +10,6 @@ import java.util.UUID;
 public final class PUser implements Jsonable {
 
     private final UUID id;
-    private final Instant createdAt;
     private final String name;
     private final String email;
     private final String passwordHash;

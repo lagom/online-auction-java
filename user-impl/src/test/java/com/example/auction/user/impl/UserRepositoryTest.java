@@ -55,8 +55,7 @@ public class UserRepositoryTest {
     private final String name = "admin";
     private final String email = "admin@gmail.com";
     private final String password = PUserCommand.hashPassword("admin");
-    private final Instant createdAt = Instant.now();
-    private final PUser userCreated = new PUser(userId, createdAt, name, email, password);
+    private final PUser userCreated = new PUser(userId,  name, email, password);
 
 
     @Before
@@ -74,7 +73,7 @@ public class UserRepositoryTest {
         feed(new PUserEvent.PUserCreated(userCreated));
         PaginatedSequence<User> users = shouldGetUsers();
         assertEquals(1, users.getCount());
-        User expected = new User(userId, createdAt, name, email);
+        User expected = new User(userId,  name, email);
         assertEquals(expected, users.getItems().get(0));
     }
 
@@ -84,7 +83,7 @@ public class UserRepositoryTest {
         int size = 25;
 
         for (int i = 0; i < size; i++) {
-            feed(new PUserEvent.PUserCreated(buildFixture(createdAt, i)));
+            feed(new PUserEvent.PUserCreated(buildFixture( i)));
         }
 
         PaginatedSequence<User> createdUsers = Await.result(userRepository.getUsers(0, 10));
@@ -92,9 +91,9 @@ public class UserRepositoryTest {
         assertEquals(10, createdUsers.getItems().size());
     }
 
-    private PUser buildFixture(Instant createdAt, int i) {
+    private PUser buildFixture( int i) {
 
-        return new PUser(UUID.randomUUID(), createdAt, name + i, email + i, password);
+        return new PUser(UUID.randomUUID(), name + i, email + i, password);
     }
 
 
