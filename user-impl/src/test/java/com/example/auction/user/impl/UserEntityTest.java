@@ -32,14 +32,13 @@ public class UserEntityTest {
     }
 
     private final UUID id = UUID.randomUUID();
-    private final Instant createdAt = Instant.now();
     private final String name = "admin";
     private final String email = "admin@gmail.com";
 
     private final String password = PUserCommand.hashPassword("admin");
 
 
-    private final PUser user = new PUser(id, Instant.now(), name, email, password);
+    private final PUser user = new PUser(id,  name, email, password);
 
 
     @Before

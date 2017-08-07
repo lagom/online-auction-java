@@ -84,9 +84,7 @@ public class UserRepository {
         return new User(
 
                 user.getUUID("userId"),
-                user.get("createdAt", InstantCodec.instance),
                 user.getString("name"),
-
                 user.getString("email")
         );
     }
@@ -129,10 +127,9 @@ public class UserRepository {
                     session.executeCreateTable(
                             "CREATE TABLE IF NOT EXISTS UserInfo (" +
                                     "userId UUID, " +
-                                    "createdAt timestamp, " +
                                     "name text, " +
                                     "email text, " +
-                                    "PRIMARY KEY (userId, createdAt) " +
+                                    "PRIMARY KEY (userId) " +
                                     ")"
 
                     )
@@ -157,13 +154,11 @@ public class UserRepository {
                     prepare("INSERT INTO UserInfo(" +
 
                             "userId, " +
-                            "createdAt, " +
                             "name, " +
                             "email" +
 
                             ") VALUES (" +
                             "?, " + // userId
-                            "?, " + // createdAt
                             "?, " + // name
                             "?" + // email
 
@@ -184,7 +179,6 @@ public class UserRepository {
             return insertUserStatement.bind(
 
                     user.getId(),
-                    user.getCreatedAt(),
                     user.getName(),
                     user.getEmail()
             );

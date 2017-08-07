@@ -47,7 +47,7 @@ public abstract class AbstractController extends Controller {
     }
 
     protected CompletionStage<Nav> loadNav(Optional<UUID> userId) {
-        return userService.getUsers(Optional.of(1), Optional.of(10)).invoke().thenApply(users -> {
+        return userService.getUsers(Optional.of(0), Optional.of(10)).invoke().thenApply(users -> {
             Optional<User> currentUser = userId.flatMap(id -> {
                 for (User u: users.getItems()) {
                     if (u.getId().equals(id)) {
