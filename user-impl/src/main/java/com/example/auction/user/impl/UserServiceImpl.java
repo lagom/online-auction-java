@@ -42,7 +42,7 @@ public class UserServiceImpl implements UserService {
             UUID uuid = UUID.randomUUID();
             Instant createdAt = Instant.now();
             String password = PUserCommand.hashPassword(user.getPassword());
-            PUser createdUser = new PUser(uuid, createdAt, user.getName(), user.getEmail(), password);
+            PUser createdUser = new PUser(uuid,  user.getName(), user.getEmail(), password);
             return entityRef(uuid)
                     .ask(new PUserCommand.CreatePUser(user.getName(), user.getEmail(), password))
                     .thenApply(done -> Mappers.toApi(Optional.ofNullable(createdUser)));

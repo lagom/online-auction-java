@@ -9,7 +9,6 @@ import java.util.UUID;
 public final class User {
 
     private final UUID id;
-    private final Instant createdAt;
     private final String name;
     private final String email;
 

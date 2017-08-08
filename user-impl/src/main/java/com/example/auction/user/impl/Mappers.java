@@ -9,7 +9,6 @@ public class Mappers {
     public static User toApi(Optional<PUser> user) {
         return new User(
                 user.get().getId(),
-                user.get().getCreatedAt(),
                 user.get().getName(),
                 user.get().getEmail()
         );
