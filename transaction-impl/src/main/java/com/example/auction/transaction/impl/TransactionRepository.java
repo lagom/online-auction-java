@@ -16,7 +16,9 @@ import org.pcollections.TreePVector;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
@@ -129,9 +131,10 @@ public class TransactionRepository {
         private CompletionStage<Done> createTable() {
             return doAll(
                     session.executeCreateTable(
-                            "CREATE TABLE IF NOT EXISTS transactionUser (" +
+                            "CREATE TABLE IF NOT EXISTS transactionUsers (" +
                                     "itemId timeuuid PRIMARY KEY, " +
-                                    "userId UUID" +
+                                    "creatorId UUID, " +
+                                    "winnerId UUID" +
                                     ")"
                     ),
                     session.executeCreateTable(
@@ -176,7 +179,7 @@ public class TransactionRepository {
 
         private CompletionStage<Done> prepareInsertTransactionUserStatement() {
             return session
-                    .prepare("INSERT INTO transactionUser(itemId, userId) VALUES (?, ?)")
+                    .prepare("INSERT INTO transactionUsers(itemId, creatorId, winnerId) VALUES (?, ?, ?)")
                     .thenApply(accept(s -> insertTransactionUserStatement = s));
         }
 
@@ -216,9 +219,8 @@ public class TransactionRepository {
 
         private CompletionStage<List<BoundStatement>> insertTransaction(UUID itemId, Transaction transaction) {
             return completedStatements(
-                    insertTransactionUserStatement.bind(itemId, transaction.getCreator()),
+                    insertTransactionUserStatement.bind(itemId, transaction.getCreator(), transaction.getWinner()),
                     insertTransactionSummaryByUser(itemId, transaction.getCreator(), transaction),
-                    insertTransactionUserStatement.bind(itemId, transaction.getWinner()),
                     insertTransactionSummaryByUser(itemId, transaction.getWinner(), transaction)
             );
         }
@@ -239,22 +241,26 @@ public class TransactionRepository {
         private CompletionStage<List<BoundStatement>> updateTransactionSummaryStatus(UUID itemId, TransactionInfoStatus status) {
             return selectTransactionUser(itemId)
                     .thenApply(
-                            items -> {
-                                if (items.isEmpty())
-                                    throw new IllegalStateException("No itemCreator found for itemId " + itemId);
+                            optionalRow -> {
+                                if (!optionalRow.isPresent())
+                                    throw new IllegalStateException("No transactionUsers found for itemId " + itemId);
                                 else
-                                    return items;
+                                    return optionalRow.get();
                             }
                     )
-                    .thenApply(List::stream)
-                    .thenApply(rows -> rows.map(row -> row.getUUID("userId")))
-                    .thenApply(userIds -> userIds.map(userId -> updateTransactionSummaryStatusStatement.bind(status, userId, itemId)))
-                    .thenApply(boundStatement -> boundStatement.collect(Collectors.toList()))
-                    .thenCompose(boundStatements -> completedStatements(boundStatements));
+                    .thenApply(transactionRow -> {
+                        UUID creatorId = transactionRow.getUUID("creatorId");
+                        UUID winnerId = transactionRow.getUUID("winnerId");
+                        BoundStatement updateCreatorTransaction =
+                                updateTransactionSummaryStatusStatement.bind(status, creatorId, itemId);
+                        BoundStatement updateWinnerTransaction =
+                                updateTransactionSummaryStatusStatement.bind(status, winnerId, itemId);
+                        return Arrays.asList(updateCreatorTransaction, updateWinnerTransaction);
+                    });
         }
 
-        private CompletionStage<List<Row>> selectTransactionUser(UUID itemId) {
-            return session.selectAll("SELECT * FROM transactionUser WHERE itemId = ?", itemId);
+        private CompletionStage<Optional<Row>> selectTransactionUser(UUID itemId) {
+            return session.selectOne("SELECT * FROM transactionUsers WHERE itemId = ?", itemId);
         }
     }
 }
