@@ -32,6 +32,8 @@ public interface TransactionService extends Service {
 
     ServiceCall<Integer, Done> setDeliveryPrice(UUID itemId);
 
+    ServiceCall<NotUsed, Done> approveDeliveryDetails(UUID itemId);
+
     ServiceCall<PaymentInfo, Done> submitPaymentDetails(UUID itemId);
 
     //ServiceCall<NotUsed, Done> dispatchItem(UUID itemId);
@@ -55,6 +57,7 @@ public interface TransactionService extends Service {
         return named("transaction").withCalls(
                 pathCall("/api/transaction/:id/deliverydetails", this::submitDeliveryDetails),
                 pathCall("/api/transaction/:id/deliveryprice", this::setDeliveryPrice),
+                pathCall("/api/transaction/:id/approvedelivery", this::approveDeliveryDetails),
                 pathCall("/api/transaction/:id", this::getTransaction),
                 pathCall("/api/transaction?status&pageNo&pageSize", this::getTransactionsForUser)
         ).withPathParamSerializer(

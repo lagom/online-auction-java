@@ -71,6 +71,14 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
+    public ServiceCall<NotUsed, Done> approveDeliveryDetails(UUID itemId) {
+        return authenticated(userId -> request -> {
+            ApproveDeliveryDetails approveDeliveryDetails = new ApproveDeliveryDetails(userId);
+            return entityRef(itemId).ask(approveDeliveryDetails);
+        });
+    }
+
+    @Override
     public ServiceCall<PaymentInfo, Done> submitPaymentDetails(UUID itemId) {
         return null;
     }

@@ -42,7 +42,7 @@ public class TransactionMappers {
                 transaction.getItemPrice(),
                 transaction.getDeliveryPrice(),
                 toApi(transaction.getDeliveryData()),
-                data.getStatus().transactionStatus
+                data.getStatus().transactionInfoStatus
         );
     }
 }

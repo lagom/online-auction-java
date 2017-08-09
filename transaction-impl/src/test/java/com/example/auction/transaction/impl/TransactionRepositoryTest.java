@@ -63,7 +63,10 @@ public class TransactionRepositoryTest {
     private final String currencyId = "EUR";
     private final int itemPrice = 2000;
     private final ItemData itemData = new ItemData(itemTitle, "desc", currencyId, 1, 10, Duration.ofMinutes(10), Optional.empty());
-    private final Transaction transaction  = new Transaction(itemId, creatorId, winnerId, itemData, itemPrice);
+    private final Transaction transaction = new Transaction(itemId, creatorId, winnerId, itemData, itemPrice);
+
+    private final DeliveryData deliveryData = new DeliveryData("Addr1", "Addr2", "City", "State", 27, "Country");
+    private final int deliveryPrice = 500;
 
     @Before
     public void restartOffset() {
@@ -80,7 +83,7 @@ public class TransactionRepositoryTest {
         shouldGetTransactionStarted(winnerId);
     }
 
-    public void shouldGetTransactionStarted(UUID userId) throws InterruptedException, ExecutionException, TimeoutException {
+    private void shouldGetTransactionStarted(UUID userId) throws InterruptedException, ExecutionException, TimeoutException {
         feed(new TransactionStarted(itemId, transaction));
         PaginatedSequence<TransactionSummary> transactions = getTransactions(userId, TransactionInfoStatus.NEGOTIATING_DELIVERY);
         assertEquals(1, transactions.getCount());
@@ -89,10 +92,32 @@ public class TransactionRepositoryTest {
     }
 
     @Test
+<<<<<<< HEAD
     public void shouldUpdateStatusToPaymentSubmitted() {
 
     }
 
+=======
+    public void shouldUpdateStatusToPaymentPendingForCreator() throws InterruptedException, ExecutionException, TimeoutException {
+        shouldUpdateStatusToPaymentPending(creatorId);
+    }
+
+    @Test
+    public void shouldUpdateStatusToPaymentPendingForWinner() throws InterruptedException, ExecutionException, TimeoutException {
+        shouldUpdateStatusToPaymentPending(winnerId);
+    }
+
+    private void shouldUpdateStatusToPaymentPending(UUID userId) throws InterruptedException, ExecutionException, TimeoutException {
+        feed(new TransactionStarted(itemId, transaction));
+        feed(new DeliveryDetailsSubmitted(itemId, deliveryData));
+        feed(new DeliveryPriceUpdated(itemId, deliveryPrice));
+        feed(new DeliveryDetailsApproved(itemId));
+        PaginatedSequence<TransactionSummary> transactions = getTransactions(userId, TransactionInfoStatus.PAYMENT_PENDING);
+        assertEquals(1, transactions.getCount());
+        TransactionSummary expected = new TransactionSummary(itemId, creatorId, winnerId, itemTitle, currencyId, itemPrice, TransactionInfoStatus.PAYMENT_PENDING);
+        assertEquals(expected, transactions.getItems().get(0));
+    }
+>>>>>>> master
 
     @Test
     public void shouldPaginateTransactionRetrieval() throws InterruptedException, ExecutionException, TimeoutException {
