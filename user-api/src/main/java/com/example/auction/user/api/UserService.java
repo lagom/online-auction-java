@@ -5,7 +5,6 @@ import com.example.auction.pagination.PaginatedSequence;
 import com.lightbend.lagom.javadsl.api.Descriptor;
 import com.lightbend.lagom.javadsl.api.Service;
 import com.lightbend.lagom.javadsl.api.ServiceCall;
-import com.lightbend.lagom.javadsl.api.broker.Topic;
 import com.lightbend.lagom.javadsl.api.deser.PathParamSerializers;
 
 import java.util.Optional;
@@ -20,7 +19,6 @@ public interface UserService extends Service {
 
     ServiceCall<NotUsed, User> getUser(UUID userId);
 
-    Topic<UserEvent> userEvents();
 
     ServiceCall<NotUsed, PaginatedSequence<User>> getUsers(
             Optional<Integer> pageNo, Optional<Integer> pageSize);

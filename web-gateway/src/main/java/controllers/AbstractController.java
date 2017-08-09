@@ -1,5 +1,6 @@
 package controllers;
 
+import com.example.auction.pagination.PaginatedSequence;
 import com.example.auction.user.api.User;
 import com.example.auction.user.api.UserService;
 import play.i18n.MessagesApi;
@@ -14,9 +15,11 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.function.Function;
 
+import static com.example.auction.security.ClientSecurity.authenticate;
+
 public abstract class AbstractController extends Controller {
     private final MessagesApi messagesApi;
-    private final UserService userService;
+    public final UserService userService;
 
     public AbstractController(MessagesApi messagesApi, UserService userService) {
         this.messagesApi = messagesApi;
@@ -45,19 +48,14 @@ public abstract class AbstractController extends Controller {
     protected CompletionStage<Nav> loadNav(UUID userId) {
         return loadNav(Optional.of(userId));
     }
-
-    protected CompletionStage<Nav> loadNav(Optional<UUID> userId) {
-        return userService.getUsers(Optional.of(0), Optional.of(10)).invoke().thenApply(users -> {
-            Optional<User> currentUser = userId.flatMap(id -> {
-                for (User u: users.getItems()) {
-                    if (u.getId().equals(id)) {
-                        return Optional.of(u);
-                    }
-                }
-                return Optional.empty();
-            });
-            return new Nav(messagesApi.preferred(Collections.emptyList()), users.getItems(), currentUser);
-        });
-    }
+    protected CompletionStage<Nav> loadNav(Optional<UUID> userId) { CompletionStage<Optional<User>> u;
+    if (userId.isPresent()) {
+        u = userService.getUser(userId.get())
+                .handleRequestHeader(authenticate(userId.get()))
+                .invoke()
+                .thenApply(resp -> Optional.of(resp)); } else {
+        u = CompletableFuture.completedFuture(Optional.empty()); }
+         CompletionStage<PaginatedSequence<User>> users = userService.getUsers(Optional.of(0), Optional.of(10)).invoke();
+    return users.thenCombineAsync( u, (userPaginatedSequence, maybeLoggedUser) -> new Nav(messagesApi.preferred(Collections.emptyList()), userPaginatedSequence.getItems(), maybeLoggedUser)); }
 
 }
