@@ -92,10 +92,10 @@ public class TransactionController extends AbstractController {
                                 }
                             }
                             Currency currency = Currency.valueOf(transaction.getItemData().getCurrencyId());
-                            return ok(views.html.transaction.render(showInlineInstruction, Optional.of(transaction), seller, winner, Optional.of(currency), Optional.empty(), nav));
+                            return ok(views.html.transaction.render(showInlineInstruction, Optional.of(transaction), user, seller, winner, Optional.of(currency), Optional.empty(), nav));
                         } else {
                             String msg = exception.getCause().getMessage();
-                            return ok(views.html.transaction.render(showInlineInstruction, Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.of(msg), nav));
+                            return ok(views.html.transaction.render(showInlineInstruction, Optional.empty(), user, Optional.empty(), Optional.empty(), Optional.empty(), Optional.of(msg), nav));
                         }
                     });
                 }, ec.current())
@@ -241,5 +241,17 @@ public class TransactionController extends AbstractController {
                         }).thenComposeAsync(x -> x, ec.current());
             }
         });
+    }
+
+    public CompletionStage<Result> approveDelivery(String id) {
+        return requireUser(ctx(), user ->
+                transactionService.approveDeliveryDetails(UUID.fromString(id))
+                        .handleRequestHeader(authenticate(user))
+                        .invoke()
+                        .thenApplyAsync(done ->
+                                        redirect(routes.TransactionController.getTransaction(id)),
+                                ec.current()
+                        )
+        );
     }
 }

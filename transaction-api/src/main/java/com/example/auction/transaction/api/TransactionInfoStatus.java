@@ -7,6 +7,11 @@ public enum TransactionInfoStatus {
     NEGOTIATING_DELIVERY,
 
     /**
+     * Seller approved delivery details and payment is pending
+     */
+    PAYMENT_PENDING,
+
+    /**
      * Buyer has submitted payment details.
      */
     PAYMENT_SUBMITTED,

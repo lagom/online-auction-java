@@ -112,6 +112,7 @@ transactionInfo=Transaction information
 aboutItem=About item
 aboutGeneral=General information
 viewDeliveryDetails=View delivery details
+editDeliveryDetails=Edit delivery details
 deliveryDetails=Delivery Details
 submitDeliveryDetails=Submit
 addressLine1=Address Line 1
@@ -123,6 +124,8 @@ country=Country
 
 noTransactions.NEGOTIATING_DELIVERY=No transactions in negotiation
 transactions.NEGOTIATING_DELIVERY=Negotiating delivery
+noTransactions.PAYMENT_PENDING=No transaction waiting payment
+transactions.PAYMENT_PENDING=Payment pending
 noTransactions.PAYMENT_SUBMITTED=No transactions with payment submitted
 transactions.PAYMENT_SUBMITTED=Payment submitted
 noTransactions.PAYMENT_FAILED=No transactions with payment failed
@@ -149,3 +152,7 @@ buyer=Buyer
 
 deliveryPrice=Delivery price
 viewDeliveryPrice=View delivery price
+editDeliveryPrice=Edit delivery price
+
+approveDelivery=Approve delivery details
+waitingApprovement=Waiting for approvement from seller
