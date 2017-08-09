@@ -65,10 +65,10 @@ public class TransactionServiceImplIntegrationTest {
     private final PaymentInfo paymentInfo = new PaymentInfo.Offline("Payment sent via wire transfer");
 
     private final TransactionInfo transactionInfoStarted = new TransactionInfo(itemId, creatorId, winnerId, itemData, item.getPrice(), Optional.empty(), Optional.empty(), Optional.empty(), TransactionInfoStatus.NEGOTIATING_DELIVERY);
-    private final TransactionInfo transactionInfoWithDeliveryInfo = new TransactionInfo(itemId, creatorId, winnerId, itemData, item.getPrice(), Optional.empty(), Optional.of(deliveryInfo), Optional.empty(), TransactionInfoStatus.NEGOTIATING_DELIVERY);
-    private final TransactionInfo transactionInfoWithDeliveryPrice = new TransactionInfo(itemId, creatorId, winnerId, itemData, item.getPrice(), Optional.of(deliveryPrice), Optional.empty(), Optional.empty(), TransactionInfoStatus.NEGOTIATING_DELIVERY);
-    private final TransactionInfo transactionInfoWithPaymentPending = new TransactionInfo(itemId, creatorId, winnerId, itemData, item.getPrice(), Optional.of(deliveryPrice), Optional.of(deliveryInfo), Optional.empty(), TransactionInfoStatus.PAYMENT_PENDING);
-    private final TransactionInfo transactionInfoWithPaymentDetails = new TransactionInfo(itemId, creatorId, winnerId, itemData, item.getPrice(), Optional.of(deliveryPrice), Optional.of(deliveryInfo), Optional.of(paymentInfo), TransactionInfoStatus.PAYMENT_SUBMITTED);
+    private final TransactionInfo transactionInfoWithDeliveryInfo = new TransactionInfo(itemId, creatorId, winnerId, itemData, item.getPrice(), Optional.of(deliveryInfo), Optional.empty(), Optional.empty(), TransactionInfoStatus.NEGOTIATING_DELIVERY);
+    private final TransactionInfo transactionInfoWithDeliveryPrice = new TransactionInfo(itemId, creatorId, winnerId, itemData, item.getPrice(), Optional.empty(), Optional.of(deliveryPrice), Optional.empty(), TransactionInfoStatus.NEGOTIATING_DELIVERY);
+    private final TransactionInfo transactionInfoWithPaymentPending = new TransactionInfo(itemId, creatorId, winnerId, itemData, item.getPrice(), Optional.of(deliveryInfo), Optional.of(deliveryPrice), Optional.empty(), TransactionInfoStatus.PAYMENT_PENDING);
+    private final TransactionInfo transactionInfoWithPaymentDetails = new TransactionInfo(itemId, creatorId, winnerId, itemData, item.getPrice(), Optional.of(deliveryInfo), Optional.of(deliveryPrice), Optional.of(paymentInfo), TransactionInfoStatus.PAYMENT_SUBMITTED);
 
     @Test
     public void shouldCreateTransactionOnAuctionFinished() {

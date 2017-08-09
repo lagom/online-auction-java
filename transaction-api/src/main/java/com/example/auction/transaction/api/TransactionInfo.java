@@ -16,20 +16,20 @@ public final class TransactionInfo {
     private final UUID winner;
     private final ItemData itemData;
     private final int itemPrice;
-    private final Optional<Integer> deliveryPrice;
     private final Optional<DeliveryInfo> deliveryInfo;
+    private final Optional<Integer> deliveryPrice;
     private final Optional<PaymentInfo> paymentInfo;
     private final TransactionInfoStatus status;
 
     @JsonCreator
-    public TransactionInfo(UUID itemId, UUID creator, UUID winner, ItemData itemData, int itemPrice, Optional<Integer> deliveryPrice, Optional<DeliveryInfo> deliveryInfo, Optional<PaymentInfo> paymentInfo, TransactionInfoStatus status) {
+    public TransactionInfo(UUID itemId, UUID creator, UUID winner, ItemData itemData, int itemPrice, Optional<DeliveryInfo> deliveryInfo, Optional<Integer> deliveryPrice, Optional<PaymentInfo> paymentInfo, TransactionInfoStatus status) {
         this.itemId = itemId;
         this.creator = creator;
         this.winner = winner;
         this.itemData = itemData;
         this.itemPrice = itemPrice;
-        this.deliveryPrice = deliveryPrice;
         this.deliveryInfo = deliveryInfo;
+        this.deliveryPrice = deliveryPrice;
         this.paymentInfo = paymentInfo;
         this.status = status;
     }

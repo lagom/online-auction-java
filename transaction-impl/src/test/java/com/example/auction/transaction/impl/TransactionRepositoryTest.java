@@ -92,12 +92,6 @@ public class TransactionRepositoryTest {
     }
 
     @Test
-<<<<<<< HEAD
-    public void shouldUpdateStatusToPaymentSubmitted() {
-
-    }
-
-=======
     public void shouldUpdateStatusToPaymentPendingForCreator() throws InterruptedException, ExecutionException, TimeoutException {
         shouldUpdateStatusToPaymentPending(creatorId);
     }
@@ -117,7 +111,11 @@ public class TransactionRepositoryTest {
         TransactionSummary expected = new TransactionSummary(itemId, creatorId, winnerId, itemTitle, currencyId, itemPrice, TransactionInfoStatus.PAYMENT_PENDING);
         assertEquals(expected, transactions.getItems().get(0));
     }
->>>>>>> master
+
+    @Test
+    public void shouldUpdateStatusToPaymentSubmitted() {
+
+    }
 
     @Test
     public void shouldPaginateTransactionRetrieval() throws InterruptedException, ExecutionException, TimeoutException {
