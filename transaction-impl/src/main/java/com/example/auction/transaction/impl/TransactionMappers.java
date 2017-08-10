@@ -1,13 +1,14 @@
 package com.example.auction.transaction.impl;
 
 import com.example.auction.transaction.api.DeliveryInfo;
+import com.example.auction.transaction.api.PaymentInfo;
 import com.example.auction.transaction.api.TransactionInfo;
 
 import java.util.Optional;
 
 public class TransactionMappers {
 
-    public static Optional<DeliveryInfo> toApi(Optional<DeliveryData> data) {
+    public static Optional<DeliveryInfo> toApiDelivery(Optional<DeliveryData> data) {
         return data.map(deliveryData -> new DeliveryInfo(
                 data.get().getAddressLine1(),
                 data.get().getAddressLine2(),
@@ -18,7 +19,7 @@ public class TransactionMappers {
         );
     }
 
-    public static DeliveryData fromApi(DeliveryInfo data) {
+    public static DeliveryData fromApiDelivery(DeliveryInfo data) {
         return new DeliveryData(
                 data.getAddressLine1(),
                 data.getAddressLine2(),
@@ -27,6 +28,23 @@ public class TransactionMappers {
                 data.getPostalCode(),
                 data.getCountry()
         );
+    }
+
+    public static Optional<PaymentInfo> toApiPayment(Optional<Payment> data) {
+        return data.flatMap(payment -> {
+                    if (payment instanceof Payment.Offline)
+                        return Optional.of(new PaymentInfo.Offline(((Payment.Offline) payment).getComment()));
+                    else
+                        return Optional.empty();
+                }
+        );
+    }
+
+    public static Optional<Payment> fromApiPayment(PaymentInfo data) {
+        if (data instanceof PaymentInfo.Offline)
+            return Optional.of(new Payment.Offline(((PaymentInfo.Offline) data).getComment()));
+        else
+            return Optional.empty();
     }
 
     public static TransactionInfo toApi(TransactionState data) {
@@ -40,8 +58,9 @@ public class TransactionMappers {
                 transaction.getWinner(),
                 transaction.getItemData(),
                 transaction.getItemPrice(),
+                toApiDelivery(transaction.getDeliveryData()),
                 transaction.getDeliveryPrice(),
-                toApi(transaction.getDeliveryData()),
+                toApiPayment(transaction.getPayment()),
                 data.getStatus().transactionInfoStatus
         );
     }

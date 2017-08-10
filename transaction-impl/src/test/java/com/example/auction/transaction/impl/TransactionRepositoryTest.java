@@ -67,6 +67,7 @@ public class TransactionRepositoryTest {
 
     private final DeliveryData deliveryData = new DeliveryData("Addr1", "Addr2", "City", "State", 27, "Country");
     private final int deliveryPrice = 500;
+    private final Payment payment = new Payment.Offline("Payment sent via wire transfer");
 
     @Before
     public void restartOffset() {
@@ -113,8 +114,26 @@ public class TransactionRepositoryTest {
     }
 
     @Test
-    public void shouldUpdateStatusToPaymentSubmitted() {
+    public void shouldUpdateStatusToPaymentSubmittedForCreator() throws InterruptedException, ExecutionException, TimeoutException {
+        shouldUpdateStatusToPaymentSubmitted(creatorId);
+    }
 
+    @Test
+    public void shouldUpdateStatusToPaymentSubmittedForWinner() throws InterruptedException, ExecutionException, TimeoutException {
+        shouldUpdateStatusToPaymentSubmitted(winnerId);
+    }
+
+    private void shouldUpdateStatusToPaymentSubmitted(UUID userId) throws InterruptedException, ExecutionException, TimeoutException {
+        feed(new TransactionStarted(itemId, transaction));
+        feed(new DeliveryDetailsSubmitted(itemId, deliveryData));
+        feed(new DeliveryPriceUpdated(itemId, deliveryPrice));
+        feed(new DeliveryDetailsApproved(itemId));
+        feed(new PaymentDetailsSubmitted(itemId, payment));
+
+        PaginatedSequence<TransactionSummary> transactions = getTransactions(userId, TransactionInfoStatus.PAYMENT_SUBMITTED);
+        assertEquals(1, transactions.getCount());
+        TransactionSummary expected = new TransactionSummary(itemId, creatorId, winnerId, itemTitle, currencyId, itemPrice, TransactionInfoStatus.PAYMENT_SUBMITTED);
+        assertEquals(expected, transactions.getItems().get(0));
     }
 
     @Test
