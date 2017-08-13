@@ -58,6 +58,7 @@ public interface TransactionService extends Service {
                 pathCall("/api/transaction/:id/deliverydetails", this::submitDeliveryDetails),
                 pathCall("/api/transaction/:id/deliveryprice", this::setDeliveryPrice),
                 pathCall("/api/transaction/:id/approvedelivery", this::approveDeliveryDetails),
+                pathCall("/api/transaction/:id/paymentdetails", this::submitPaymentDetails),
                 pathCall("/api/transaction/:id", this::getTransaction),
                 pathCall("/api/transaction?status&pageNo&pageSize", this::getTransactionsForUser)
         ).withPathParamSerializer(

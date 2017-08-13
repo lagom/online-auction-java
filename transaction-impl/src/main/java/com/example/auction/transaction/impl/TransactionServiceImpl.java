@@ -80,7 +80,15 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Override
     public ServiceCall<PaymentInfo, Done> submitPaymentDetails(UUID itemId) {
-        return null;
+        return authenticated(userId -> paymentInfo -> {
+            Optional<Payment> payment = TransactionMappers.fromApiPayment(paymentInfo);
+            if(payment.isPresent()) {
+                SubmitPaymentDetails submit = new SubmitPaymentDetails(userId, payment.get());
+                return entityRef(itemId).ask(submit);
+            }
+            else
+                throw new IllegalArgumentException("Mapping non payment class");
+        });
     }
 
     @Override
