@@ -25,6 +25,8 @@ public class TransactionEntity extends PersistentEntity<TransactionCommand, Tran
                     return negotiatingDelivery(state);
                 case PAYMENT_PENDING:
                     return paymentPending(state);
+                case PAYMENT_SUBMITTED:
+                    return paymentSubmitted(state);
                 default:
                     throw new IllegalStateException();
             }
@@ -116,7 +118,7 @@ public class TransactionEntity extends PersistentEntity<TransactionCommand, Tran
         });
 
         builder.setEventHandlerChangingBehavior(PaymentDetailsSubmitted.class, evt ->
-                paymentPendingSubmitted(state().updatePayment(evt.getPayment()).withStatus(TransactionStatus.PAYMENT_SUBMITTED))
+                paymentSubmitted(state().updatePayment(evt.getPayment()).withStatus(TransactionStatus.PAYMENT_SUBMITTED))
         );
 
         builder.setEventHandlerChangingBehavior(DeliveryDetailsApproved.class, event ->
@@ -128,7 +130,7 @@ public class TransactionEntity extends PersistentEntity<TransactionCommand, Tran
         return builder.build();
     }
 
-    private Behavior paymentPendingSubmitted(TransactionState state) {
+    private Behavior paymentSubmitted(TransactionState state) {
         BehaviorBuilder builder = newBehaviorBuilder(state);
 
         addGetTransactionHandler(builder);
