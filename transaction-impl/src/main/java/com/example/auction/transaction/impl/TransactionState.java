@@ -38,6 +38,10 @@ public class TransactionState implements Jsonable {
         return update(i -> i.withDeliveryPrice(deliveryPrice), status);
     }
 
+    public TransactionState updatePayment(Payment payment) {
+        return update(i -> i.withPayment(payment), status);
+    }
+
     public TransactionState withStatus(TransactionStatus status) {
         return new TransactionState(transaction, status);
     }

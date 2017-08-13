@@ -50,4 +50,8 @@ public class Transaction implements Jsonable {
     public Transaction withDeliveryPrice(int deliveryPrice) {
         return new Transaction(itemId, creator, winner, itemData, itemPrice, deliveryData, Optional.of(deliveryPrice), payment);
     }
+
+    public Transaction withPayment(Payment payment) {
+        return new Transaction(itemId, creator, winner, itemData, itemPrice, deliveryData, deliveryPrice, Optional.of(payment));
+    }
 }
