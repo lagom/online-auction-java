@@ -40,11 +40,11 @@ public class TransactionMappers {
         );
     }
 
-    public static Optional<Payment> fromApiPayment(PaymentInfo data) {
+    public static Payment fromApiPayment(PaymentInfo data) {
         if (data instanceof PaymentInfo.Offline)
-            return Optional.of(new Payment.Offline(((PaymentInfo.Offline) data).getComment()));
+            return new Payment.Offline(((PaymentInfo.Offline) data).getComment());
         else
-            return Optional.empty();
+            throw new IllegalArgumentException("Mapping non payment class");
     }
 
     public static TransactionInfo toApi(TransactionState data) {

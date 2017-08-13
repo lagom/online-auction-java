@@ -36,13 +36,12 @@ public class TransactionServiceImpl implements TransactionService {
             if (itemEvent instanceof ItemEvent.AuctionFinished) {
                 ItemEvent.AuctionFinished auctionFinished = (ItemEvent.AuctionFinished) itemEvent;
                 // If an auction doesn't have a winner, then we can't start a transaction
-                if(auctionFinished.getItem().getAuctionWinner().isPresent()) {
+                if (auctionFinished.getItem().getAuctionWinner().isPresent()) {
                     Item item = auctionFinished.getItem();
                     Transaction transaction = new Transaction(item.getId(), item.getCreator(),
                             item.getAuctionWinner().get(), item.getItemData(), item.getPrice());
                     return entityRef(auctionFinished.getItemId()).ask(new StartTransaction(transaction));
-                }
-                else
+                } else
                     return CompletableFuture.completedFuture(Done.getInstance());
             } else
                 return CompletableFuture.completedFuture(Done.getInstance());
@@ -81,13 +80,8 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     public ServiceCall<PaymentInfo, Done> submitPaymentDetails(UUID itemId) {
         return authenticated(userId -> paymentInfo -> {
-            Optional<Payment> payment = TransactionMappers.fromApiPayment(paymentInfo);
-            if(payment.isPresent()) {
-                SubmitPaymentDetails submit = new SubmitPaymentDetails(userId, payment.get());
-                return entityRef(itemId).ask(submit);
-            }
-            else
-                throw new IllegalArgumentException("Mapping non payment class");
+            SubmitPaymentDetails submit = new SubmitPaymentDetails(userId, TransactionMappers.fromApiPayment(paymentInfo));
+            return entityRef(itemId).ask(submit);
         });
     }
 
@@ -108,7 +102,7 @@ public class TransactionServiceImpl implements TransactionService {
     public ServiceCall<NotUsed, PaginatedSequence<TransactionSummary>> getTransactionsForUser(
             TransactionInfoStatus status, Optional<Integer> pageNo, Optional<Integer> pageSize) {
         return authenticated(userId -> request ->
-            transactions.getTransactionsForUser(userId, status, pageNo.orElse(0), pageSize.orElse(DEFAULT_PAGE_SIZE))
+                transactions.getTransactionsForUser(userId, status, pageNo.orElse(0), pageSize.orElse(DEFAULT_PAGE_SIZE))
         );
     }
 
