@@ -19,7 +19,7 @@ import static com.example.auction.security.ClientSecurity.authenticate;
 
 public abstract class AbstractController extends Controller {
     private final MessagesApi messagesApi;
-    public final UserService userService;
+    protected final UserService userService;
 
     public AbstractController(MessagesApi messagesApi, UserService userService) {
         this.messagesApi = messagesApi;
@@ -45,17 +45,28 @@ public abstract class AbstractController extends Controller {
         });
     }
 
+    private Nav getNav(PaginatedSequence<User> users, Optional<User> currentUser) {
+        return new Nav(messagesApi.preferred(Collections.emptyList()), users.getItems(), currentUser);
+    }
+
     protected CompletionStage<Nav> loadNav(UUID userId) {
         return loadNav(Optional.of(userId));
     }
-    protected CompletionStage<Nav> loadNav(Optional<UUID> userId) { CompletionStage<Optional<User>> u;
-    if (userId.isPresent()) {
-        u = userService.getUser(userId.get())
-                .handleRequestHeader(authenticate(userId.get()))
-                .invoke()
-                .thenApply(resp -> Optional.of(resp)); } else {
-        u = CompletableFuture.completedFuture(Optional.empty()); }
-         CompletionStage<PaginatedSequence<User>> users = userService.getUsers(Optional.of(0), Optional.of(10)).invoke();
-    return users.thenCombineAsync( u, (userPaginatedSequence, maybeLoggedUser) -> new Nav(messagesApi.preferred(Collections.emptyList()), userPaginatedSequence.getItems(), maybeLoggedUser)); }
 
-}
+    private CompletionStage<Optional<User>> getUser(Optional<UUID> userId) {
+        if (userId.isPresent()) {
+            return userService.getUser(userId.get())
+                    .handleRequestHeader(authenticate(userId.get()))
+                    .invoke()
+                    .thenApply(resp -> Optional.of(resp));
+        } else {
+            return CompletableFuture.completedFuture(Optional.empty());
+        }
+    }
+
+        protected CompletionStage<Nav> loadNav(Optional<UUID> userId) {
+            CompletionStage<Optional<User>> createdUser = getUser(userId);
+            CompletionStage<PaginatedSequence<User>> users = userService.getUsers(Optional.of(0), Optional.of(10)).invoke();
+            return users.thenCombineAsync(createdUser, this::getNav);
+        }
+    }

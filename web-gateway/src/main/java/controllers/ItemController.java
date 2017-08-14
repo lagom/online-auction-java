@@ -6,7 +6,6 @@ import com.example.auction.item.api.Item;
 import com.example.auction.item.api.ItemData;
 import com.example.auction.item.api.ItemService;
 import com.example.auction.item.api.ItemStatus;
-import com.example.auction.pagination.PaginatedSequence;
 import com.example.auction.user.api.User;
 import com.example.auction.user.api.UserService;
 import com.lightbend.lagom.javadsl.api.transport.TransportException;
@@ -27,6 +26,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
+import java.util.concurrent.ExecutionException;
 
 import static com.example.auction.security.ClientSecurity.authenticate;
 
@@ -127,7 +127,7 @@ public class ItemController extends AbstractController {
                                                         formFactory.form(ItemForm.class).fill(itemForm),
                                                         item.getStatus(),
                                                         Optional.empty(),
-                                                        (Nav) nav)
+                                                        nav)
                                         );
                                     },
                                     ec.current());
@@ -179,32 +179,30 @@ public class ItemController extends AbstractController {
                     .handleRequestHeader(authenticate(user)).invoke();
             CompletionStage<PSequence<Bid>> bidHistoryFuture = bidService.getBids(itemUuid)
                     .handleRequestHeader(authenticate(user)).invoke();
-            User user1 ;
-            if (nav.getUser().isPresent()) {
-                user1 = nav.getUser().get();
-            }
-            else{
-                return  CompletableFuture.completedFuture(redirect(routes.UserController.createUserForm()));
-            }
 
                 return itemFuture.thenCombineAsync(bidHistoryFuture, (item, bidHistory) -> {
-
-                    if (item.getStatus() == ItemStatus.CREATED && !item.getCreator().equals(user1.getId())) {
-                        return forbidden();
-                    }
 
                     User seller = null;
                     Optional<User> winner = Optional.empty();
 
-                    if (item.getCreator().equals(user1.getId())) {
-
-                        seller = user1;
-
-
+                    try {
+                        seller = userService.getUser(item.getCreator()).invoke().toCompletableFuture().get();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    } catch (ExecutionException e) {
+                        e.printStackTrace();
                     }
-                    if (item.getAuctionWinner().isPresent() && item.getAuctionWinner().get().equals(user1.getId())) {
 
-                        winner = Optional.of(user1);
+
+                    if (item.getAuctionWinner().isPresent()) {
+
+                        try {
+                            winner = Optional.of(userService.getUser(item.getAuctionWinner().get()).invoke().toCompletableFuture().get());
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        } catch (ExecutionException e) {
+                            e.printStackTrace();
+                        }
 
                     }
 
