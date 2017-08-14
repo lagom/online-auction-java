@@ -3,19 +3,19 @@ package com.example.auction.transaction.impl;
 import akka.actor.ActorSystem;
 import akka.testkit.JavaTestKit;
 import com.example.auction.item.api.ItemData;
+import com.example.auction.transaction.impl.TransactionCommand.*;
+import com.example.auction.transaction.impl.TransactionEvent.*;
 import com.lightbend.lagom.javadsl.api.transport.Forbidden;
 import com.lightbend.lagom.javadsl.testkit.PersistentEntityTestDriver;
 import com.lightbend.lagom.javadsl.testkit.PersistentEntityTestDriver.Outcome;
 import org.junit.*;
 
-import com.example.auction.transaction.impl.TransactionCommand.*;
-import com.example.auction.transaction.impl.TransactionEvent.*;
-
 import java.time.Duration;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.hasItem;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
@@ -41,6 +41,7 @@ public class TransactionEntityTest {
     private final ItemData itemData = new ItemData("title", "desc", "EUR", 1, 10, Duration.ofMinutes(10), Optional.empty());
     private final DeliveryData deliveryData = new DeliveryData("Addr1", "Addr2", "City", "State", 27, "Country");
     private final int deliveryPrice = 500;
+    private final Payment payment = new Payment.Offline("Payment sent via wire transfer");
 
     private final Transaction transaction = new Transaction(itemId, creator, winner, itemData, 2000);
 
@@ -48,6 +49,7 @@ public class TransactionEntityTest {
     private final SubmitDeliveryDetails submitDeliveryDetails = new SubmitDeliveryDetails(winner, deliveryData);
     private final SetDeliveryPrice setDeliveryPrice = new SetDeliveryPrice(creator, deliveryPrice);
     private final ApproveDeliveryDetails approveDeliveryDetails = new ApproveDeliveryDetails(creator);
+    private final SubmitPaymentDetails submitPaymentDetails = new SubmitPaymentDetails(winner, payment);
     private final GetTransaction getTransaction = new GetTransaction(creator);
 
     @Before
@@ -131,6 +133,31 @@ public class TransactionEntityTest {
     public void shouldForbidApproveEmptyDeliveryDetails() {
         driver.run(startTransaction);
         driver.run(approveDeliveryDetails);
+    }
+
+    @Test
+    public void shouldEmitEventWhenSubmittingPaymentDetails() {
+        driver.run(startTransaction);
+        driver.run(submitDeliveryDetails);
+        driver.run(setDeliveryPrice);
+        driver.run(approveDeliveryDetails);
+
+        Outcome<TransactionEvent, TransactionState> outcome = driver.run(submitPaymentDetails);
+        assertThat(outcome.state().getStatus(), equalTo(TransactionStatus.PAYMENT_SUBMITTED));
+        assertThat(outcome.state().getTransaction().get().getPayment().get(), equalTo(payment));
+        assertThat(outcome.events(), hasItem(new PaymentDetailsSubmitted(itemId, payment)));
+    }
+
+    @Test(expected = Forbidden.class)
+    public void shouldForbidSubmittingPaymentDetailsByNonBuyer() {
+        driver.run(startTransaction);
+        driver.run(submitDeliveryDetails);
+        driver.run(setDeliveryPrice);
+        driver.run(approveDeliveryDetails);
+
+        UUID hacker = UUID.randomUUID();
+        SubmitPaymentDetails invalid = new SubmitPaymentDetails(hacker, payment);
+        driver.run(invalid);
     }
 
     @Test

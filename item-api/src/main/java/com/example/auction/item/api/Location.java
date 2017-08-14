@@ -1,7 +1,8 @@
 package com.example.auction.item.api;
 
-import java.util.Optional;
 import lombok.Value;
+
+import java.util.Optional;
 
 @Value
 public final class Location {
