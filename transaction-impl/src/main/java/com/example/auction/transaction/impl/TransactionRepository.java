@@ -120,6 +120,8 @@ public class TransactionRepository {
                             e -> insertTransaction(e.getItemId(), e.getTransaction()))
                     .setEventHandler(TransactionEvent.DeliveryDetailsApproved.class,
                             e -> updateTransactionSummaryStatus(e.getItemId(), TransactionInfoStatus.PAYMENT_PENDING))
+                    .setEventHandler(TransactionEvent.PaymentDetailsSubmitted.class,
+                            e -> updateTransactionSummaryStatus(e.getItemId(), TransactionInfoStatus.PAYMENT_SUBMITTED))
                     .build();
         }
 
