@@ -112,6 +112,7 @@ instruction.paymentDetails=Here you can view/submit the payment details for the 
 transactionInfo=Transaction information
 aboutItem=About item
 aboutGeneral=General information
+aboutTransaction=Detailed transaction information
 viewDeliveryDetails=View delivery details
 editDeliveryDetails=Edit delivery details
 deliveryDetails=Delivery Details
@@ -155,10 +156,14 @@ deliveryPrice=Delivery price
 viewDeliveryPrice=View delivery price
 editDeliveryPrice=Edit delivery price
 
+waitingDelivery=Waiting for delivery details from buyer and delivery price from seller
 approveDelivery=Approve delivery details
-waitingApprovement=Waiting for approvement from seller
+waitingApprovementDelivery=Waiting for approvement of delivery details from seller
+waitingPayment=Waiting for payment details from buyer
+waitingApprovementPayment=Waiting for approvement of payment details from seller
 
 offlinePayment=Offline Payment
+comment=Comment
 viewPaymentDetails=View payment details
 editPaymentDetails=Edit payment details
 submitPaymentDetails=Submit payment details
