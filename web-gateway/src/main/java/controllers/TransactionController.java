@@ -19,6 +19,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
+import java.util.concurrent.ExecutionException;
 
 import static com.example.auction.security.ClientSecurity.authenticate;
 
@@ -79,35 +80,38 @@ public class TransactionController extends AbstractController {
                 loadNav(user).thenComposeAsync(nav -> {
                             UUID itemId = UUID.fromString(id);
                             CompletionStage<TransactionInfo> transactionFuture = transactionService.getTransaction(itemId).handleRequestHeader(authenticate(user)).invoke();
-                    User user1;
-                            if (nav.getUser().isPresent()) {
-                         user1 = nav.getUser().get();
-                            }
-                            else{
-                                return  CompletableFuture.completedFuture(redirect(routes.UserController.createUserForm()));
-                            }
+
                            return transactionFuture.handle((transaction, exception) -> {
-                                if (exception == null) {
+                               Optional<User> seller = null;
+                               Optional<User> winner = null;
+                               if (exception == null) {
 
 
-                                        Optional<User> seller = Optional.empty();
-                                        Optional<User> winner = Optional.empty();
-                                        if (transaction.getCreator().equals(user)) {
+                                   seller = Optional.empty();
+                                   winner = Optional.empty();
 
-                                            seller = Optional.of(user1);
+                                   try {
+                                       seller = Optional.of(userService.getUser(transaction.getCreator()).invoke().toCompletableFuture().get());
+                                   } catch (InterruptedException e) {
+
+                                   } catch (ExecutionException e) {
+
+                                   }
 
 
-                                        }
-                                        if (transaction.getWinner().equals(user)) {
+                                   try {
+                                       winner = Optional.of(userService.getUser(transaction.getWinner()).invoke().toCompletableFuture().get());
+                                   } catch (InterruptedException e) {
 
-                                            winner = Optional.of(user1);
+                                   } catch (ExecutionException e) {
 
-                                        }
+                                   }
 
-                                        Currency currency = Currency.valueOf(transaction.getItemData().getCurrencyId());
-                                        return ok(views.html.transaction.render(showInlineInstruction, Optional.of(transaction), user, seller, winner, Optional.of(currency), Optional.empty(), (Nav)nav));
 
-                                } else {
+                               Currency currency = Currency.valueOf(transaction.getItemData().getCurrencyId());
+                               return ok(views.html.transaction.render(showInlineInstruction, Optional.of(transaction), user, seller, winner, Optional.of(currency), Optional.empty(), (Nav) nav));
+
+                           } else {
                                     String msg = exception.getCause().getMessage();
                                     return ok(views.html.transaction.render(showInlineInstruction, Optional.empty(), user, Optional.empty(), Optional.empty(), Optional.empty(), Optional.of(msg),(Nav) nav));
                                 }
