@@ -91,7 +91,14 @@ public class TransactionController extends AbstractController {
                                    winner = Optional.empty();
 
                                    try {
-                                       seller = Optional.of(userService.getUser(transaction.getCreator()).invoke().toCompletableFuture().get());
+                                       if (seller.isPresent() ) {
+
+
+                                           seller = Optional.of(userService.getUser(transaction.getCreator()).invoke().toCompletableFuture().get());
+                                       }
+                                   else{
+                                           CompletableFuture.completedFuture(redirect(routes.UserController.createUserForm()));
+                                       }
                                    } catch (InterruptedException e) {
 
                                    } catch (ExecutionException e) {
@@ -100,7 +107,12 @@ public class TransactionController extends AbstractController {
 
 
                                    try {
-                                       winner = Optional.of(userService.getUser(transaction.getWinner()).invoke().toCompletableFuture().get());
+                                       if(winner.isPresent()) {
+                                           winner = Optional.of(userService.getUser(transaction.getWinner()).invoke().toCompletableFuture().get());
+                                       }
+                                       else{
+                                           CompletableFuture.completedFuture(redirect(routes.UserController.createUserForm()));
+                                       }
                                    } catch (InterruptedException e) {
 
                                    } catch (ExecutionException e) {

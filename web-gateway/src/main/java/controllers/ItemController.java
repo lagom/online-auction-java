@@ -194,17 +194,23 @@ public class ItemController extends AbstractController {
                     }
 
 
-                    if (item.getAuctionWinner().isPresent()) {
+
 
                         try {
+                            if (item.getAuctionWinner().isPresent()) {
                             winner = Optional.of(userService.getUser(item.getAuctionWinner().get()).invoke().toCompletableFuture().get());
-                        } catch (InterruptedException e) {
+                        }
+                            else{
+                                CompletableFuture.completedFuture(redirect(routes.UserController.createUserForm()));
+                            }
+                    }
+                        catch (InterruptedException e) {
                             e.printStackTrace();
                         } catch (ExecutionException e) {
                             e.printStackTrace();
                         }
 
-                    }
+
 
 
                     Optional<Integer> currentBidMaximum = Optional.empty();
