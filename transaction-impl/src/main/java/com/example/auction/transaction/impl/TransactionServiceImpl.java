@@ -3,7 +3,9 @@ package com.example.auction.transaction.impl;
 import akka.Done;
 import akka.NotUsed;
 import akka.stream.javadsl.Flow;
-import com.example.auction.item.api.*;
+import com.example.auction.item.api.Item;
+import com.example.auction.item.api.ItemEvent;
+import com.example.auction.item.api.ItemService;
 import com.example.auction.pagination.PaginatedSequence;
 import com.example.auction.transaction.api.*;
 import com.example.auction.transaction.impl.TransactionCommand.*;
@@ -83,6 +85,11 @@ public class TransactionServiceImpl implements TransactionService {
             SubmitPaymentDetails submit = new SubmitPaymentDetails(userId, TransactionMappers.fromApiPayment(paymentInfo));
             return entityRef(itemId).ask(submit);
         });
+    }
+
+    @Override
+    public ServiceCall<Boolean, Done> submitPaymentStatus(UUID itemId) {
+        return null;
     }
 
     @Override

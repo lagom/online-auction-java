@@ -50,6 +50,8 @@ public class TransactionEntityTest {
     private final SetDeliveryPrice setDeliveryPrice = new SetDeliveryPrice(creator, deliveryPrice);
     private final ApproveDeliveryDetails approveDeliveryDetails = new ApproveDeliveryDetails(creator);
     private final SubmitPaymentDetails submitPaymentDetails = new SubmitPaymentDetails(winner, payment);
+    private final SubmitPaymentStatus approvePayment = new SubmitPaymentStatus(creator, true);
+    private final SubmitPaymentStatus rejectPayment = new SubmitPaymentStatus(creator, false);
     private final GetTransaction getTransaction = new GetTransaction(creator);
 
     @Before
@@ -157,6 +159,45 @@ public class TransactionEntityTest {
 
         UUID hacker = UUID.randomUUID();
         SubmitPaymentDetails invalid = new SubmitPaymentDetails(hacker, payment);
+        driver.run(invalid);
+    }
+
+    @Test
+    public void shouldEmitEventWhenApprovingPayment() {
+        driver.run(startTransaction);
+        driver.run(submitDeliveryDetails);
+        driver.run(setDeliveryPrice);
+        driver.run(approveDeliveryDetails);
+        driver.run(submitPaymentDetails);
+
+        Outcome<TransactionEvent, TransactionState> outcome = driver.run(approvePayment);
+        assertThat(outcome.state().getStatus(), equalTo(TransactionStatus.PAYMENT_CONFIRMED));
+        assertThat(outcome.events(), hasItem(new PaymentApproved(itemId)));
+    }
+
+    @Test
+    public void shouldEmitEventWhenRejectingPayment() {
+        driver.run(startTransaction);
+        driver.run(submitDeliveryDetails);
+        driver.run(setDeliveryPrice);
+        driver.run(approveDeliveryDetails);
+        driver.run(submitPaymentDetails);
+
+        Outcome<TransactionEvent, TransactionState> outcome = driver.run(rejectPayment);
+        assertThat(outcome.state().getStatus(), equalTo(TransactionStatus.PAYMENT_PENDING));
+        assertThat(outcome.events(), hasItem(new PaymentRejected(itemId)));
+    }
+
+    @Test(expected = Forbidden.class)
+    public void shouldForbidSubmitPaymentStatusByNonSeller() {
+        driver.run(startTransaction);
+        driver.run(submitDeliveryDetails);
+        driver.run(setDeliveryPrice);
+        driver.run(approveDeliveryDetails);
+        driver.run(submitPaymentDetails);
+
+        UUID hacker = UUID.randomUUID();
+        SubmitPaymentStatus invalid = new SubmitPaymentStatus(hacker, false);
         driver.run(invalid);
     }
 

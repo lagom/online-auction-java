@@ -7,7 +7,6 @@ public enum TransactionStatus {
     NEGOTIATING_DELIVERY(TransactionInfoStatus.NEGOTIATING_DELIVERY),
     PAYMENT_PENDING(TransactionInfoStatus.PAYMENT_PENDING),
     PAYMENT_SUBMITTED(TransactionInfoStatus.PAYMENT_SUBMITTED),
-    PAYMENT_FAILED(TransactionInfoStatus.PAYMENT_FAILED),
     PAYMENT_CONFIRMED(TransactionInfoStatus.PAYMENT_CONFIRMED),
     ITEM_DISPATCHED(TransactionInfoStatus.ITEM_DISPATCHED),
     ITEM_RECEIVED(TransactionInfoStatus.ITEM_RECEIVED),

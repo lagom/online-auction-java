@@ -36,6 +36,8 @@ public interface TransactionService extends Service {
 
     ServiceCall<PaymentInfo, Done> submitPaymentDetails(UUID itemId);
 
+    ServiceCall<Boolean, Done> submitPaymentStatus(UUID itemId);
+
     //ServiceCall<NotUsed, Done> dispatchItem(UUID itemId);
 
     //ServiceCall<NotUsed, Done> receiveItem(UUID itemId);
