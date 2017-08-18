@@ -89,7 +89,10 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Override
     public ServiceCall<Boolean, Done> submitPaymentStatus(UUID itemId) {
-        return null;
+        return authenticated(userId -> request -> {
+            SubmitPaymentStatus submitPaymentStatus = new SubmitPaymentStatus(userId, request);
+            return entityRef(itemId).ask(submitPaymentStatus);
+        });
     }
 
     @Override
