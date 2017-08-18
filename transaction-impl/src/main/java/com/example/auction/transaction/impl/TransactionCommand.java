@@ -73,12 +73,12 @@ public interface TransactionCommand extends Jsonable {
     @Value
     final class SubmitPaymentStatus implements TransactionCommand, ReplyType<Done> {
         private final UUID userId;
-        private final boolean approvement;
+        private final boolean approved;
 
         @JsonCreator
-        public SubmitPaymentStatus(UUID userId, boolean approvement) {
+        public SubmitPaymentStatus(UUID userId, boolean approved) {
             this.userId = userId;
-            this.approvement = approvement;
+            this.approved = approved;
         }
     }
 

@@ -27,6 +27,8 @@ public class TransactionEntity extends PersistentEntity<TransactionCommand, Tran
                     return paymentPending(state);
                 case PAYMENT_SUBMITTED:
                     return paymentSubmitted(state);
+                case PAYMENT_CONFIRMED:
+                    return paymentConfirmed(state);
                 default:
                     throw new IllegalStateException();
             }
@@ -131,6 +133,32 @@ public class TransactionEntity extends PersistentEntity<TransactionCommand, Tran
     }
 
     private Behavior paymentSubmitted(TransactionState state) {
+        BehaviorBuilder builder = newBehaviorBuilder(state);
+
+        builder.setCommandHandler(SubmitPaymentStatus.class, (cmd, ctx) -> {
+            if (cmd.getUserId().equals(state().getTransaction().get().getCreator())) {
+                if(cmd.isApproved())
+                    return ctx.thenPersist(new PaymentApproved(entityUUID()), (e) -> ctx.reply(Done.getInstance()));
+                else
+                    return ctx.thenPersist(new PaymentRejected(entityUUID()), (e) -> ctx.reply(Done.getInstance()));
+            } else
+                throw new Forbidden("Only the item creator can approve or reject payment");
+        });
+
+        builder.setEventHandlerChangingBehavior(PaymentApproved.class, evt ->
+                paymentConfirmed(state().withStatus(TransactionStatus.PAYMENT_CONFIRMED))
+        );
+
+        builder.setEventHandlerChangingBehavior(PaymentRejected.class, evt ->
+                paymentConfirmed(state().withStatus(TransactionStatus.PAYMENT_PENDING))
+        );
+
+        addGetTransactionHandler(builder);
+
+        return builder.build();
+    }
+
+    private Behavior paymentConfirmed(TransactionState state) {
         BehaviorBuilder builder = newBehaviorBuilder(state);
 
         addGetTransactionHandler(builder);
