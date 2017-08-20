@@ -1,0 +1,30 @@
+@import helper._
+
+@(showInlineInstruction: Boolean, login: Form[LoginForm])(implicit nav: Nav)
+
+@main(message("name.login")) {
+
+    <h2>@message("name.login")</h2>
+    @if(showInlineInstruction == true) {
+        <p>@message("instruction.login")</p>
+    }
+    @foundationForm(login, routes.UserController.loginUser()) {
+        <div class="row">
+            <div class="medium-6 columns">
+                @if(showInlineInstruction == true) {
+                    <p>@message("instruction.login.email")</p>
+                }
+                @inputText(login("email"))
+            </div>
+        </div>
+        <div class="row">
+            <div class="medium-6 columns">
+                @if(showInlineInstruction == true) {
+                    <p>@message("instruction.login.password")</p>
+                }
+                @inputPassword(login("password"))
+            </div>
+        </div>
+        <input class="button" type="submit" value="@message("name.login")"/>
+    }
+}

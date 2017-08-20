@@ -61,4 +61,29 @@ public class UserController extends AbstractController {
         session("user", userId);
         return ok("User switched");
     }
+    public CompletionStage<Result> loginUser() {
+        Http.Context ctx = ctx();
+        return withUser(ctx, userId ->
+                loadNav(userId).thenCompose(nav -> {
+                    Form<LoginForm> form = formFactory.form(LoginForm.class).bindFromRequest(ctx.request());
+                    if (form.hasErrors()) {
+                        return CompletableFuture.completedFuture(ok(views.html.login.render(showInlineInstruction, form, nav)));
+                    }
+
+                    return userService.login().invoke(new UserRegistration(nav.getUser().get().getName(), form.get().getEmail(), form.get().getPassword())).thenApply(id -> {
+                        ctx.session().put("user", id);
+                        return redirect(ProfileController.defaultProfilePage());
+                    });
+                })
+        );
+
+    }
+    public CompletionStage<Result> loginUserForm() {
+        Http.Context ctx = ctx();
+        return withUser(ctx, userId ->
+                loadNav(userId).thenCompose(nav -> {
+                    return CompletableFuture.completedFuture(ok(views.html.login.render(showInlineInstruction,  formFactory.form(LoginForm.class), nav)));
+                })
+        );
+    }
 }

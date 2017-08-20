@@ -6,6 +6,7 @@ import com.example.auction.user.api.User;
 import com.example.auction.user.api.UserRegistration;
 import com.example.auction.user.api.UserService;
 import com.lightbend.lagom.javadsl.api.ServiceCall;
+import com.lightbend.lagom.javadsl.api.transport.NotFound;
 import com.lightbend.lagom.javadsl.persistence.PersistentEntityRef;
 import com.lightbend.lagom.javadsl.persistence.PersistentEntityRegistry;
 
@@ -61,11 +62,34 @@ public class UserServiceImpl implements UserService {
         return req -> userRepository.getUsers(pageNo.orElse(0), pageSize.orElse(DEFAULT_PAGE_SIZE));
     }
 
+    @Override
+    public ServiceCall<UserRegistration, String> login() {
+        return (UserRegistration req) -> {
+            return credRef(req.getEmail()).ask(PUserCommand.GetPUser.INSTANCE)
+                    .thenApply(maybeUser-> {
+                                if(maybeUser.isPresent()) {
+                                    if (PUserCommand.checkPassword(req.getPassword(),maybeUser.get().getPasswordHash())){
+                                        return maybeUser.get().getId().toString();
+                                    } else {
+                                        throw new NotFound("Email or password does not match ");
+                                    }
+                                } else {
+                                    throw new NotFound("User not found");
+                                }
+
+                            }
+                    );
+        };
+    }
     private PersistentEntityRef<PUserCommand> entityRef(UUID id) {
         return entityRef(id.toString());
     }
 
     private PersistentEntityRef<PUserCommand> entityRef(String id) {
         return registry.refFor(PUserEntity.class, id);
+    }
+
+    private PersistentEntityRef<PUserCommand> credRef(String email) {
+        return registry.refFor(PUserEntity.class, email);
     }
 }
