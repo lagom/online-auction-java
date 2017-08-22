@@ -90,7 +90,7 @@ public class TransactionController extends AbstractController {
                                        (seller, winner) -> {
 
                                            Currency currency = Currency.valueOf(transaction.getItemData().getCurrencyId());
-                                           return ok(views.html.transaction.render(showInlineInstruction, Optional.of(transaction), user, seller, winner, Optional.of(currency), Optional.empty(), (Nav) nav));
+                                           return ok(views.html.transaction.render(showInlineInstruction, Optional.of(transaction), user, Optional.of(seller), Optional.of(winner), Optional.of(currency), Optional.empty(), (Nav) nav));
                                        });
                            } else {
                                     String msg = exception.getCause().getMessage();

@@ -177,14 +177,14 @@ public class ItemController extends AbstractController {
                     .handleRequestHeader(authenticate(user)).invoke();
             CompletionStage<PSequence<Bid>> bidHistoryFuture = bidService.getBids(itemUuid)
                     .handleRequestHeader(authenticate(user)).invoke();
-            return
-                itemFuture.thenComposeAsync(item ->
-                    bidHistoryFuture.thenComposeAsync(bidHistory -> {
-                        UUID sellerId = item.getCreator();
-                        Optional<UUID> winnerId = item.getAuctionWinner();
+            return bidHistoryFuture.thenComposeAsync(bidHistory ->
+
+               itemFuture.thenComposeAsync(item1 ->
+                     {
+                        UUID sellerId = item1.getCreator();
+                        Optional<UUID> winnerId = item1.getAuctionWinner();
                         return getUser(sellerId).thenCombine(getUser(winnerId),
                             (seller, winner) -> {
-
                                 Optional<Integer> currentBidMaximum = Optional.empty();
                                 if (!bidHistory.isEmpty() && bidHistory.get(bidHistory.size() - 1).getBidder().equals(user)) {
                                     currentBidMaximum = Optional.of(bidHistory.get(bidHistory.size() - 1).getMaximumPrice());
@@ -196,7 +196,8 @@ public class ItemController extends AbstractController {
                                 if (!bidHistory.isEmpty()) {
                                     currentPrice = bidHistory.get(bidHistory.size() - 1).getPrice();
                                 }
-                                if (currentPrice > item.getPrice()) {
+                                Item item = item1;
+                                if (currentPrice > item1.getPrice()) {
                                     item = item.withPrice(currentPrice);
                                 }
 
