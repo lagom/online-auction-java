@@ -89,40 +89,30 @@ public class TransactionController extends AbstractController {
 
                                    seller = Optional.empty();
                                    winner = Optional.empty();
+                                   UUID sellerId = transaction.getCreator();
+                                   UUID winnerId = transaction.getWinner();
+                                   return getUser(sellerId).thenCombine(getUser(winnerId),
+                                       (sel, win) -> {
 
-                                   try {
                                        if (seller.isPresent() ) {
 
 
-                                           seller = Optional.of(userService.getUser(transaction.getCreator()).invoke().toCompletableFuture().get());
+                                           seller = Optional.of(sel);
                                        }
                                    else{
                                            CompletableFuture.completedFuture(redirect(routes.UserController.createUserForm()));
                                        }
-                                   } catch (InterruptedException e) {
 
-                                   } catch (ExecutionException e) {
-
-                                   }
-
-
-                                   try {
                                        if(winner.isPresent()) {
-                                           winner = Optional.of(userService.getUser(transaction.getWinner()).invoke().toCompletableFuture().get());
+                                           winner = Optional.of(win);
                                        }
                                        else{
                                            CompletableFuture.completedFuture(redirect(routes.UserController.createUserForm()));
                                        }
-                                   } catch (InterruptedException e) {
 
-                                   } catch (ExecutionException e) {
-
-                                   }
-
-
-                               Currency currency = Currency.valueOf(transaction.getItemData().getCurrencyId());
-                               return ok(views.html.transaction.render(showInlineInstruction, Optional.of(transaction), user, seller, winner, Optional.of(currency), Optional.empty(), (Nav) nav));
-
+                                           Currency currency = Currency.valueOf(transaction.getItemData().getCurrencyId());
+                                           return ok(views.html.transaction.render(showInlineInstruction, Optional.of(transaction), user, sel, win, Optional.of(currency), Optional.empty(), (Nav) nav));
+                                       });
                            } else {
                                     String msg = exception.getCause().getMessage();
                                     return ok(views.html.transaction.render(showInlineInstruction, Optional.empty(), user, Optional.empty(), Optional.empty(), Optional.empty(), Optional.of(msg),(Nav) nav));

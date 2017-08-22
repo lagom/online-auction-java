@@ -53,7 +53,7 @@ public abstract class AbstractController extends Controller {
         return loadNav(Optional.of(userId));
     }
 
-    private CompletionStage<Optional<User>> getUser(Optional<UUID> userId) {
+    protected CompletionStage<Optional<User>> getUser(Optional<UUID> userId) {
         if (userId.isPresent()) {
             return userService.getUser(userId.get())
                     .handleRequestHeader(authenticate(userId.get()))
@@ -63,7 +63,14 @@ public abstract class AbstractController extends Controller {
             return CompletableFuture.completedFuture(Optional.empty());
         }
     }
+    protected CompletionStage<User> getUser(UUID userId) {
 
+            return userService.getUser(userId)
+                .handleRequestHeader(authenticate(userId))
+                .invoke();
+
+
+    }
         protected CompletionStage<Nav> loadNav(Optional<UUID> userId) {
             CompletionStage<Optional<User>> createdUser = getUser(userId);
             CompletionStage<PaginatedSequence<User>> users = userService.getUsers(Optional.of(0), Optional.of(10)).invoke();
