@@ -82,36 +82,15 @@ public class TransactionController extends AbstractController {
                             CompletionStage<TransactionInfo> transactionFuture = transactionService.getTransaction(itemId).handleRequestHeader(authenticate(user)).invoke();
 
                            return transactionFuture.handle((transaction, exception) -> {
-                               Optional<User> seller = null;
-                               Optional<User> winner = null;
                                if (exception == null) {
 
-
-                                   seller = Optional.empty();
-                                   winner = Optional.empty();
                                    UUID sellerId = transaction.getCreator();
                                    UUID winnerId = transaction.getWinner();
                                    return getUser(sellerId).thenCombine(getUser(winnerId),
-                                       (sel, win) -> {
-
-                                       if (seller.isPresent() ) {
-
-
-                                           seller = Optional.of(sel);
-                                       }
-                                   else{
-                                           CompletableFuture.completedFuture(redirect(routes.UserController.createUserForm()));
-                                       }
-
-                                       if(winner.isPresent()) {
-                                           winner = Optional.of(win);
-                                       }
-                                       else{
-                                           CompletableFuture.completedFuture(redirect(routes.UserController.createUserForm()));
-                                       }
+                                       (seller, winner) -> {
 
                                            Currency currency = Currency.valueOf(transaction.getItemData().getCurrencyId());
-                                           return ok(views.html.transaction.render(showInlineInstruction, Optional.of(transaction), user, sel, win, Optional.of(currency), Optional.empty(), (Nav) nav));
+                                           return ok(views.html.transaction.render(showInlineInstruction, Optional.of(transaction), user, seller, winner, Optional.of(currency), Optional.empty(), (Nav) nav));
                                        });
                            } else {
                                     String msg = exception.getCause().getMessage();
