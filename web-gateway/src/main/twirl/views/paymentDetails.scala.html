@@ -1,0 +1,35 @@
+@import helper._
+@import java.util.Optional
+@import java.util.UUID
+
+@import com.example.auction.transaction.api.TransactionInfoStatus
+@(showInlineInstruction: Boolean, isBuyer: Boolean, itemId: UUID, offlinePaymentForm: Form[OfflinePaymentForm], transactionStatus: TransactionInfoStatus, errorMessage: Optional[String])(implicit nav: Nav)
+
+@main(message("offlinePayment")) {
+
+    <h2>@message("offlinePayment")</h2>
+
+    @if(showInlineInstruction == true) {
+        <p>@message("instruction.paymentDetails")</p>
+    }
+
+    @foundationForm(offlinePaymentForm, routes.TransactionController.submitPaymentDetails(itemId.toString, transactionStatus.name, isBuyer)) {
+        @if(errorMessage.isPresent) {
+            <div class="alert callout">
+                <i class="fi-alert"></i> @errorMessage.get()
+            </div>
+        }
+
+        <div class="column row">
+        @if(transactionStatus.equals(TransactionInfoStatus.PAYMENT_PENDING) && isBuyer) {
+            @inputText(offlinePaymentForm("comment"))
+        } else {
+            @inputText(offlinePaymentForm("comment"), 'readonly -> 'readonly)
+        }
+        </div>
+
+        @if(transactionStatus.equals(TransactionInfoStatus.PAYMENT_PENDING) && isBuyer) {
+            <input type="submit" class="button" value="@message("submitPaymentDetails")"/>
+        }
+    }
+}

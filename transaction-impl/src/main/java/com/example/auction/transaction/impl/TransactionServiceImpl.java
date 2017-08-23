@@ -36,13 +36,12 @@ public class TransactionServiceImpl implements TransactionService {
             if (itemEvent instanceof ItemEvent.AuctionFinished) {
                 ItemEvent.AuctionFinished auctionFinished = (ItemEvent.AuctionFinished) itemEvent;
                 // If an auction doesn't have a winner, then we can't start a transaction
-                if(auctionFinished.getItem().getAuctionWinner().isPresent()) {
+                if (auctionFinished.getItem().getAuctionWinner().isPresent()) {
                     Item item = auctionFinished.getItem();
                     Transaction transaction = new Transaction(item.getId(), item.getCreator(),
                             item.getAuctionWinner().get(), item.getItemData(), item.getPrice());
                     return entityRef(auctionFinished.getItemId()).ask(new StartTransaction(transaction));
-                }
-                else
+                } else
                     return CompletableFuture.completedFuture(Done.getInstance());
             } else
                 return CompletableFuture.completedFuture(Done.getInstance());
@@ -57,7 +56,7 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     public ServiceCall<DeliveryInfo, Done> submitDeliveryDetails(UUID itemId) {
         return authenticated(userId -> deliveryInfo -> {
-            SubmitDeliveryDetails submit = new SubmitDeliveryDetails(userId, TransactionMappers.fromApi(deliveryInfo));
+            SubmitDeliveryDetails submit = new SubmitDeliveryDetails(userId, TransactionMappers.fromApiDelivery(deliveryInfo));
             return entityRef(itemId).ask(submit);
         });
     }
@@ -67,6 +66,22 @@ public class TransactionServiceImpl implements TransactionService {
         return authenticated(userId -> deliveryPrice -> {
             SetDeliveryPrice setDeliveryPrice = new SetDeliveryPrice(userId, deliveryPrice);
             return entityRef(itemId).ask(setDeliveryPrice);
+        });
+    }
+
+    @Override
+    public ServiceCall<NotUsed, Done> approveDeliveryDetails(UUID itemId) {
+        return authenticated(userId -> request -> {
+            ApproveDeliveryDetails approveDeliveryDetails = new ApproveDeliveryDetails(userId);
+            return entityRef(itemId).ask(approveDeliveryDetails);
+        });
+    }
+
+    @Override
+    public ServiceCall<PaymentInfo, Done> submitPaymentDetails(UUID itemId) {
+        return authenticated(userId -> paymentInfo -> {
+            SubmitPaymentDetails submit = new SubmitPaymentDetails(userId, TransactionMappers.fromApiPayment(paymentInfo));
+            return entityRef(itemId).ask(submit);
         });
     }
 
@@ -87,7 +102,7 @@ public class TransactionServiceImpl implements TransactionService {
     public ServiceCall<NotUsed, PaginatedSequence<TransactionSummary>> getTransactionsForUser(
             TransactionInfoStatus status, Optional<Integer> pageNo, Optional<Integer> pageSize) {
         return authenticated(userId -> request ->
-            transactions.getTransactionsForUser(userId, status, pageNo.orElse(0), pageSize.orElse(DEFAULT_PAGE_SIZE))
+                transactions.getTransactionsForUser(userId, status, pageNo.orElse(0), pageSize.orElse(DEFAULT_PAGE_SIZE))
         );
     }
 

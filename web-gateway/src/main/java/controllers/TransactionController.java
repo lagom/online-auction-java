@@ -92,10 +92,10 @@ public class TransactionController extends AbstractController {
                                 }
                             }
                             Currency currency = Currency.valueOf(transaction.getItemData().getCurrencyId());
-                            return ok(views.html.transaction.render(showInlineInstruction, Optional.of(transaction), seller, winner, Optional.of(currency), Optional.empty(), nav));
+                            return ok(views.html.transaction.render(showInlineInstruction, Optional.of(transaction), user, seller, winner, Optional.of(currency), Optional.empty(), nav));
                         } else {
                             String msg = exception.getCause().getMessage();
-                            return ok(views.html.transaction.render(showInlineInstruction, Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.of(msg), nav));
+                            return ok(views.html.transaction.render(showInlineInstruction, Optional.empty(), user, Optional.empty(), Optional.empty(), Optional.empty(), Optional.of(msg), nav));
                         }
                     });
                 }, ec.current())
@@ -241,5 +241,85 @@ public class TransactionController extends AbstractController {
                         }).thenComposeAsync(x -> x, ec.current());
             }
         });
+    }
+
+    public CompletionStage<Result> approveDelivery(String id) {
+        return requireUser(ctx(), user ->
+                transactionService.approveDeliveryDetails(UUID.fromString(id))
+                        .handleRequestHeader(authenticate(user))
+                        .invoke()
+                        .thenApplyAsync(done ->
+                                        redirect(routes.TransactionController.getTransaction(id)),
+                                ec.current()
+                        )
+        );
+    }
+
+    public CompletionStage<Result> submitPaymentDetailsForm(String id) {
+        return requireUser(ctx(), user ->
+                loadNav(user).thenComposeAsync(nav -> {
+                            UUID itemId = UUID.fromString(id);
+                            CompletionStage<TransactionInfo> transactionFuture = transactionService.getTransaction(itemId).handleRequestHeader(authenticate(user)).invoke();
+                            return transactionFuture.handle((transaction, exception) -> {
+                                if (exception == null) {
+                                    // For now there is only one payment method supported: Offline payment
+                                    OfflinePaymentForm form = new OfflinePaymentForm();
+                                    Optional<PaymentInfo> maybePaymentInfo = transaction.getPaymentInfo();
+                                    if (maybePaymentInfo.isPresent()) {
+                                        form.setComment(((PaymentInfo.Offline) maybePaymentInfo.get()).getComment());
+                                    }
+                                    return ok(
+                                            views.html.paymentDetails.render(
+                                                    showInlineInstruction,
+                                                    !transaction.getCreator().equals(user),
+                                                    itemId,
+                                                    formFactory.form(OfflinePaymentForm.class).fill(form),
+                                                    transaction.getStatus(),
+                                                    Optional.empty(),
+                                                    nav)
+                                    );
+                                } else {
+                                    String msg = exception.getCause().getMessage();
+                                    return ok(views.html.paymentDetails.render(showInlineInstruction, false, itemId, formFactory.form(OfflinePaymentForm.class), TransactionInfoStatus.NEGOTIATING_DELIVERY, Optional.of(msg), nav));
+                                }
+                            });
+                        },
+                        ec.current())
+        );
+    }
+
+    public CompletionStage<Result> submitPaymentDetails(String id, String transactionStatus, boolean isBuyer) {
+        Http.Context ctx = ctx();
+        return requireUser(ctx(), user -> {
+
+            Form<OfflinePaymentForm> form = formFactory.form(OfflinePaymentForm.class).bindFromRequest(ctx.request());
+            UUID itemId = UUID.fromString(id);
+            TransactionInfoStatus status = TransactionInfoStatus.valueOf(transactionStatus);
+
+            if (form.hasErrors()) {
+                return loadNav(user).thenApplyAsync(nav ->
+                                ok(views.html.paymentDetails.render(showInlineInstruction, isBuyer, itemId, form, status, Optional.empty(), nav)),
+                        ec.current()
+                );
+            } else {
+                return transactionService.submitPaymentDetails(itemId)
+                        .handleRequestHeader(authenticate(user))
+                        .invoke(fromForm(form.get()))
+                        .handle((done, exception) -> {
+                            if (exception == null) {
+                                return CompletableFuture.completedFuture(redirect(routes.TransactionController.getTransaction(id)));
+                            } else {
+                                String msg = exception.getCause().getMessage();
+                                return loadNav(user).thenApplyAsync(nav ->
+                                                ok(views.html.paymentDetails.render(showInlineInstruction, isBuyer, itemId, form, status, Optional.of(msg), nav)),
+                                        ec.current());
+                            }
+                        }).thenComposeAsync(x -> x, ec.current());
+            }
+        });
+    }
+
+    private PaymentInfo fromForm(OfflinePaymentForm offlinePayment) {
+        return new PaymentInfo.Offline(offlinePayment.getComment());
     }
 }

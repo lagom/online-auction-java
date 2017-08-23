@@ -55,4 +55,26 @@ public interface TransactionEvent extends AggregateEvent<TransactionEvent>, Json
             this.deliveryPrice = deliveryPrice;
         }
     }
+
+    @Value
+    final class DeliveryDetailsApproved implements TransactionEvent {
+        private final UUID itemId;
+
+        @JsonCreator
+        public DeliveryDetailsApproved(UUID itemId) {
+            this.itemId = itemId;
+        }
+    }
+
+    @Value
+    final class PaymentDetailsSubmitted implements TransactionEvent {
+        private final UUID itemId;
+        private final Payment payment;
+
+        @JsonCreator
+        public PaymentDetailsSubmitted(UUID itemId, Payment payment) {
+            this.itemId = itemId;
+            this.payment = payment;
+        }
+    }
 }

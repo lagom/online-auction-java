@@ -108,15 +108,18 @@ instruction.auctionCancelled=The auction has been cancelled for this item.
 instruction.search=Here you can search for auctioned items. You can filter your search by specifying the maximum price of items to search for and the currency to search in.
 instruction.enableSearch=Search functionality can be enabled by downloading and running a local instance of elasticsearch. Steps for doing this can be found in {0}. If the lagom system is up and running, you don''t need to restart the system after installing and running elasticsearch; the search service becomes functional once it starts.
 
-instruction.deliveryDetails=Here you can view/submit the delivery details for the transaction
-instruction.deliveryPrice=Here you can view/submit the delivery price for the transaction
-instruction.transactionInfo=Here you can see all transaction details
+instruction.deliveryDetails=Here you can view/submit the delivery details for the transaction.
+instruction.deliveryPrice=Here you can view/submit the delivery price for the transaction.
+instruction.transactionInfo=Here you can see all transaction details.
 instruction.transactionsMessage=Click on a transaction to view/edit its details.
+instruction.paymentDetails=Here you can view/submit the payment details for the transaction. If you are a buyer, keep in mind that you have only one chance to submit your payment details.
 
 transactionInfo=Transaction information
 aboutItem=About item
 aboutGeneral=General information
+aboutTransaction=Detailed transaction information
 viewDeliveryDetails=View delivery details
+editDeliveryDetails=Edit delivery details
 deliveryDetails=Delivery Details
 submitDeliveryDetails=Submit
 addressLine1=Address Line 1
@@ -128,6 +131,8 @@ country=Country
 
 noTransactions.NEGOTIATING_DELIVERY=No transactions in negotiation
 transactions.NEGOTIATING_DELIVERY=Negotiating delivery
+noTransactions.PAYMENT_PENDING=No transaction waiting payment
+transactions.PAYMENT_PENDING=Payment pending
 noTransactions.PAYMENT_SUBMITTED=No transactions with payment submitted
 transactions.PAYMENT_SUBMITTED=Payment submitted
 noTransactions.PAYMENT_FAILED=No transactions with payment failed
@@ -154,5 +159,18 @@ buyer=Buyer
 
 deliveryPrice=Delivery price
 viewDeliveryPrice=View delivery price
+editDeliveryPrice=Edit delivery price
+
+waitingDelivery=Waiting for delivery details from buyer and delivery price from seller
+approveDelivery=Approve delivery details
+waitingApprovementDelivery=Waiting for approvement of delivery details from seller
+waitingPayment=Waiting for payment details from buyer
+waitingApprovementPayment=Waiting for approvement of payment details from seller
+
+offlinePayment=Offline Payment
+comment=Comment
+viewPaymentDetails=View payment details
+editPaymentDetails=Edit payment details
+submitPaymentDetails=Submit payment details
 
 name.login=Login
