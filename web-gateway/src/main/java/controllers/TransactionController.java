@@ -77,26 +77,26 @@ public class TransactionController extends AbstractController {
 
     public CompletionStage<Result> getTransaction(String id) {
         return requireUser(ctx(), user ->
-                loadNav(user).thenComposeAsync(nav -> {
+                loadNav(user).thenComposeAsync( nav -> {
                             UUID itemId = UUID.fromString(id);
                             CompletionStage<TransactionInfo> transactionFuture = transactionService.getTransaction(itemId).handleRequestHeader(authenticate(user)).invoke();
 
-                           return transactionFuture.handle((transaction, exception) -> {
-                               if (exception == null) {
+                           return transactionFuture.thenCompose(transaction -> {
 
                                    UUID sellerId = transaction.getCreator();
                                    UUID winnerId = transaction.getWinner();
-                                   return getUser(sellerId).thenCombine(getUser(winnerId),
+                                 return getUser(sellerId).thenCombine(getUser(winnerId),
                                        (seller, winner) -> {
 
                                            Currency currency = Currency.valueOf(transaction.getItemData().getCurrencyId());
                                            return ok(views.html.transaction.render(showInlineInstruction, Optional.of(transaction), user, Optional.of(seller), Optional.of(winner), Optional.of(currency), Optional.empty(), (Nav) nav));
                                        });
-                           } else {
+                           }).exceptionally(exception -> {
                                     String msg = exception.getCause().getMessage();
                                     return ok(views.html.transaction.render(showInlineInstruction, Optional.empty(), user, Optional.empty(), Optional.empty(), Optional.empty(), Optional.of(msg),(Nav) nav));
-                                }
-                            });
+                                });
+
+
 
                         }
                         , ec.current())
