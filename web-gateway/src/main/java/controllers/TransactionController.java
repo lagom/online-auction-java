@@ -255,4 +255,72 @@ public class TransactionController extends AbstractController {
                         )
         );
     }
+
+    public CompletionStage<Result> submitPaymentDetailsForm(String id) {
+        return requireUser(ctx(), user ->
+                loadNav(user).thenComposeAsync(nav -> {
+                            UUID itemId = UUID.fromString(id);
+                            CompletionStage<TransactionInfo> transactionFuture = transactionService.getTransaction(itemId).handleRequestHeader(authenticate(user)).invoke();
+                            return transactionFuture.handle((transaction, exception) -> {
+                                if (exception == null) {
+                                    // For now there is only one payment method supported: Offline payment
+                                    OfflinePaymentForm form = new OfflinePaymentForm();
+                                    Optional<PaymentInfo> maybePaymentInfo = transaction.getPaymentInfo();
+                                    if (maybePaymentInfo.isPresent()) {
+                                        form.setComment(((PaymentInfo.Offline) maybePaymentInfo.get()).getComment());
+                                    }
+                                    return ok(
+                                            views.html.paymentDetails.render(
+                                                    showInlineInstruction,
+                                                    !transaction.getCreator().equals(user),
+                                                    itemId,
+                                                    formFactory.form(OfflinePaymentForm.class).fill(form),
+                                                    transaction.getStatus(),
+                                                    Optional.empty(),
+                                                    nav)
+                                    );
+                                } else {
+                                    String msg = exception.getCause().getMessage();
+                                    return ok(views.html.paymentDetails.render(showInlineInstruction, false, itemId, formFactory.form(OfflinePaymentForm.class), TransactionInfoStatus.NEGOTIATING_DELIVERY, Optional.of(msg), nav));
+                                }
+                            });
+                        },
+                        ec.current())
+        );
+    }
+
+    public CompletionStage<Result> submitPaymentDetails(String id, String transactionStatus, boolean isBuyer) {
+        Http.Context ctx = ctx();
+        return requireUser(ctx(), user -> {
+
+            Form<OfflinePaymentForm> form = formFactory.form(OfflinePaymentForm.class).bindFromRequest(ctx.request());
+            UUID itemId = UUID.fromString(id);
+            TransactionInfoStatus status = TransactionInfoStatus.valueOf(transactionStatus);
+
+            if (form.hasErrors()) {
+                return loadNav(user).thenApplyAsync(nav ->
+                                ok(views.html.paymentDetails.render(showInlineInstruction, isBuyer, itemId, form, status, Optional.empty(), nav)),
+                        ec.current()
+                );
+            } else {
+                return transactionService.submitPaymentDetails(itemId)
+                        .handleRequestHeader(authenticate(user))
+                        .invoke(fromForm(form.get()))
+                        .handle((done, exception) -> {
+                            if (exception == null) {
+                                return CompletableFuture.completedFuture(redirect(routes.TransactionController.getTransaction(id)));
+                            } else {
+                                String msg = exception.getCause().getMessage();
+                                return loadNav(user).thenApplyAsync(nav ->
+                                                ok(views.html.paymentDetails.render(showInlineInstruction, isBuyer, itemId, form, status, Optional.of(msg), nav)),
+                                        ec.current());
+                            }
+                        }).thenComposeAsync(x -> x, ec.current());
+            }
+        });
+    }
+
+    private PaymentInfo fromForm(OfflinePaymentForm offlinePayment) {
+        return new PaymentInfo.Offline(offlinePayment.getComment());
+    }
 }
