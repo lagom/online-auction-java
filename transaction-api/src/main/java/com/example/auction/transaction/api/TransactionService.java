@@ -36,7 +36,7 @@ public interface TransactionService extends Service {
 
     ServiceCall<PaymentInfo, Done> submitPaymentDetails(UUID itemId);
 
-    ServiceCall<Boolean, Done> submitPaymentStatus(UUID itemId);
+    ServiceCall<PaymentInfoStatus, Done> submitPaymentStatus(UUID itemId);
 
     //ServiceCall<NotUsed, Done> dispatchItem(UUID itemId);
 
@@ -70,5 +70,4 @@ public interface TransactionService extends Service {
                 TransactionInfoStatus.class, PathParamSerializers.required("TransactionInfoStatus", TransactionInfoStatus::valueOf, TransactionInfoStatus::toString)
         ).withHeaderFilter(SecurityHeaderFilter.INSTANCE);
     }
-
 }

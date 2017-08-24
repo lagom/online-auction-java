@@ -88,9 +88,9 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public ServiceCall<Boolean, Done> submitPaymentStatus(UUID itemId) {
+    public ServiceCall<PaymentInfoStatus, Done> submitPaymentStatus(UUID itemId) {
         return authenticated(userId -> request -> {
-            SubmitPaymentStatus submitPaymentStatus = new SubmitPaymentStatus(userId, request);
+            SubmitPaymentStatus submitPaymentStatus = new SubmitPaymentStatus(userId, TransactionMappers.fromApi(request));
             return entityRef(itemId).ask(submitPaymentStatus);
         });
     }

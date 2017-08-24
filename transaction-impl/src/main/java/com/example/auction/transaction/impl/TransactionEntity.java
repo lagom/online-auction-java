@@ -1,11 +1,11 @@
 package com.example.auction.transaction.impl;
 
 import akka.Done;
+import com.example.auction.transaction.impl.TransactionCommand.*;
+import com.example.auction.transaction.impl.TransactionEvent.*;
 import com.lightbend.lagom.javadsl.api.transport.Forbidden;
 import com.lightbend.lagom.javadsl.api.transport.NotFound;
 import com.lightbend.lagom.javadsl.persistence.PersistentEntity;
-import com.example.auction.transaction.impl.TransactionCommand.*;
-import com.example.auction.transaction.impl.TransactionEvent.*;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -137,10 +137,14 @@ public class TransactionEntity extends PersistentEntity<TransactionCommand, Tran
 
         builder.setCommandHandler(SubmitPaymentStatus.class, (cmd, ctx) -> {
             if (cmd.getUserId().equals(state().getTransaction().get().getCreator())) {
-                if(cmd.isApproved())
-                    return ctx.thenPersist(new PaymentApproved(entityUUID()), (e) -> ctx.reply(Done.getInstance()));
-                else
-                    return ctx.thenPersist(new PaymentRejected(entityUUID()), (e) -> ctx.reply(Done.getInstance()));
+                switch(cmd.getPaymentStatus()) {
+                    case APPROVED:
+                        return ctx.thenPersist(new PaymentApproved(entityUUID()), (e) -> ctx.reply(Done.getInstance()));
+                    case REJECTED:
+                        return ctx.thenPersist(new PaymentRejected(entityUUID()), (e) -> ctx.reply(Done.getInstance()));
+                    default:
+                        throw new IllegalStateException("Illegal payment status");
+                }
             } else
                 throw new Forbidden("Only the item creator can approve or reject payment");
         });
@@ -150,7 +154,7 @@ public class TransactionEntity extends PersistentEntity<TransactionCommand, Tran
         );
 
         builder.setEventHandlerChangingBehavior(PaymentRejected.class, evt ->
-                paymentConfirmed(state().withStatus(TransactionStatus.PAYMENT_PENDING))
+                paymentPending(state().withStatus(TransactionStatus.PAYMENT_PENDING))
         );
 
         addGetTransactionHandler(builder);

@@ -50,8 +50,8 @@ public class TransactionEntityTest {
     private final SetDeliveryPrice setDeliveryPrice = new SetDeliveryPrice(creator, deliveryPrice);
     private final ApproveDeliveryDetails approveDeliveryDetails = new ApproveDeliveryDetails(creator);
     private final SubmitPaymentDetails submitPaymentDetails = new SubmitPaymentDetails(winner, payment);
-    private final SubmitPaymentStatus approvePayment = new SubmitPaymentStatus(creator, true);
-    private final SubmitPaymentStatus rejectPayment = new SubmitPaymentStatus(creator, false);
+    private final SubmitPaymentStatus approvePayment = new SubmitPaymentStatus(creator, PaymentStatus.APPROVED);
+    private final SubmitPaymentStatus rejectPayment = new SubmitPaymentStatus(creator, PaymentStatus.REJECTED);
     private final GetTransaction getTransaction = new GetTransaction(creator);
 
     @Before
@@ -197,7 +197,7 @@ public class TransactionEntityTest {
         driver.run(submitPaymentDetails);
 
         UUID hacker = UUID.randomUUID();
-        SubmitPaymentStatus invalid = new SubmitPaymentStatus(hacker, false);
+        SubmitPaymentStatus invalid = new SubmitPaymentStatus(hacker, PaymentStatus.REJECTED);
         driver.run(invalid);
     }
 

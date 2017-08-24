@@ -232,7 +232,7 @@ public class TransactionServiceImplIntegrationTest {
                 transactionService
                         .submitPaymentStatus(itemId)
                         .handleRequestHeader(authenticate(creatorId))
-                        .invoke(true)
+                        .invoke(PaymentInfoStatus.APPROVED)
         );
     }
 
@@ -241,7 +241,7 @@ public class TransactionServiceImplIntegrationTest {
                 transactionService
                         .submitPaymentStatus(itemId)
                         .handleRequestHeader(authenticate(creatorId))
-                        .invoke(false)
+                        .invoke(PaymentInfoStatus.REJECTED)
         );
     }
 
