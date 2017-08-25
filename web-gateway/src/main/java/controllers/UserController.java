@@ -1,5 +1,6 @@
 package controllers;
 
+import com.example.auction.user.api.UserLogin;
 import com.example.auction.user.api.UserRegistration;
 import com.example.auction.user.api.UserService;
 import play.Configuration;
@@ -70,7 +71,7 @@ public class UserController extends AbstractController {
                         return CompletableFuture.completedFuture(ok(views.html.login.render(showInlineInstruction, form, nav)));
                     }
 
-                    return userService.login().invoke(new UserRegistration(nav.getUser().get().getName(), form.get().getEmail(), form.get().getPassword())).thenApply(id -> {
+                    return userService.login().invoke(new UserLogin( form.get().getEmail(), form.get().getPassword())).thenApply(id -> {
                         ctx.session().put("user", id);
                         return redirect(ProfileController.defaultProfilePage());
                     });

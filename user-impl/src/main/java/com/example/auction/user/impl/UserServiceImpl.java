@@ -3,6 +3,7 @@ package com.example.auction.user.impl;
 import akka.NotUsed;
 import com.example.auction.pagination.PaginatedSequence;
 import com.example.auction.user.api.User;
+import com.example.auction.user.api.UserLogin;
 import com.example.auction.user.api.UserRegistration;
 import com.example.auction.user.api.UserService;
 import com.lightbend.lagom.javadsl.api.ServiceCall;
@@ -14,6 +15,8 @@ import javax.inject.Inject;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.CompletionStage;
+import java.util.concurrent.ExecutionException;
 
 public class UserServiceImpl implements UserService {
 
@@ -63,12 +66,14 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public ServiceCall<UserRegistration, String> login() {
-        return (UserRegistration req) -> {
-            return credRef(req.getEmail()).ask(PUserCommand.GetPUser.INSTANCE)
-                    .thenApply(maybeUser-> {
-                                if(maybeUser.isPresent()) {
-                                    if (PUserCommand.checkPassword(req.getPassword(),maybeUser.get().getPasswordHash())){
+    public ServiceCall<UserLogin, String> login() {
+        return  req -> {
+
+           return userRepository.getUserIdByEmail(req.getEmail()).thenCompose(id ->{
+                   return entityRef(id).ask(PUserCommand.GetPUser.INSTANCE)
+                        .thenApply(maybeUser -> {
+                                if (maybeUser.isPresent()) {
+                                    if (PUserCommand.checkPassword(req.getPassword(), maybeUser.get().getPasswordHash())) {
                                         return maybeUser.get().getId().toString();
                                     } else {
                                         throw new NotFound("Email or password does not match ");
@@ -78,8 +83,11 @@ public class UserServiceImpl implements UserService {
                                 }
 
                             }
-                    );
+                                                  );
+           });
+
         };
+
     }
     private PersistentEntityRef<PUserCommand> entityRef(UUID id) {
         return entityRef(id.toString());
@@ -89,7 +97,4 @@ public class UserServiceImpl implements UserService {
         return registry.refFor(PUserEntity.class, id);
     }
 
-    private PersistentEntityRef<PUserCommand> credRef(String email) {
-        return registry.refFor(PUserEntity.class, email);
-    }
 }

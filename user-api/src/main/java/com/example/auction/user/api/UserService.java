@@ -22,7 +22,7 @@ public interface UserService extends Service {
     ServiceCall<NotUsed, PaginatedSequence<User>> getUsers(
             Optional<Integer> pageNo, Optional<Integer> pageSize);
 
-    ServiceCall<UserRegistration, String> login();
+    ServiceCall<UserLogin, String> login();
 
     @Override
     default Descriptor descriptor() {
