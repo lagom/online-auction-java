@@ -1,5 +1,6 @@
 package com.example.auction.user.impl;
 
+import akka.Done;
 import akka.NotUsed;
 import com.example.auction.pagination.PaginatedSequence;
 import com.example.auction.user.api.User;
@@ -38,6 +39,16 @@ public class UserServiceImpl implements UserService {
             return entityRef(uuid)
                     .ask(new PUserCommand.CreatePUser(user.getName(), user.getEmail(), password))
                     .thenApply(done -> Mappers.toApi(Optional.ofNullable(createdUser)));
+        };
+    }
+
+    @Override
+    public ServiceCall<NotUsed, Done> logout(UUID userId) {
+        return req -> {
+            return entityRef(userId).ask(PUserCommand.GetPUser.INSTANCE)
+                .thenApply(maybeCredential-> {
+                    return Done.getInstance();
+                });
         };
     }
 

@@ -57,6 +57,20 @@ public class UserController extends AbstractController {
         );
     }
 
+    public CompletionStage<Result> logoutUser() {
+        Http.Context ctx = ctx();
+        return withUser(ctx, userId ->
+            loadNav(userId).thenCompose(nav -> {
+                return userService.logout(userId.get()).invoke().thenApply(id -> {
+                    ctx.session().clear();
+                    return  ok(views.html.logout.render(nav));
+                });
+            })
+        );
+
+    }
+
+
     public Result currentUser(String userId) {
         session("user", userId);
         return ok("User switched");
