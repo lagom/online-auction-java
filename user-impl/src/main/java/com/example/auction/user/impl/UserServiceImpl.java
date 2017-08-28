@@ -10,7 +10,6 @@ import com.lightbend.lagom.javadsl.persistence.PersistentEntityRef;
 import com.lightbend.lagom.javadsl.persistence.PersistentEntityRegistry;
 
 import javax.inject.Inject;
-import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -32,7 +31,7 @@ public class UserServiceImpl implements UserService {
     public ServiceCall<UserRegistration, User> createUser() {
         return user -> {
             UUID uuid = UUID.randomUUID();
-            Instant createdAt = Instant.now();
+
             String password = PUserCommand.hashPassword(user.getPassword());
             PUser createdUser = new PUser(uuid,  user.getName(), user.getEmail(), password);
             return entityRef(uuid)
