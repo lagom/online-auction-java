@@ -61,10 +61,10 @@ public class UserController extends AbstractController {
         Http.Context ctx = ctx();
         return withUser(ctx, userId ->
             loadNav(userId).thenCompose(nav -> {
-                return userService.logout(userId.get()).invoke().thenApply(id -> {
+
                     ctx.session().clear();
-                    return  ok(views.html.logout.render(nav));
-                });
+                    return  CompletableFuture.completedFuture(ok(views.html.logout.render(nav)));
+
             })
         );
 

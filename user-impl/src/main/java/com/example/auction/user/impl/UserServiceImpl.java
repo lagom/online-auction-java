@@ -43,16 +43,6 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public ServiceCall<NotUsed, Done> logout(UUID userId) {
-        return req -> {
-            return entityRef(userId).ask(PUserCommand.GetPUser.INSTANCE)
-                .thenApply(maybeCredential-> {
-                    return Done.getInstance();
-                });
-        };
-    }
-
-    @Override
     public ServiceCall<NotUsed, User> getUser(UUID userId) {
 
         return request ->

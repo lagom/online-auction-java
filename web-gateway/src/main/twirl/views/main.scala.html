@@ -16,7 +16,7 @@
                     <li><a href="@routes.Main.index()">@message("lagomAuction")</a></li>
                     <li><a href="@routes.UserController.createUserForm()">@message("createUser")</a></li>
                     <li><a href="@routes.ItemController.createItemForm()">@message("createItem")</a></li>
-                    <li><a href="@routes.UserController.logoutUser()" class="logout">
+                    <li><a href="@routes.UserController.logoutUser()">
                       @if(nav.getUser.isPresent) {
                     @message("logout")}</a></li>
                 </ul>
