@@ -9,99 +9,114 @@
 @main(message("transactionInfo")) {
     <h2>@message("transactionInfo")</h2>
 
-    @if(showInlineInstruction == true) {
-        <p>@message("instruction.transactionInfo")</p>
-    }
+    <div class="row">
+      <div class="medium-6 columns">
+        @if(showInlineInstruction == true) {
+            <p>@message("instruction.transactionInfo")</p>
+        }
 
-    @if(errorMessage.isPresent) {
-        <div class="alert callout">
-            <i class="fi-alert"></i> @errorMessage.get()
-        </div>
-    }
+        @if(errorMessage.isPresent) {
+            <div class="alert callout">
+                <i class="fi-alert"></i> @errorMessage.get()
+            </div>
+        }
 
-    @if(transaction.isPresent) {
-        <dl>
-            <h3>@message("aboutGeneral")</h3>
+        @if(transaction.isPresent) {
+            <dl>
+                <h3>@message("aboutGeneral")</h3>
 
-            <dt>@message("seller")</dt>
-            <dd>@seller.get().getName</dd>
+                <dt>@message("seller")</dt>
+                <dd>@seller.get().getName</dd>
 
-            <dt>@message("auctionWinner")</dt>
-            <dd>@winner.get().getName</dd>
+                <dt>@message("auctionWinner")</dt>
+                <dd>@winner.get().getName</dd>
 
-            <h3>@message("aboutItem")</h3>
+                <h3>@message("aboutItem")</h3>
 
-            <dt>@message("title")</dt>
-            <dd>@transaction.get().getItemData.getTitle</dd>
+                <dt>@message("title")</dt>
+                <dd>@transaction.get().getItemData.getTitle</dd>
 
-            <dt>@message("description")</dt>
-            <dd>@transaction.get().getItemData.getDescription</dd>
+                <dt>@message("description")</dt>
+                <dd>@transaction.get().getItemData.getDescription</dd>
 
-            <dt>@message("finalPrice")</dt>
-            <dd>@currency.get().format(transaction.get().getItemPrice)</dd>
+                <dt>@message("finalPrice")</dt>
+                <dd>@currency.get().format(transaction.get().getItemPrice)</dd>
 
-            <dt>@message("currency")</dt>
-            <dd>@currency.get().getDisplayName</dd>
-        </dl>
-        @* Permanent transaction data: delivery details, delivery price, payment details *@
-        <dl>
-            <h3>@message("aboutTransaction")</h3>
-            @if(userId.equals(seller.get().getId)) {
-                <dt><a href="@routes.TransactionController.submitDeliveryDetailsForm(transaction.get().getItemId.toString)" class="edit" >@message("viewDeliveryDetails")</a></dt>
-                @if(transaction.get().getStatus == NEGOTIATING_DELIVERY) {
-                    <dt><a href="@routes.TransactionController.setDeliveryPriceForm(transaction.get().getItemId.toString)" class="edit" >@message("editDeliveryPrice")</a></dt>
-                } else {
-                    <dt><a href="@routes.TransactionController.setDeliveryPriceForm(transaction.get().getItemId.toString)" class="edit" >@message("viewDeliveryPrice")</a></dt>
-                }
-            } else {
-                @if(transaction.get().getStatus == NEGOTIATING_DELIVERY) {
-                    <dt><a href="@routes.TransactionController.submitDeliveryDetailsForm(transaction.get().getItemId.toString)" class="edit" >@message("editDeliveryDetails")</a></dt>
-                } else {
-                    <dt><a href="@routes.TransactionController.submitDeliveryDetailsForm(transaction.get().getItemId.toString)" class="edit" >@message("viewDeliveryPrice")</a></dt>
-                }
-                <dt><a href="@routes.TransactionController.setDeliveryPriceForm(transaction.get().getItemId.toString)" class="edit" >@message("viewDeliveryPrice")</a></dt>
-            }
-
-            @if(userId.equals(seller.get().getId)) {
-                <dt><a href="@routes.TransactionController.submitPaymentDetailsForm(transaction.get().getItemId.toString)" class="edit" >@message("viewPaymentDetails")</a></dt>
-            } else {
-                @if(transaction.get().getStatus == PAYMENT_PENDING) {
-                    <dt><a href="@routes.TransactionController.submitPaymentDetailsForm(transaction.get().getItemId.toString)" class="edit" >@message("editPaymentDetails")</a></dt>
-                } else {
-                    <dt><a href="@routes.TransactionController.submitPaymentDetailsForm(transaction.get().getItemId.toString)" class="edit" >@message("viewPaymentDetails")</a></dt>
-                }
-            }
-        </dl>
-        @* Temporal messages *@
-        <dl>
-        @transaction.get().getStatus match {
-            case NEGOTIATING_DELIVERY => {
-                @if(transaction.get().getDeliveryInfo.isPresent && transaction.get().getDeliveryPrice.isPresent) {
-                    @if(userId.equals(seller.get().getId)) {
-                        <form action="@routes.TransactionController.approveDelivery(transaction.get().getItemId.toString)" method="POST">
-                            <input class="button success" type="submit" value="@message("approveDelivery")"/>
-                        </form>
+                <dt>@message("currency")</dt>
+                <dd>@currency.get().getDisplayName</dd>
+            </dl>
+            @* Permanent transaction data: delivery details, delivery price, payment details *@
+            <dl>
+                <h3>@message("aboutTransaction")</h3>
+                @if(userId.equals(seller.get().getId)) {
+                    <dt><a href="@routes.TransactionController.submitDeliveryDetailsForm(transaction.get().getItemId.toString)" class="edit" >@message("viewDeliveryDetails")</a></dt>
+                    @if(transaction.get().getStatus == NEGOTIATING_DELIVERY) {
+                        <dt><a href="@routes.TransactionController.setDeliveryPriceForm(transaction.get().getItemId.toString)" class="edit" >@message("editDeliveryPrice")</a></dt>
                     } else {
-                        <dt>@message("waitingApprovementDelivery")</dt>
+                        <dt><a href="@routes.TransactionController.setDeliveryPriceForm(transaction.get().getItemId.toString)" class="edit" >@message("viewDeliveryPrice")</a></dt>
                     }
                 } else {
-                    <dt>@message("waitingDelivery")</dt>
+                    @if(transaction.get().getStatus == NEGOTIATING_DELIVERY) {
+                        <dt><a href="@routes.TransactionController.submitDeliveryDetailsForm(transaction.get().getItemId.toString)" class="edit" >@message("editDeliveryDetails")</a></dt>
+                    } else {
+                        <dt><a href="@routes.TransactionController.submitDeliveryDetailsForm(transaction.get().getItemId.toString)" class="edit" >@message("viewDeliveryDetails")</a></dt>
+                    }
+                    <dt><a href="@routes.TransactionController.setDeliveryPriceForm(transaction.get().getItemId.toString)" class="edit" >@message("viewDeliveryPrice")</a></dt>
                 }
-            }
-            case PAYMENT_PENDING => {
-                <dt>@message("waitingPayment")</dt>
-            }
-            case PAYMENT_SUBMITTED => {
+
                 @if(userId.equals(seller.get().getId)) {
-                    @* WIP: Buttons for approve or reject payment details *@
+                    <dt><a href="@routes.TransactionController.submitPaymentDetailsForm(transaction.get().getItemId.toString)" class="edit" >@message("viewPaymentDetails")</a></dt>
                 } else {
-                    <dt>@message("waitingApprovementPayment")</dt>
+                    @if(transaction.get().getStatus == PAYMENT_PENDING) {
+                        <dt><a href="@routes.TransactionController.submitPaymentDetailsForm(transaction.get().getItemId.toString)" class="edit" >@message("editPaymentDetails")</a></dt>
+                    } else {
+                        <dt><a href="@routes.TransactionController.submitPaymentDetailsForm(transaction.get().getItemId.toString)" class="edit" >@message("viewPaymentDetails")</a></dt>
+                    }
+                }
+            </dl>
+            @* Temporal messages *@
+            <dl>
+            @transaction.get().getStatus match {
+                case NEGOTIATING_DELIVERY => {
+                    @if(transaction.get().getDeliveryInfo.isPresent && transaction.get().getDeliveryPrice.isPresent) {
+                        @if(userId.equals(seller.get().getId)) {
+                            <form action="@routes.TransactionController.approveDelivery(transaction.get().getItemId.toString)" method="POST">
+                                <input class="button success" type="submit" value="@message("approveDelivery")"/>
+                            </form>
+                        } else {
+                            <dt>@message("waitingApprovementDelivery")</dt>
+                        }
+                    } else {
+                        <dt>@message("waitingDelivery")</dt>
+                    }
+                }
+                case PAYMENT_PENDING => {
+                    <dt>@message("waitingPayment")</dt>
+                }
+                case PAYMENT_SUBMITTED => {
+                    @if(userId.equals(seller.get().getId)) {
+                      <div class="row">
+                        <div class="medium-6 columns">
+                          <form action="@routes.TransactionController.approvePayment(transaction.get().getItemId.toString)" method="POST">
+                            <input class="button success" type="submit" value="@message("approvePayment")"/>
+                          </form>
+                        </div>
+                        <div class="medium-6 columns">
+                          <form action="@routes.TransactionController.rejectPayment(transaction.get().getItemId.toString)" method="POST">
+                            <input class="button alert" type="submit" value="@message("rejectPayment")"/>
+                          </form>
+                        </div>
+                      </div>
+                    } else {
+                        <dt>@message("waitingApprovementPayment")</dt>
+                    }
+                }
+                case _ => {
+                    @* WIP *@
                 }
             }
-            case _ => {
-                @* WIP *@
-            }
+            </dl>
         }
-        </dl>
-    }
+      </div>
+    </div>
 }
