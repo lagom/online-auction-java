@@ -69,6 +69,8 @@ public class TransactionServiceImplIntegrationTest {
     private final TransactionInfo transactionInfoWithDeliveryPrice = new TransactionInfo(itemId, creatorId, winnerId, itemData, item.getPrice(), Optional.empty(), Optional.of(deliveryPrice), Optional.empty(), TransactionInfoStatus.NEGOTIATING_DELIVERY);
     private final TransactionInfo transactionInfoWithPaymentPending = new TransactionInfo(itemId, creatorId, winnerId, itemData, item.getPrice(), Optional.of(deliveryInfo), Optional.of(deliveryPrice), Optional.empty(), TransactionInfoStatus.PAYMENT_PENDING);
     private final TransactionInfo transactionInfoWithPaymentDetails = new TransactionInfo(itemId, creatorId, winnerId, itemData, item.getPrice(), Optional.of(deliveryInfo), Optional.of(deliveryPrice), Optional.of(paymentInfo), TransactionInfoStatus.PAYMENT_SUBMITTED);
+    private final TransactionInfo transactionInfoWithPaymentApproved = new TransactionInfo(itemId, creatorId, winnerId, itemData, item.getPrice(), Optional.of(deliveryInfo), Optional.of(deliveryPrice), Optional.of(paymentInfo), TransactionInfoStatus.PAYMENT_CONFIRMED);
+    private final TransactionInfo transactionInfoWithPaymentRejected = new TransactionInfo(itemId, creatorId, winnerId, itemData, item.getPrice(), Optional.of(deliveryInfo), Optional.of(deliveryPrice), Optional.of(paymentInfo), TransactionInfoStatus.PAYMENT_PENDING);
 
     @Test
     public void shouldCreateTransactionOnAuctionFinished() {
@@ -157,6 +159,38 @@ public class TransactionServiceImplIntegrationTest {
         });
     }
 
+    @Test
+    public void shouldApprovePayment() {
+        itemProducerStub.send(auctionFinished);
+        submitDeliveryDetails(itemId, winnerId, deliveryInfo);
+        setDeliveryPrice(itemId, creatorId, deliveryPrice);
+        approveDeliveryDetails(itemId, creatorId);
+        submitPaymentDetails(itemId, winnerId, paymentInfo);
+
+        approvePayment(itemId, creatorId);
+
+        eventually(new FiniteDuration(15, SECONDS), () -> {
+            TransactionInfo retrievedTransaction = retrieveTransaction(itemId, creatorId);
+            assertEquals(retrievedTransaction, transactionInfoWithPaymentApproved);
+        });
+    }
+
+    @Test
+    public void shouldRejectPayment() {
+        itemProducerStub.send(auctionFinished);
+        submitDeliveryDetails(itemId, winnerId, deliveryInfo);
+        setDeliveryPrice(itemId, creatorId, deliveryPrice);
+        approveDeliveryDetails(itemId, creatorId);
+        submitPaymentDetails(itemId, winnerId, paymentInfo);
+
+        rejectPayment(itemId, creatorId);
+
+        eventually(new FiniteDuration(15, SECONDS), () -> {
+            TransactionInfo retrievedTransaction = retrieveTransaction(itemId, creatorId);
+            assertEquals(retrievedTransaction, transactionInfoWithPaymentRejected);
+        });
+    }
+
     private Done submitDeliveryDetails(UUID itemId, UUID winnerId, DeliveryInfo deliveryInfo) {
         return Await.result(
                 transactionService
@@ -190,6 +224,24 @@ public class TransactionServiceImplIntegrationTest {
                         .submitPaymentDetails(itemId)
                         .handleRequestHeader(authenticate(winnerId))
                         .invoke(paymentInfo)
+        );
+    }
+
+    private Done approvePayment(UUID itemId, UUID creatorId) {
+        return Await.result(
+                transactionService
+                        .submitPaymentStatus(itemId)
+                        .handleRequestHeader(authenticate(creatorId))
+                        .invoke(PaymentInfoStatus.APPROVED)
+        );
+    }
+
+    private Done rejectPayment(UUID itemId, UUID creatorId) {
+        return Await.result(
+                transactionService
+                        .submitPaymentStatus(itemId)
+                        .handleRequestHeader(authenticate(creatorId))
+                        .invoke(PaymentInfoStatus.REJECTED)
         );
     }
 

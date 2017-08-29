@@ -137,6 +137,54 @@ public class TransactionRepositoryTest {
     }
 
     @Test
+    public void shouldUpdateStatusToPaymentConfirmedAfterApprovementForCreator() throws InterruptedException, ExecutionException, TimeoutException {
+        shouldUpdateStatusToPaymentConfirmedAfterApprovement(creatorId);
+    }
+
+    @Test
+    public void shouldUpdateStatusToPaymentConfirmedAfterApprovementForWinner() throws InterruptedException, ExecutionException, TimeoutException {
+        shouldUpdateStatusToPaymentConfirmedAfterApprovement(winnerId);
+    }
+
+    private void shouldUpdateStatusToPaymentConfirmedAfterApprovement(UUID userId) throws InterruptedException, ExecutionException, TimeoutException {
+        feed(new TransactionStarted(itemId, transaction));
+        feed(new DeliveryDetailsSubmitted(itemId, deliveryData));
+        feed(new DeliveryPriceUpdated(itemId, deliveryPrice));
+        feed(new DeliveryDetailsApproved(itemId));
+        feed(new PaymentDetailsSubmitted(itemId, payment));
+        feed(new PaymentApproved(itemId));
+
+        PaginatedSequence<TransactionSummary> transactions = getTransactions(userId, TransactionInfoStatus.PAYMENT_CONFIRMED);
+        assertEquals(1, transactions.getCount());
+        TransactionSummary expected = new TransactionSummary(itemId, creatorId, winnerId, itemTitle, currencyId, itemPrice, TransactionInfoStatus.PAYMENT_CONFIRMED);
+        assertEquals(expected, transactions.getItems().get(0));
+    }
+
+    @Test
+    public void shouldUpdateStatusToPaymentPendingAfterRejectionForCreator() throws InterruptedException, ExecutionException, TimeoutException {
+        shouldUpdateStatusToPaymentPendingAfterRejection(creatorId);
+    }
+
+    @Test
+    public void shouldUpdateStatusToPaymentPendingAfterRejectionForWinner() throws InterruptedException, ExecutionException, TimeoutException {
+        shouldUpdateStatusToPaymentPendingAfterRejection(winnerId);
+    }
+
+    private void shouldUpdateStatusToPaymentPendingAfterRejection(UUID userId) throws InterruptedException, ExecutionException, TimeoutException {
+        feed(new TransactionStarted(itemId, transaction));
+        feed(new DeliveryDetailsSubmitted(itemId, deliveryData));
+        feed(new DeliveryPriceUpdated(itemId, deliveryPrice));
+        feed(new DeliveryDetailsApproved(itemId));
+        feed(new PaymentDetailsSubmitted(itemId, payment));
+        feed(new PaymentRejected(itemId));
+
+        PaginatedSequence<TransactionSummary> transactions = getTransactions(userId, TransactionInfoStatus.PAYMENT_PENDING);
+        assertEquals(1, transactions.getCount());
+        TransactionSummary expected = new TransactionSummary(itemId, creatorId, winnerId, itemTitle, currencyId, itemPrice, TransactionInfoStatus.PAYMENT_PENDING);
+        assertEquals(expected, transactions.getItems().get(0));
+    }
+
+    @Test
     public void shouldPaginateTransactionRetrieval() throws InterruptedException, ExecutionException, TimeoutException {
         for (int i = 0; i < 25; i++) {
             UUID itemId = UUIDs.timeBased();

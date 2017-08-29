@@ -122,6 +122,10 @@ public class TransactionRepository {
                             e -> updateTransactionSummaryStatus(e.getItemId(), TransactionInfoStatus.PAYMENT_PENDING))
                     .setEventHandler(TransactionEvent.PaymentDetailsSubmitted.class,
                             e -> updateTransactionSummaryStatus(e.getItemId(), TransactionInfoStatus.PAYMENT_SUBMITTED))
+                    .setEventHandler(TransactionEvent.PaymentApproved.class,
+                            e -> updateTransactionSummaryStatus(e.getItemId(), TransactionInfoStatus.PAYMENT_CONFIRMED))
+                    .setEventHandler(TransactionEvent.PaymentRejected.class,
+                            e -> updateTransactionSummaryStatus(e.getItemId(), TransactionInfoStatus.PAYMENT_PENDING))
                     .build();
         }
 

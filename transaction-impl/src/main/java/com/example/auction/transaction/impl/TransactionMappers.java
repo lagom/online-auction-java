@@ -2,6 +2,7 @@ package com.example.auction.transaction.impl;
 
 import com.example.auction.transaction.api.DeliveryInfo;
 import com.example.auction.transaction.api.PaymentInfo;
+import com.example.auction.transaction.api.PaymentInfoStatus;
 import com.example.auction.transaction.api.TransactionInfo;
 
 import java.util.Optional;
@@ -63,5 +64,16 @@ public class TransactionMappers {
                 toApiPayment(transaction.getPayment()),
                 data.getStatus().transactionInfoStatus
         );
+    }
+
+    public static PaymentStatus fromApi(PaymentInfoStatus paymentInfoStatus) {
+        switch(paymentInfoStatus) {
+            case APPROVED:
+                return PaymentStatus.APPROVED;
+            case REJECTED:
+                return PaymentStatus.REJECTED;
+            default:
+                throw new IllegalStateException("Mapping non payment status class");
+        }
     }
 }
