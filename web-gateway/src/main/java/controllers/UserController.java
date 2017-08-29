@@ -11,6 +11,7 @@ import play.mvc.Http;
 import play.mvc.Result;
 
 import javax.inject.Inject;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
@@ -56,6 +57,14 @@ public class UserController extends AbstractController {
                 }, httpExecutionContext.current())
         );
     }
+
+    public CompletionStage<Result> logoutUser() {
+        return loadNav(Optional.empty()).thenApply(nav -> {
+            ctx().session().clear();
+            return ok(views.html.index.render(nav));
+        });
+    }
+
 
     public Result currentUser(String userId) {
         session("user", userId);

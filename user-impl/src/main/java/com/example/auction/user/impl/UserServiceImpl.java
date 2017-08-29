@@ -1,5 +1,6 @@
 package com.example.auction.user.impl;
 
+import akka.Done;
 import akka.NotUsed;
 import com.example.auction.pagination.PaginatedSequence;
 import com.example.auction.user.api.User;

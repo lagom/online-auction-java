@@ -5,6 +5,7 @@ GET         /                                       controllers.Main.index
 GET         /createuser                             controllers.UserController.createUserForm
 POST        /user                                   controllers.UserController.createUser
 POST        /currentuser/:userId                    controllers.UserController.currentUser(userId)
+GET         /logout                                 controllers.UserController.logoutUser
 
 # User profile
 GET         /my/items/:status                       controllers.ProfileController.myItems(status, page: Int ?= controllers.ProfileController.DEFAULT_PAGE, pageSize: Int ?= controllers.ProfileController.DEFAULT_PAGE_SIZE)

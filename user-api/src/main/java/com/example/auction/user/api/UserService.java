@@ -1,5 +1,6 @@
 package com.example.auction.user.api;
 
+import akka.Done;
 import akka.NotUsed;
 import com.example.auction.pagination.PaginatedSequence;
 import com.lightbend.lagom.javadsl.api.Descriptor;
@@ -23,7 +24,7 @@ public interface UserService extends Service {
     ServiceCall<NotUsed, PaginatedSequence<User>> getUsers(
             Optional<Integer> pageNo, Optional<Integer> pageSize);
 
-    @Override
+      @Override
     default Descriptor descriptor() {
         return named("user").withCalls(
                 pathCall("/api/user", this::createUser),
