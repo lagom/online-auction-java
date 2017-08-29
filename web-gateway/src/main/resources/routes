@@ -7,7 +7,7 @@ POST        /user                                   controllers.UserController.c
 POST        /currentuser/:userId                    controllers.UserController.currentUser(userId)
 GET         /login                                  controllers.UserController.loginUserForm
 POST        /login                                  controllers.UserController.loginUser
-
+GET         /logout                                 controllers.UserController.logoutUser
 # User profile
 GET         /my/items/:status                       controllers.ProfileController.myItems(status, page: Int ?= controllers.ProfileController.DEFAULT_PAGE, pageSize: Int ?= controllers.ProfileController.DEFAULT_PAGE_SIZE)
 

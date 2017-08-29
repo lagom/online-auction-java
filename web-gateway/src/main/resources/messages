@@ -2,6 +2,7 @@ lagomAuction=Lagom Auction
 logInAs=Log in as...
 search=Search
 loginWith=Login with email/password
+logout=Logout
 
 formErrors=There are some errors in your form.
 
