@@ -19,6 +19,7 @@ public interface UserService extends Service {
 
     ServiceCall<NotUsed, User> getUser(UUID userId);
 
+
     ServiceCall<NotUsed, PaginatedSequence<User>> getUsers(
             Optional<Integer> pageNo, Optional<Integer> pageSize);
 

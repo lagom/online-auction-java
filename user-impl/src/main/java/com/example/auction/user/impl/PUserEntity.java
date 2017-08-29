@@ -6,7 +6,6 @@ import com.example.auction.user.impl.PUserEvent.PUserCreated;
 import com.lightbend.lagom.javadsl.persistence.PersistentEntity;
 import org.mindrot.jbcrypt.BCrypt;
 
-import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;

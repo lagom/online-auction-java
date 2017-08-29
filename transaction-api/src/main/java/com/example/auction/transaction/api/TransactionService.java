@@ -36,6 +36,8 @@ public interface TransactionService extends Service {
 
     ServiceCall<PaymentInfo, Done> submitPaymentDetails(UUID itemId);
 
+    ServiceCall<PaymentInfoStatus, Done> submitPaymentStatus(UUID itemId);
+
     //ServiceCall<NotUsed, Done> dispatchItem(UUID itemId);
 
     //ServiceCall<NotUsed, Done> receiveItem(UUID itemId);
@@ -59,6 +61,7 @@ public interface TransactionService extends Service {
                 pathCall("/api/transaction/:id/deliveryprice", this::setDeliveryPrice),
                 pathCall("/api/transaction/:id/approvedelivery", this::approveDeliveryDetails),
                 pathCall("/api/transaction/:id/paymentdetails", this::submitPaymentDetails),
+                pathCall("/api/transaction/:id/paymentstatus", this::submitPaymentStatus),
                 pathCall("/api/transaction/:id", this::getTransaction),
                 pathCall("/api/transaction?status&pageNo&pageSize", this::getTransactionsForUser)
         ).withPathParamSerializer(
@@ -67,5 +70,4 @@ public interface TransactionService extends Service {
                 TransactionInfoStatus.class, PathParamSerializers.required("TransactionInfoStatus", TransactionInfoStatus::valueOf, TransactionInfoStatus::toString)
         ).withHeaderFilter(SecurityHeaderFilter.INSTANCE);
     }
-
 }
