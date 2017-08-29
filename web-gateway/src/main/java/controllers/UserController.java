@@ -61,7 +61,7 @@ public class UserController extends AbstractController {
     public CompletionStage<Result> logoutUser() {
         return loadNav(Optional.empty()).thenApply(nav -> {
             ctx().session().clear();
-            return ok(views.html.logout.render(nav));
+            return ok(views.html.index.render(nav));
         });
     }
 
