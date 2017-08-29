@@ -178,6 +178,7 @@ lazy val userApi = (project in file("user-api"))
 
 lazy val userImpl = (project in file("user-impl"))
   .settings(commonSettings: _*)
+  .settings(kafkaSettings: _*)
   .enablePlugins(LagomJava)
   .dependsOn(userApi, tools,
     testkit % "test"
@@ -188,7 +189,9 @@ lazy val userImpl = (project in file("user-impl"))
       lagomJavadslPersistenceCassandra,
       lagomJavadslTestKit,
       "de.svenkubiak" % "jBCrypt" % "0.4",
-      cassandraExtras
+      lagomJavadslKafkaBroker,
+      cassandraExtras,
+      lombok
     )
   )
 

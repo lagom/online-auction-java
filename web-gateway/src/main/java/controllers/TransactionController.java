@@ -19,6 +19,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
+import java.util.concurrent.ExecutionException;
 
 import static com.example.auction.security.ClientSecurity.authenticate;
 
@@ -76,29 +77,29 @@ public class TransactionController extends AbstractController {
 
     public CompletionStage<Result> getTransaction(String id) {
         return requireUser(ctx(), user ->
-                loadNav(user).thenComposeAsync(nav -> {
-                    UUID itemId = UUID.fromString(id);
-                    CompletionStage<TransactionInfo> transactionFuture = transactionService.getTransaction(itemId).handleRequestHeader(authenticate(user)).invoke();
-                    return transactionFuture.handle((transaction, exception) -> {
-                        if (exception == null) {
-                            Optional<User> seller = Optional.empty();
-                            Optional<User> winner = Optional.empty();
-                            for (User u : nav.getUsers()) {
-                                if (transaction.getCreator().equals(u.getId())) {
-                                    seller = Optional.of(u);
-                                }
-                                if (transaction.getWinner().equals(u.getId())) {
-                                    winner = Optional.of(u);
-                                }
-                            }
-                            Currency currency = Currency.valueOf(transaction.getItemData().getCurrencyId());
-                            return ok(views.html.transaction.render(showInlineInstruction, Optional.of(transaction), user, seller, winner, Optional.of(currency), Optional.empty(), nav));
-                        } else {
-                            String msg = exception.getCause().getMessage();
-                            return ok(views.html.transaction.render(showInlineInstruction, Optional.empty(), user, Optional.empty(), Optional.empty(), Optional.empty(), Optional.of(msg), nav));
+                loadNav(user).thenComposeAsync( nav -> {
+                            UUID itemId = UUID.fromString(id);
+                            CompletionStage<TransactionInfo> transactionFuture = transactionService.getTransaction(itemId).handleRequestHeader(authenticate(user)).invoke();
+
+                           return transactionFuture.thenCompose(transaction -> {
+
+                                   UUID sellerId = transaction.getCreator();
+                                   UUID winnerId = transaction.getWinner();
+                                 return getUser(sellerId).thenCombine(getUser(winnerId),
+                                       (seller, winner) -> {
+
+                                           Currency currency = Currency.valueOf(transaction.getItemData().getCurrencyId());
+                                           return ok(views.html.transaction.render(showInlineInstruction, Optional.of(transaction), user, Optional.of(seller), Optional.of(winner), Optional.of(currency), Optional.empty(), (Nav) nav));
+                                       });
+                           }).exceptionally(exception -> {
+                                    String msg = exception.getCause().getMessage();
+                                    return ok(views.html.transaction.render(showInlineInstruction, Optional.empty(), user, Optional.empty(), Optional.empty(), Optional.empty(), Optional.of(msg),(Nav) nav));
+                                });
+
+
+
                         }
-                    });
-                }, ec.current())
+                        , ec.current())
         );
     }
 
@@ -127,11 +128,11 @@ public class TransactionController extends AbstractController {
                                                     formFactory.form(DeliveryDetailsForm.class).fill(form),
                                                     transaction.getStatus(),
                                                     Optional.empty(),
-                                                    nav)
+                                                    (Nav)nav)
                                     );
                                 } else {
                                     String msg = exception.getCause().getMessage();
-                                    return ok(views.html.deliveryDetails.render(showInlineInstruction, false, itemId, formFactory.form(DeliveryDetailsForm.class), TransactionInfoStatus.NEGOTIATING_DELIVERY, Optional.of(msg), nav));
+                                    return ok(views.html.deliveryDetails.render(showInlineInstruction, false, itemId, formFactory.form(DeliveryDetailsForm.class), TransactionInfoStatus.NEGOTIATING_DELIVERY, Optional.of(msg), (Nav)nav));
                                 }
                             });
                         },
@@ -200,11 +201,11 @@ public class TransactionController extends AbstractController {
                                                     formFactory.form(DeliveryPriceForm.class).fill(form),
                                                     transaction.getStatus(),
                                                     Optional.empty(),
-                                                    nav)
+                                                    (Nav)nav)
                                     );
                                 } else {
                                     String msg = exception.getCause().getMessage();
-                                    return ok(views.html.deliveryPrice.render(showInlineInstruction, false, itemId, formFactory.form(DeliveryPriceForm.class), TransactionInfoStatus.NEGOTIATING_DELIVERY, Optional.of(msg), nav));
+                                    return ok(views.html.deliveryPrice.render(showInlineInstruction, false, itemId, formFactory.form(DeliveryPriceForm.class), TransactionInfoStatus.NEGOTIATING_DELIVERY, Optional.of(msg),(Nav) nav));
                                 }
                             });
                         },
@@ -235,7 +236,7 @@ public class TransactionController extends AbstractController {
                             } else {
                                 String msg = exception.getCause().getMessage();
                                 return loadNav(user).thenApplyAsync(nav ->
-                                                ok(views.html.deliveryPrice.render(showInlineInstruction, isSeller, itemId, form, status, Optional.of(msg), nav)),
+                                                ok(views.html.deliveryPrice.render(showInlineInstruction, isSeller, itemId, form, status, Optional.of(msg),(Nav) nav)),
                                         ec.current());
                             }
                         }).thenComposeAsync(x -> x, ec.current());

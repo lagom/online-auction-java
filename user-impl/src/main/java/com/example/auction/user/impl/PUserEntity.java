@@ -5,7 +5,6 @@ import com.example.auction.user.impl.PUserCommand.GetPUser;
 import com.example.auction.user.impl.PUserEvent.PUserCreated;
 import com.lightbend.lagom.javadsl.persistence.PersistentEntity;
 
-import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;

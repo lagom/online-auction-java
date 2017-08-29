@@ -2,8 +2,10 @@ package controllers;
 
 import akka.japi.Pair;
 import com.example.auction.bidding.api.*;
-import com.example.auction.item.api.*;
-import com.example.auction.user.api.User;
+import com.example.auction.item.api.Item;
+import com.example.auction.item.api.ItemData;
+import com.example.auction.item.api.ItemService;
+import com.example.auction.item.api.ItemStatus;
 import com.example.auction.user.api.UserService;
 import com.lightbend.lagom.javadsl.api.transport.TransportException;
 import com.typesafe.config.Config;
@@ -16,8 +18,6 @@ import play.mvc.Http;
 import play.mvc.Result;
 import views.html.editItem;
 
-import play.Configuration;
-
 import javax.inject.Inject;
 import java.time.Duration;
 import java.time.Instant;
@@ -26,14 +26,13 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
-import static com.example.auction.security.ClientSecurity.*;
+import static com.example.auction.security.ClientSecurity.authenticate;
 
 public class ItemController extends AbstractController {
 
     private final FormFactory formFactory;
     private final ItemService itemService;
     private final BiddingService bidService;
-
     private final Boolean showInlineInstruction;
     private HttpExecutionContext ec;
 
@@ -166,65 +165,60 @@ public class ItemController extends AbstractController {
             }
         });
     }
-
     public CompletionStage<Result> getItem(String itemId) {
         return doGetItem(ctx(), itemId, formFactory.form(BidForm.class));
     }
 
     private CompletionStage<Result> doGetItem(Http.Context ctx, String itemId, Form<BidForm> bidForm) {
         return requireUser(ctx, user -> loadNav(user).thenComposeAsync(nav -> {
+
             UUID itemUuid = UUID.fromString(itemId);
             CompletionStage<Item> itemFuture = itemService.getItem(itemUuid)
                     .handleRequestHeader(authenticate(user)).invoke();
             CompletionStage<PSequence<Bid>> bidHistoryFuture = bidService.getBids(itemUuid)
                     .handleRequestHeader(authenticate(user)).invoke();
-            return itemFuture.thenCombineAsync(bidHistoryFuture, (item, bidHistory) -> {
+            return bidHistoryFuture.thenComposeAsync(bidHistory ->
 
-                if (item.getStatus() == ItemStatus.CREATED && !item.getCreator().equals(user)) {
-                    return forbidden();
-                }
+               itemFuture.thenComposeAsync(item1 ->
+                     {
+                        UUID sellerId = item1.getCreator();
+                        Optional<UUID> winnerId = item1.getAuctionWinner();
+                        return getUser(sellerId).thenCombine(getUser(winnerId),
+                            (seller, winner) -> {
+                                Optional<Integer> currentBidMaximum = Optional.empty();
+                                if (!bidHistory.isEmpty() && bidHistory.get(bidHistory.size() - 1).getBidder().equals(user)) {
+                                    currentBidMaximum = Optional.of(bidHistory.get(bidHistory.size() - 1).getMaximumPrice());
+                                }
 
-                User seller = null;
-                Optional<User> winner = Optional.empty();
+                                // Ensure current price is consistent with bidding history, since there's a lag between when bids
+                                // are placed and when the item is updated
+                                int currentPrice = 0;
+                                if (!bidHistory.isEmpty()) {
+                                    currentPrice = bidHistory.get(bidHistory.size() - 1).getPrice();
+                                }
+                                Item item = item1;
+                                if (currentPrice > item1.getPrice()) {
+                                    item = item.withPrice(currentPrice);
+                                }
 
-                for (User u : nav.getUsers()) {
-                    if (item.getCreator().equals(u.getId())) {
-                        seller = u;
-                    }
-                    if (item.getAuctionWinner().isPresent() && item.getAuctionWinner().get().equals(u.getId())) {
-                        winner = Optional.of(u);
-                    }
-                }
+                                // Ensure that the status is consistent with the end time, since there's a lag between when the
+                                // auction is supposed to end, and when the bidding service actually ends it.
+                                if (item.getAuctionEnd().isPresent() && item.getAuctionEnd().get().isBefore(Instant.now()) &&
+                                    item.getStatus() == ItemStatus.AUCTION) {
+                                    item = item.withStatus(ItemStatus.COMPLETED);
+                                }
 
-                Optional<Integer> currentBidMaximum = Optional.empty();
-                if (!bidHistory.isEmpty() && bidHistory.get(bidHistory.size() - 1).getBidder().equals(user)) {
-                    currentBidMaximum = Optional.of(bidHistory.get(bidHistory.size() - 1).getMaximumPrice());
-                }
+                                Currency currency = Currency.valueOf(item.getItemData().getCurrencyId());
 
-                // Ensure current price is consistent with bidding history, since there's a lag between when bids
-                // are placed and when the item is updated
-                int currentPrice = 0;
-                if (!bidHistory.isEmpty()) {
-                    currentPrice = bidHistory.get(bidHistory.size() - 1).getPrice();
-                }
-                if (currentPrice > item.getPrice()) {
-                    item = item.withPrice(currentPrice);
-                }
+                                Optional<BidResult> bidResult = loadBidResult(ctx.flash());
 
-                // Ensure that the status is consistent with the end time, since there's a lag between when the
-                // auction is supposed to end, and when the bidding service actually ends it.
-                if (item.getAuctionEnd().isPresent() && item.getAuctionEnd().get().isBefore(Instant.now()) &&
-                        item.getStatus() == ItemStatus.AUCTION) {
-                    item = item.withStatus(ItemStatus.COMPLETED);
-                }
+                                return ok(views.html.item.render(showInlineInstruction, item, bidForm,
+                                    anonymizeBids(user, currency, bidHistory), user, currency, seller, winner, currentBidMaximum, bidResult, (Nav) nav));
+                            });
+                    }, ec.current()));
 
-                Currency currency = Currency.valueOf(item.getItemData().getCurrencyId());
+             }, ec.current()));
 
-                Optional<BidResult> bidResult = loadBidResult(ctx.flash());
-
-                return ok(views.html.item.render(showInlineInstruction, item, bidForm, anonymizeBids(user, currency, bidHistory), user, currency, seller, winner, currentBidMaximum, bidResult, nav));
-            }, ec.current());
-        }, ec.current()));
     }
 
     private List<AnonymousBid> anonymizeBids(UUID userId, Currency currency, List<Bid> bids) {

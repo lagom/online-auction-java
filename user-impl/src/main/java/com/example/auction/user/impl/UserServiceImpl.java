@@ -1,5 +1,6 @@
 package com.example.auction.user.impl;
 
+import akka.Done;
 import akka.NotUsed;
 import com.example.auction.pagination.PaginatedSequence;
 import com.example.auction.user.api.User;
@@ -12,7 +13,6 @@ import com.lightbend.lagom.javadsl.persistence.PersistentEntityRef;
 import com.lightbend.lagom.javadsl.persistence.PersistentEntityRegistry;
 
 import javax.inject.Inject;
-import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletionStage;
@@ -36,7 +36,7 @@ public class UserServiceImpl implements UserService {
     public ServiceCall<UserRegistration, User> createUser() {
         return user -> {
             UUID uuid = UUID.randomUUID();
-            Instant createdAt = Instant.now();
+
             String password = PUserCommand.hashPassword(user.getPassword());
             PUser createdUser = new PUser(uuid,  user.getName(), user.getEmail(), password);
             return entityRef(uuid)

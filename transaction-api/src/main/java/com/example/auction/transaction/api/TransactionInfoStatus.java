@@ -17,11 +17,6 @@ public enum TransactionInfoStatus {
     PAYMENT_SUBMITTED,
 
     /**
-     * Payment is rejected
-     */
-    PAYMENT_FAILED,
-
-    /**
      * Payment is confirmed.
      */
     PAYMENT_CONFIRMED,

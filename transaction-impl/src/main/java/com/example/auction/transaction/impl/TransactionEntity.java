@@ -1,11 +1,11 @@
 package com.example.auction.transaction.impl;
 
 import akka.Done;
+import com.example.auction.transaction.impl.TransactionCommand.*;
+import com.example.auction.transaction.impl.TransactionEvent.*;
 import com.lightbend.lagom.javadsl.api.transport.Forbidden;
 import com.lightbend.lagom.javadsl.api.transport.NotFound;
 import com.lightbend.lagom.javadsl.persistence.PersistentEntity;
-import com.example.auction.transaction.impl.TransactionCommand.*;
-import com.example.auction.transaction.impl.TransactionEvent.*;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -27,6 +27,8 @@ public class TransactionEntity extends PersistentEntity<TransactionCommand, Tran
                     return paymentPending(state);
                 case PAYMENT_SUBMITTED:
                     return paymentSubmitted(state);
+                case PAYMENT_CONFIRMED:
+                    return paymentConfirmed(state);
                 default:
                     throw new IllegalStateException();
             }
@@ -131,6 +133,36 @@ public class TransactionEntity extends PersistentEntity<TransactionCommand, Tran
     }
 
     private Behavior paymentSubmitted(TransactionState state) {
+        BehaviorBuilder builder = newBehaviorBuilder(state);
+
+        builder.setCommandHandler(SubmitPaymentStatus.class, (cmd, ctx) -> {
+            if (cmd.getUserId().equals(state().getTransaction().get().getCreator())) {
+                switch(cmd.getPaymentStatus()) {
+                    case APPROVED:
+                        return ctx.thenPersist(new PaymentApproved(entityUUID()), (e) -> ctx.reply(Done.getInstance()));
+                    case REJECTED:
+                        return ctx.thenPersist(new PaymentRejected(entityUUID()), (e) -> ctx.reply(Done.getInstance()));
+                    default:
+                        throw new IllegalStateException("Illegal payment status");
+                }
+            } else
+                throw new Forbidden("Only the item creator can approve or reject payment");
+        });
+
+        builder.setEventHandlerChangingBehavior(PaymentApproved.class, evt ->
+                paymentConfirmed(state().withStatus(TransactionStatus.PAYMENT_CONFIRMED))
+        );
+
+        builder.setEventHandlerChangingBehavior(PaymentRejected.class, evt ->
+                paymentPending(state().withStatus(TransactionStatus.PAYMENT_PENDING))
+        );
+
+        addGetTransactionHandler(builder);
+
+        return builder.build();
+    }
+
+    private Behavior paymentConfirmed(TransactionState state) {
         BehaviorBuilder builder = newBehaviorBuilder(state);
 
         addGetTransactionHandler(builder);
