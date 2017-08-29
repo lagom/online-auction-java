@@ -15,8 +15,6 @@ import com.lightbend.lagom.javadsl.persistence.PersistentEntityRegistry;
 import javax.inject.Inject;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.CompletionStage;
-import java.util.concurrent.ExecutionException;
 
 public class UserServiceImpl implements UserService {
 
@@ -32,18 +30,19 @@ public class UserServiceImpl implements UserService {
         registry.register(PUserEntity.class);
     }
 
+
     @Override
     public ServiceCall<UserRegistration, User> createUser() {
         return user -> {
             UUID uuid = UUID.randomUUID();
-
-            String password = PUserCommand.hashPassword(user.getPassword());
+            String password = PUserEntity.hashPassword(user.getPassword());
             PUser createdUser = new PUser(uuid,  user.getName(), user.getEmail(), password);
             return entityRef(uuid)
-                    .ask(new PUserCommand.CreatePUser(user.getName(), user.getEmail(), password))
-                    .thenApply(done -> Mappers.toApi(Optional.ofNullable(createdUser)));
+                .ask(new PUserCommand.CreatePUser(user.getName(), user.getEmail(), password))
+                .thenApply(done -> Mappers.toApi(Optional.ofNullable(createdUser)));
         };
     }
+
 
     @Override
     public ServiceCall<NotUsed, User> getUser(UUID userId) {
@@ -73,7 +72,7 @@ public class UserServiceImpl implements UserService {
                    return entityRef(id).ask(PUserCommand.GetPUser.INSTANCE)
                         .thenApply(maybeUser -> {
                                 if (maybeUser.isPresent()) {
-                                    if (PUserCommand.checkPassword(req.getPassword(), maybeUser.get().getPasswordHash())) {
+                                    if (PUserEntity.checkPassword(req.getPassword(), maybeUser.get().getPasswordHash())) {
                                         return maybeUser.get().getId().toString();
                                     } else {
                                         throw new NotFound("Email or password does not match ");
