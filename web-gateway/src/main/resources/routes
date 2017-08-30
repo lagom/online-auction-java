@@ -35,4 +35,5 @@ POST        /transaction/:id/deliveryprice          controllers.TransactionContr
 POST        /transaction/:id/approvedelivery        controllers.TransactionController.approveDelivery(id)
 GET         /transaction/:id/payment                controllers.TransactionController.submitPaymentDetailsForm(id)
 POST        /transaction/:id/payment                controllers.TransactionController.submitPaymentDetails(id, transactionStatus, isBuyer: Boolean)
-
+POST        /transaction/:id/approvepayment         controllers.TransactionController.approvePayment(id)
+POST        /transaction/:id/rejectpayment          controllers.TransactionController.rejectPayment(id)

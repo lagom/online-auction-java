@@ -320,6 +320,26 @@ public class TransactionController extends AbstractController {
         });
     }
 
+    public CompletionStage<Result> approvePayment(String id) {
+        return submitPaymentStatus(PaymentInfoStatus.APPROVED, id);
+    }
+
+    public CompletionStage<Result> rejectPayment(String id) {
+        return submitPaymentStatus(PaymentInfoStatus.REJECTED, id);
+    }
+
+    private CompletionStage<Result> submitPaymentStatus(PaymentInfoStatus paymentInfoStatus, String id) {
+        return requireUser(ctx(), user ->
+            transactionService.submitPaymentStatus(UUID.fromString(id))
+                .handleRequestHeader(authenticate(user))
+                .invoke(paymentInfoStatus)
+                .thenApplyAsync(done ->
+                        redirect(routes.TransactionController.getTransaction(id)),
+                    ec.current()
+                )
+        );
+    }
+
     private PaymentInfo fromForm(OfflinePaymentForm offlinePayment) {
         return new PaymentInfo.Offline(offlinePayment.getComment());
     }
