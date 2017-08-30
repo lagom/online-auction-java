@@ -1,5 +1,6 @@
 package controllers;
 
+import com.example.auction.user.api.UserLogin;
 import com.example.auction.user.api.UserRegistration;
 import com.example.auction.user.api.UserService;
 import play.Configuration;
@@ -11,6 +12,7 @@ import play.mvc.Http;
 import play.mvc.Result;
 
 import javax.inject.Inject;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
@@ -57,8 +59,43 @@ public class UserController extends AbstractController {
         );
     }
 
+    public CompletionStage<Result> logoutUser() {
+        return loadNav(Optional.empty()).thenApply(nav -> {
+            ctx().session().clear();
+            return ok(views.html.index.render(nav));
+        });
+    }
+
+
     public Result currentUser(String userId) {
         session("user", userId);
         return ok("User switched");
+    }
+    public CompletionStage<Result> loginUser() {
+        Http.Context ctx = ctx();
+        return withUser(ctx, userId ->
+                loadNav(userId).thenCompose(nav -> {
+                    Form<LoginForm> form = formFactory.form(LoginForm.class).bindFromRequest(ctx.request());
+                    if (form.hasErrors()) {
+                        return CompletableFuture.completedFuture(ok(views.html.login.render(showInlineInstruction, form, nav)));
+                    }
+
+                    return userService.login().invoke(new UserLogin( form.get().getEmail(), form.get().getPassword())).thenApply(id -> {
+                        ctx.session().put("user", id);
+                        return redirect(ProfileController.defaultProfilePage());
+                    });
+                })
+        );
+
+
+        
+    }
+    public CompletionStage<Result> loginUserForm() {
+        Http.Context ctx = ctx();
+        return withUser(ctx, userId ->
+                loadNav(userId).thenCompose(nav -> {
+                    return CompletableFuture.completedFuture(ok(views.html.login.render(showInlineInstruction,  formFactory.form(LoginForm.class), nav)));
+                })
+        );
     }
 }

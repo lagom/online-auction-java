@@ -1,6 +1,8 @@
 lagomAuction=Lagom Auction
 logInAs=Log in as...
 search=Search
+loginWith=Login with email/password
+logout=Logout
 
 formErrors=There are some errors in your form.
 
@@ -88,6 +90,10 @@ invalid.duration=Please enter a valid duration
 invalid.units=Please enter a valid unit
 
 instruction.createUser=Here you can create a new user who can participate in and create auctions.
+instruction.login=Here the existing users can log in to participate in auctions.
+instruction.login.email=Enter your email
+instruction.login.password=Enter your password
+
 
 instruction.itemMessage=Click on an item to view/edit its details.
 instruction.editItem=Here you can edit details of your auction item. If the auction has not started, you can edit any detail including description, minimum bid increment, auction duration, etc. However, if the auction is on-going, only the item description can be edited.
@@ -169,3 +175,5 @@ comment=Comment
 viewPaymentDetails=View payment details
 editPaymentDetails=Edit payment details
 submitPaymentDetails=Submit payment details
+
+name.login=Login
