@@ -54,7 +54,7 @@ public class UserRepositoryTest {
     private final UUID userId = UUID.randomUUID();
     private final String name = "admin";
     private final String email = "admin@gmail.com";
-    private final String password = PUserCommand.hashPassword("admin");
+    private final String password = PUserEntity.hashPassword("admin");
     private final PUser userCreated = new PUser(userId,  name, email, password);
 
 

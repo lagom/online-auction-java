@@ -4,9 +4,11 @@ import akka.Done;
 import akka.NotUsed;
 import com.example.auction.pagination.PaginatedSequence;
 import com.example.auction.user.api.User;
+import com.example.auction.user.api.UserLogin;
 import com.example.auction.user.api.UserRegistration;
 import com.example.auction.user.api.UserService;
 import com.lightbend.lagom.javadsl.api.ServiceCall;
+import com.lightbend.lagom.javadsl.api.transport.NotFound;
 import com.lightbend.lagom.javadsl.persistence.PersistentEntityRef;
 import com.lightbend.lagom.javadsl.persistence.PersistentEntityRegistry;
 
@@ -28,18 +30,19 @@ public class UserServiceImpl implements UserService {
         registry.register(PUserEntity.class);
     }
 
+
     @Override
     public ServiceCall<UserRegistration, User> createUser() {
         return user -> {
             UUID uuid = UUID.randomUUID();
-
-            String password = PUserCommand.hashPassword(user.getPassword());
+            String password = PUserEntity.hashPassword(user.getPassword());
             PUser createdUser = new PUser(uuid,  user.getName(), user.getEmail(), password);
             return entityRef(uuid)
-                    .ask(new PUserCommand.CreatePUser(user.getName(), user.getEmail(), password))
-                    .thenApply(done -> Mappers.toApi(Optional.ofNullable(createdUser)));
+                .ask(new PUserCommand.CreatePUser(user.getName(), user.getEmail(), password))
+                .thenApply(done -> Mappers.toApi(Optional.ofNullable(createdUser)));
         };
     }
+
 
     @Override
     public ServiceCall<NotUsed, User> getUser(UUID userId) {
@@ -61,6 +64,30 @@ public class UserServiceImpl implements UserService {
         return req -> userRepository.getUsers(pageNo.orElse(0), pageSize.orElse(DEFAULT_PAGE_SIZE));
     }
 
+    @Override
+    public ServiceCall<UserLogin, String> login() {
+        return  req -> {
+
+           return userRepository.getUserIdByEmail(req.getEmail()).thenCompose(id ->{
+                   return entityRef(id).ask(PUserCommand.GetPUser.INSTANCE)
+                        .thenApply(maybeUser -> {
+                                if (maybeUser.isPresent()) {
+                                    if (PUserEntity.checkPassword(req.getPassword(), maybeUser.get().getPasswordHash())) {
+                                        return maybeUser.get().getId().toString();
+                                    } else {
+                                        throw new NotFound("Email or password does not match ");
+                                    }
+                                } else {
+                                    throw new NotFound("User not found");
+                                }
+
+                            }
+                                                  );
+           });
+
+        };
+
+    }
     private PersistentEntityRef<PUserCommand> entityRef(UUID id) {
         return entityRef(id.toString());
     }
@@ -68,4 +95,5 @@ public class UserServiceImpl implements UserService {
     private PersistentEntityRef<PUserCommand> entityRef(String id) {
         return registry.refFor(PUserEntity.class, id);
     }
+
 }

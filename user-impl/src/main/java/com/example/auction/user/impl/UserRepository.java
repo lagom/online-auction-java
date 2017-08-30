@@ -1,6 +1,8 @@
 package com.example.auction.user.impl;
 
 import akka.Done;
+import akka.NotUsed;
+import akka.stream.javadsl.Source;
 import com.datastax.driver.core.BoundStatement;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.Row;
@@ -79,6 +81,19 @@ public class UserRepository {
                 .thenApply(TreePVector::from);
     }
 
+    protected CompletionStage<UUID> getUserIdByEmail(String email) {
+
+        return session
+            .selectOne(
+                "SELECT * FROM UserInfo  WHERE email = ? " ,
+                   email
+            )
+
+            .thenApply(rows -> rows.map(UserRepository::convertUserSummary).get())
+            .thenApply(UserSummary -> UserSummary.getId());
+
+
+    }
 
     private static User convertUserSummary(Row user) {
         return new User(

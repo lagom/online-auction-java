@@ -5,8 +5,9 @@ GET         /                                       controllers.Main.index
 GET         /createuser                             controllers.UserController.createUserForm
 POST        /user                                   controllers.UserController.createUser
 POST        /currentuser/:userId                    controllers.UserController.currentUser(userId)
+GET         /login                                  controllers.UserController.loginUserForm
+POST        /login                                  controllers.UserController.loginUser
 GET         /logout                                 controllers.UserController.logoutUser
-
 # User profile
 GET         /my/items/:status                       controllers.ProfileController.myItems(status, page: Int ?= controllers.ProfileController.DEFAULT_PAGE, pageSize: Int ?= controllers.ProfileController.DEFAULT_PAGE_SIZE)
 
@@ -34,3 +35,4 @@ POST        /transaction/:id/deliveryprice          controllers.TransactionContr
 POST        /transaction/:id/approvedelivery        controllers.TransactionController.approveDelivery(id)
 GET         /transaction/:id/payment                controllers.TransactionController.submitPaymentDetailsForm(id)
 POST        /transaction/:id/payment                controllers.TransactionController.submitPaymentDetails(id, transactionStatus, isBuyer: Boolean)
+
