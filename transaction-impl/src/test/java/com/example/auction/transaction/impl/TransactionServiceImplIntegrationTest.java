@@ -31,7 +31,7 @@ import static org.junit.Assert.assertEquals;
 
 public class TransactionServiceImplIntegrationTest {
 
-    private final static ServiceTest.Setup setup = defaultSetup().withCassandra(true)
+    private final static ServiceTest.Setup setup = defaultSetup().withCassandra()
             .configureBuilder(b ->
                     b.configure("cassandra-query-journal.eventual-consistency-delay", "0")
                             .overrides(bind(ItemService.class).to(ItemStub.class))

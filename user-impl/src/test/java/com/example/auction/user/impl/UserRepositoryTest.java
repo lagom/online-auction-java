@@ -26,7 +26,7 @@ import static org.junit.Assert.assertEquals;
 
 public class UserRepositoryTest {
 
-    private final static ServiceTest.Setup setup = defaultSetup().withCassandra(true)
+    private final static ServiceTest.Setup setup = defaultSetup().withCassandra()
             .configureBuilder(b ->
                     // by default, cassandra-query-journal delays propagation of events by 10sec. In test we're using
                     // a 1 node cluster so this delay is not necessary.

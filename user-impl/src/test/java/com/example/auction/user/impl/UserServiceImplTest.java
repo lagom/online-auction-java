@@ -20,7 +20,7 @@ public class UserServiceImplTest {
 
     @Test
     public void shouldBeAbleToCreateUsers() throws Exception {
-        withServer(defaultSetup().withCassandra(true), server -> {
+        withServer(defaultSetup().withCassandra(), server -> {
             userService = server.client(UserService.class);
             UserRegistration userRegistration = new UserRegistration(name, email, password);
             User createdUser = createNewUser(userRegistration);

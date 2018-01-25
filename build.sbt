@@ -1,6 +1,6 @@
 organization in ThisBuild := "com.example"
 
-scalaVersion in ThisBuild := "2.11.8"
+scalaVersion in ThisBuild := "2.12.4"
 
 EclipseKeys.projectFlavor in Global := EclipseProjectFlavor.Java
 
@@ -213,7 +213,7 @@ lazy val webGateway = (project in file("web-gateway"))
 
     // Workaround for https://github.com/lagom/online-auction-java/issues/22
     // Uncomment the commented out line and remove the Scala line when issue #22 is fixed
-    EclipseKeys.projectFlavor in Global := EclipseProjectFlavor.Scala,
+    EclipseKeys.projectFlavor in Global := EclipseProjectFlavor.ScalaIDE,
     // EclipseKeys.createSrc := EclipseCreateSrc.ValueSet(EclipseCreateSrc.ManagedClasses, EclipseCreateSrc.ManagedResources)
     EclipseKeys.preTasks := Seq(compile in Compile)
   )
@@ -255,4 +255,3 @@ lagomCassandraCleanOnStart in ThisBuild := false
 // register 'elastic-search' as an unmanaged service on the service locator so that at 'runAll' our code
 // will resolve 'elastic-search' and use it. See also com.example.com.ElasticSearch
 lagomUnmanagedServices in ThisBuild += ("elastic-search" -> "http://127.0.0.1:9200")
-
