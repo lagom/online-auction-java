@@ -170,54 +170,55 @@ public class ItemController extends AbstractController {
     }
 
     private CompletionStage<Result> doGetItem(Http.Context ctx, String itemId, Form<BidForm> bidForm) {
-        return requireUser(ctx, user -> loadNav(user).thenComposeAsync(nav -> {
+        return requireUser(ctx, user -> loadNav(user)
+            .thenComposeAsync(nav -> {
 
-            UUID itemUuid = UUID.fromString(itemId);
-            CompletionStage<Item> itemFuture = itemService.getItem(itemUuid)
+                UUID itemUuid = UUID.fromString(itemId);
+                CompletionStage<Item> itemFuture = itemService.getItem(itemUuid)
                     .handleRequestHeader(authenticate(user)).invoke();
-            CompletionStage<PSequence<Bid>> bidHistoryFuture = bidService.getBids(itemUuid)
+                CompletionStage<PSequence<Bid>> bidHistoryFuture = bidService.getBids(itemUuid)
                     .handleRequestHeader(authenticate(user)).invoke();
-            return bidHistoryFuture.thenComposeAsync(bidHistory ->
+                return bidHistoryFuture.thenComposeAsync(bidHistory ->
 
-               itemFuture.thenComposeAsync(item1 ->
-                     {
-                        UUID sellerId = item1.getCreator();
-                        Optional<UUID> winnerId = item1.getAuctionWinner();
-                        return getUser(sellerId).thenCombine(getUser(winnerId),
-                            (seller, winner) -> {
-                                Optional<Integer> currentBidMaximum = Optional.empty();
-                                if (!bidHistory.isEmpty() && bidHistory.get(bidHistory.size() - 1).getBidder().equals(user)) {
-                                    currentBidMaximum = Optional.of(bidHistory.get(bidHistory.size() - 1).getMaximumPrice());
-                                }
+                        itemFuture.thenComposeAsync(item1 ->
+                        {
+                            UUID sellerId = item1.getCreator();
+                            Optional<UUID> winnerId = item1.getAuctionWinner();
+                            return getUser(sellerId).thenCombineAsync(getUser(winnerId),
+                                (seller, winner) -> {
+                                    Optional<Integer> currentBidMaximum = Optional.empty();
+                                    if (!bidHistory.isEmpty() && bidHistory.get(bidHistory.size() - 1).getBidder().equals(user)) {
+                                        currentBidMaximum = Optional.of(bidHistory.get(bidHistory.size() - 1).getMaximumPrice());
+                                    }
 
-                                // Ensure current price is consistent with bidding history, since there's a lag between when bids
-                                // are placed and when the item is updated
-                                int currentPrice = 0;
-                                if (!bidHistory.isEmpty()) {
-                                    currentPrice = bidHistory.get(bidHistory.size() - 1).getPrice();
-                                }
-                                Item item = item1;
-                                if (currentPrice > item1.getPrice()) {
-                                    item = item.withPrice(currentPrice);
-                                }
+                                    // Ensure current price is consistent with bidding history, since there's a lag between when bids
+                                    // are placed and when the item is updated
+                                    int currentPrice = 0;
+                                    if (!bidHistory.isEmpty()) {
+                                        currentPrice = bidHistory.get(bidHistory.size() - 1).getPrice();
+                                    }
+                                    Item item = item1;
+                                    if (currentPrice > item1.getPrice()) {
+                                        item = item.withPrice(currentPrice);
+                                    }
 
-                                // Ensure that the status is consistent with the end time, since there's a lag between when the
-                                // auction is supposed to end, and when the bidding service actually ends it.
-                                if (item.getAuctionEnd().isPresent() && item.getAuctionEnd().get().isBefore(Instant.now()) &&
-                                    item.getStatus() == ItemStatus.AUCTION) {
-                                    item = item.withStatus(ItemStatus.COMPLETED);
-                                }
+                                    // Ensure that the status is consistent with the end time, since there's a lag between when the
+                                    // auction is supposed to end, and when the bidding service actually ends it.
+                                    if (item.getAuctionEnd().isPresent() && item.getAuctionEnd().get().isBefore(Instant.now()) &&
+                                        item.getStatus() == ItemStatus.AUCTION) {
+                                        item = item.withStatus(ItemStatus.COMPLETED);
+                                    }
 
-                                Currency currency = Currency.valueOf(item.getItemData().getCurrencyId());
+                                    Currency currency = Currency.valueOf(item.getItemData().getCurrencyId());
 
-                                Optional<BidResult> bidResult = loadBidResult(ctx.flash());
+                                    Optional<BidResult> bidResult = loadBidResult(ctx.flash());
 
-                                return ok(views.html.item.render(showInlineInstruction, item, bidForm,
-                                    anonymizeBids(user, currency, bidHistory), user, currency, seller, winner, currentBidMaximum, bidResult, (Nav) nav));
-                            });
-                    }, ec.current()));
-
-             }, ec.current()));
+                                    return ok(views.html.item.render(showInlineInstruction, item, bidForm,
+                                        anonymizeBids(user, currency, bidHistory), user, currency, seller, winner, currentBidMaximum, bidResult, (Nav) nav));
+                                }, ec.current());
+                        }, ec.current())
+                    , ec.current());
+            }, ec.current()));
 
     }
 

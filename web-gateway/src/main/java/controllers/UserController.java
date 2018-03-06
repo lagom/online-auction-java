@@ -43,29 +43,30 @@ public class UserController extends AbstractController {
     public CompletionStage<Result> createUser() {
         Http.Context ctx = ctx();
         return withUser(ctx, userId ->
-                loadNav(userId).thenComposeAsync(nav -> {
+            loadNav(userId)
+                .thenComposeAsync(nav -> {
                     Form<CreateUserForm> form = formFactory.form(CreateUserForm.class).bindFromRequest(ctx.request());
                     if (form.hasErrors()) {
                         return CompletableFuture.completedFuture(ok(views.html.createUser.render(showInlineInstruction, form, nav)));
                     }
 
                     return userService.createUser()
-                            .invoke(new UserRegistration(form.get().getName(), form.get().getEmail(), form.get().getPassword()))
-                            .thenApply(user -> {
-                                ctx.session().put("user", user.getId().toString());
-                                return redirect(ProfileController.defaultProfilePage());
-                            });
+                        .invoke(new UserRegistration(form.get().getName(), form.get().getEmail(), form.get().getPassword()))
+                        .thenApplyAsync(user -> {
+                            ctx.session().put("user", user.getId().toString());
+                            return redirect(ProfileController.defaultProfilePage());
+                        }, httpExecutionContext.current());
                 }, httpExecutionContext.current())
         );
     }
 
     public CompletionStage<Result> logoutUser() {
-        return loadNav(Optional.empty()).thenApply(nav -> {
-            ctx().session().clear();
-            return ok(views.html.index.render(nav));
-        });
+        return loadNav(Optional.empty())
+            .thenApplyAsync(nav -> {
+                ctx().session().clear();
+                return ok(views.html.index.render(nav));
+            }, httpExecutionContext.current());
     }
-
 
     public Result currentUser(String userId) {
         session("user", userId);
@@ -88,7 +89,7 @@ public class UserController extends AbstractController {
         );
 
 
-        
+
     }
     public CompletionStage<Result> loginUserForm() {
         Http.Context ctx = ctx();
