@@ -44,63 +44,45 @@ public class UserRepository {
 
     CompletionStage<PaginatedSequence<User>> getUsers(int page, int pageSize) {
         return countUsers()
-                .thenCompose(
-                        count -> {
-                            int offset = page * pageSize;
-                            int limit = (page + 1) * pageSize;
-                            CompletionStage<PSequence<User>> Users = offset > count ?
-                                    CompletableFuture.completedFuture(TreePVector.empty()) :
-                                    selectUsers(offset, limit);
-                            return Users.thenApply(seq -> new PaginatedSequence<>(seq, page, pageSize, count));
-                        }
-                );
+            .thenCompose(
+                count -> {
+                    int offset = page * pageSize;
+                    int limit = (page + 1) * pageSize;
+                    CompletionStage<PSequence<User>> Users = offset > count ?
+                        CompletableFuture.completedFuture(TreePVector.empty()) :
+                        selectUsers(offset, limit);
+                    return Users.thenApply(seq -> new PaginatedSequence<>(seq, page, pageSize, count));
+                }
+            );
     }
 
     public CompletionStage<Integer> countUsers() {
         return session
-                .selectOne(
-                        "SELECT COUNT(*) FROM UserInfo  "
-
-                )
-                .thenApply(row -> (int) row.get().getLong("count"));
+            .selectOne(
+                "SELECT COUNT(*) FROM UserInfo  "
+            )
+            .thenApply(row -> (int) row.get().getLong("count"));
     }
 
     private CompletionStage<PSequence<User>> selectUsers(long offset, int limit) {
-
         return session
-                .selectAll(
-                        "SELECT * FROM UserInfo  " +
-                                "LIMIT ?",
-
-                        limit
-                )
-                .thenApply(List::stream)
-                .thenApply(rows -> rows.skip(offset))
-                .thenApply(rows -> rows.map(UserRepository::convertUserSummary))
-                .thenApply(UserSummaries -> UserSummaries.collect(Collectors.toList()))
-                .thenApply(TreePVector::from);
-    }
-
-    protected CompletionStage<UUID> getUserIdByEmail(String email) {
-
-        return session
-            .selectOne(
-                "SELECT * FROM UserInfo  WHERE email = ? " ,
-                   email
+            .selectAll(
+                "SELECT * FROM UserInfo  " +
+                    "LIMIT ?",
+                limit
             )
-
-            .thenApply(rows -> rows.map(UserRepository::convertUserSummary).get())
-            .thenApply(UserSummary -> UserSummary.getId());
-
-
+            .thenApply(List::stream)
+            .thenApply(rows -> rows.skip(offset))
+            .thenApply(rows -> rows.map(UserRepository::convertUserSummary))
+            .thenApply(UserSummaries -> UserSummaries.collect(Collectors.toList()))
+            .thenApply(TreePVector::from);
     }
 
     private static User convertUserSummary(Row user) {
         return new User(
-
-                user.getUUID("userId"),
-                user.getString("name"),
-                user.getString("email")
+            user.getUUID("userId"),
+            user.getString("name"),
+            user.getString("email")
         );
     }
 
@@ -120,12 +102,12 @@ public class UserRepository {
         @Override
         public ReadSideHandler<PUserEvent> buildHandler() {
             return readSide.<PUserEvent>builder("pUserEventOffset")
-                    .setGlobalPrepare(this::createTables)
-                    .setPrepare(tag -> prepareStatements())
-                    .setEventHandler(PUserEvent.PUserCreated.class,
-                            e -> insertUser(e.getUser()))
+                .setGlobalPrepare(this::createTables)
+                .setPrepare(tag -> prepareStatements())
+                .setEventHandler(PUserEvent.PUserCreated.class,
+                    e -> insertUser(e.getUser()))
 
-                    .build();
+                .build();
         }
 
         private void registerCodec(Session session, InstantCodec codec) {
@@ -139,70 +121,60 @@ public class UserRepository {
 
         private CompletionStage<Done> createTables() {
             return doAll(
-                    session.executeCreateTable(
-                            "CREATE TABLE IF NOT EXISTS UserInfo (" +
-                                    "userId UUID, " +
-                                    "name text, " +
-                                    "email text, " +
-                                    "PRIMARY KEY (userId) " +
-                                    ")"
-
-                    )
-
+                session.executeCreateTable(
+                    "CREATE TABLE IF NOT EXISTS UserInfo (" +
+                        "userId UUID, " +
+                        "name text, " +
+                        "email text, " +
+                        "PRIMARY KEY (userId) " +
+                        ")"
+                )
             );
         }
 
         private CompletionStage<Done> prepareStatements() {
             return doAll(
-                    session.underlying()
-                            .thenAccept(s -> registerCodec(s, InstantCodec.instance))
-                            .thenApply(x -> Done.getInstance()),
-                    prepareInsertUserStatement());
-
-
+                session.underlying()
+                    .thenAccept(s -> registerCodec(s, InstantCodec.instance))
+                    .thenApply(x -> Done.getInstance()),
+                prepareInsertUserStatement());
         }
 
 
         private CompletionStage<Done> prepareInsertUserStatement() {
 
             return session.
-                    prepare("INSERT INTO UserInfo(" +
-
-                            "userId, " +
-                            "name, " +
-                            "email" +
-
-                            ") VALUES (" +
-                            "?, " + // userId
-                            "?, " + // name
-                            "?" + // email
-
-                            ")"
-                    )
-                    .thenApply(accept(s -> insertUserStatement = s));
+                prepare("INSERT INTO UserInfo(" +
+                    "userId, " +
+                    "name, " +
+                    "email" +
+                    ") VALUES (" +
+                    "?, " + // userId
+                    "?, " + // name
+                    "?" + // email
+                    ")"
+                )
+                .thenApply(accept(s -> insertUserStatement = s));
         }
 
 
         private CompletionStage<List<BoundStatement>> insertUser(PUser user) {
             return completedStatements(
-                    insertUserCreator(user)
-
+                insertUserCreator(user)
             );
         }
 
         private BoundStatement insertUserCreator(PUser user) {
             return insertUserStatement.bind(
-
-                    user.getId(),
-                    user.getName(),
-                    user.getEmail()
+                user.getId(),
+                user.getName(),
+                user.getEmail()
             );
         }
 
         private CompletionStage<Optional<Row>> selectUser(UUID UserId) {
             return session.selectOne("SELECT * FROM UserInfo WHERE userId = ?", UserId);
         }
-
     }
 }
 

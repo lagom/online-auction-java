@@ -26,7 +26,6 @@ public class UserServiceImpl implements UserService {
     public UserServiceImpl(PersistentEntityRegistry registry, UserRepository userRepository) {
         this.registry = registry;
         this.userRepository = userRepository;
-
         registry.register(PUserEntity.class);
     }
 
@@ -34,29 +33,28 @@ public class UserServiceImpl implements UserService {
     @Override
     public ServiceCall<UserRegistration, User> createUser() {
         return user -> {
-            UUID uuid = UUID.randomUUID();
+            UUID uuid = getUUIDFromEmail(user.getEmail());
             String password = PUserEntity.hashPassword(user.getPassword());
-            PUser createdUser = new PUser(uuid,  user.getName(), user.getEmail(), password);
+            PUser createdUser = new PUser(uuid, user.getName(), user.getEmail(), password);
             return entityRef(uuid)
                 .ask(new PUserCommand.CreatePUser(user.getName(), user.getEmail(), password))
                 .thenApply(done -> Mappers.toApi(Optional.ofNullable(createdUser)));
         };
     }
 
+    private UUID getUUIDFromEmail(String email) {
+        return UUID.nameUUIDFromBytes(email.toLowerCase().getBytes());
+    }
 
     @Override
     public ServiceCall<NotUsed, User> getUser(UUID userId) {
-
         return request ->
-
-                entityRef(userId)
-                        .ask(PUserCommand.GetPUser.INSTANCE)
-                        .thenApply(maybeUser -> {
-                            User user = Mappers.toApi(((Optional<PUser>) maybeUser));
-                            return user;
-
-                        });
-
+            entityRef(userId)
+                .ask(PUserCommand.GetPUser.INSTANCE)
+                .thenApply(maybeUser -> {
+                    User user = Mappers.toApi(((Optional<PUser>) maybeUser));
+                    return user;
+                });
     }
 
     @Override
@@ -66,28 +64,26 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public ServiceCall<UserLogin, String> login() {
-        return  req -> {
-
-           return userRepository.getUserIdByEmail(req.getEmail()).thenCompose(id ->{
-                   return entityRef(id).ask(PUserCommand.GetPUser.INSTANCE)
-                        .thenApply(maybeUser -> {
-                                if (maybeUser.isPresent()) {
-                                    if (PUserEntity.checkPassword(req.getPassword(), maybeUser.get().getPasswordHash())) {
-                                        return maybeUser.get().getId().toString();
-                                    } else {
-                                        throw new NotFound("Email or password does not match ");
-                                    }
-                                } else {
-                                    throw new NotFound("User not found");
-                                }
-
+        return req -> {
+            UUID id = getUUIDFromEmail(req.getEmail());
+            return entityRef(id).ask(PUserCommand.GetPUser.INSTANCE)
+                .thenApply(maybeUser -> {
+                        if (maybeUser.isPresent()) {
+                            if (PUserEntity.checkPassword(req.getPassword(), maybeUser.get().getPasswordHash())) {
+                                return maybeUser.get().getId().toString();
+                            } else {
+                                // TODO: replace with Forbidden.class
+                                throw new NotFound("Email or password does not match ");
                             }
-                                                  );
-           });
-
+                        } else {
+                            // TODO: replace with Forbidden.class
+                            throw new NotFound("User not found");
+                        }
+                    }
+                );
         };
-
     }
+
     private PersistentEntityRef<PUserCommand> entityRef(UUID id) {
         return entityRef(id.toString());
     }
