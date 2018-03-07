@@ -11,6 +11,7 @@ import com.example.testkit.Await;
 import com.example.auction.pagination.PaginatedSequence;
 import com.lightbend.lagom.javadsl.api.ServiceCall;
 import com.lightbend.lagom.javadsl.api.broker.Topic;
+import com.lightbend.lagom.javadsl.api.transport.NotFound;
 import com.lightbend.lagom.javadsl.api.transport.TransportException;
 import com.lightbend.lagom.javadsl.testkit.ProducerStub;
 import com.lightbend.lagom.javadsl.testkit.ProducerStubFactory;
@@ -136,6 +137,19 @@ public class ItemServiceImplIntegrationTest {
         Item retrievedItem = updateItem(createdItem.getId(), creatorId, newData);
         assertEquals(newDescription, retrievedItem.getItemData().getDescription());
     }
+
+    @Test(expected = NotFound.class)
+    public void shouldthrowANotFoundForUnexistingItems() throws Throwable {
+        UUID missingItemId = UUID.randomUUID();
+        try {
+            Await.result(itemService.getItem(missingItemId).invoke());
+        } catch (RuntimeException re) {
+            assertEquals("Item " + missingItemId.toString() + " not found", re.getCause().getMessage());
+            throw re // the RuntimeException throw by Await
+                .getCause(); // the TransportException I'm expecting
+        }
+    }
+
 
     @Test(expected = TransportException.class)
     public void shouldFailEditOnBiddingFinished() throws Throwable {
