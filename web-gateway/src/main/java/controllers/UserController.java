@@ -75,17 +75,19 @@ public class UserController extends AbstractController {
     public CompletionStage<Result> loginUser() {
         Http.Context ctx = ctx();
         return withUser(ctx, userId ->
-                loadNav(userId).thenCompose(nav -> {
+            loadNav(userId).thenComposeAsync(
+                nav -> {
                     Form<LoginForm> form = formFactory.form(LoginForm.class).bindFromRequest(ctx.request());
                     if (form.hasErrors()) {
                         return CompletableFuture.completedFuture(ok(views.html.login.render(showInlineInstruction, form, nav)));
                     }
 
-                    return userService.login().invoke(new UserLogin( form.get().getEmail(), form.get().getPassword())).thenApply(id -> {
+                    return userService.login().invoke(new UserLogin(form.get().getEmail(), form.get().getPassword())).thenApply(id -> {
                         ctx.session().put("user", id);
                         return redirect(ProfileController.defaultProfilePage());
                     });
-                })
+                },
+                httpExecutionContext.current())
         );
 
 
@@ -94,9 +96,16 @@ public class UserController extends AbstractController {
     public CompletionStage<Result> loginUserForm() {
         Http.Context ctx = ctx();
         return withUser(ctx, userId ->
-                loadNav(userId).thenCompose(nav -> {
-                    return CompletableFuture.completedFuture(ok(views.html.login.render(showInlineInstruction,  formFactory.form(LoginForm.class), nav)));
-                })
+            loadNav(userId)
+                .thenApplyAsync(
+                    nav -> ok(
+                        views.html.login.render(
+                            showInlineInstruction,
+                            formFactory.form(LoginForm.class), nav
+                        )
+                    ),
+                    httpExecutionContext.current()
+                )
         );
     }
 }
