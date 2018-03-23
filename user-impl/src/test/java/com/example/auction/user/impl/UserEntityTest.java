@@ -1,7 +1,7 @@
 package com.example.auction.user.impl;
 
 import akka.actor.ActorSystem;
-import akka.testkit.JavaTestKit;
+import akka.testkit.javadsl.TestKit;
 import com.example.auction.user.impl.PUserCommand.CreatePUser;
 import com.lightbend.lagom.javadsl.testkit.PersistentEntityTestDriver;
 import com.lightbend.lagom.javadsl.testkit.PersistentEntityTestDriver.Outcome;
@@ -27,7 +27,7 @@ public class UserEntityTest {
 
     @AfterClass
     public static void shutdownActorSystem() {
-        JavaTestKit.shutdownActorSystem(system);
+        TestKit.shutdownActorSystem(system);
         system = null;
     }
 

@@ -1,7 +1,7 @@
 package com.example.auction.transaction.impl;
 
 import akka.actor.ActorSystem;
-import akka.testkit.JavaTestKit;
+import akka.testkit.javadsl.TestKit;
 import com.example.auction.item.api.ItemData;
 import com.example.auction.transaction.impl.TransactionCommand.*;
 import com.example.auction.transaction.impl.TransactionEvent.*;
@@ -31,7 +31,7 @@ public class TransactionEntityTest {
 
     @AfterClass
     public static void shutdownActorSystem() {
-        JavaTestKit.shutdownActorSystem(system);
+        TestKit.shutdownActorSystem(system);
         system = null;
     }
 

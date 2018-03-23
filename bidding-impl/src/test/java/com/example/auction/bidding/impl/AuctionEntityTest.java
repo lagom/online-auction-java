@@ -1,7 +1,7 @@
 package com.example.auction.bidding.impl;
 
 import akka.actor.ActorSystem;
-import akka.testkit.JavaTestKit;
+import akka.testkit.javadsl.TestKit;
 import com.lightbend.lagom.javadsl.testkit.PersistentEntityTestDriver;
 import com.lightbend.lagom.javadsl.testkit.PersistentEntityTestDriver.Outcome;
 import com.example.auction.bidding.impl.AuctionCommand.*;
@@ -29,7 +29,7 @@ public class AuctionEntityTest {
 
     @AfterClass
     public static void shutdownActorSystem() {
-        JavaTestKit.shutdownActorSystem(system);
+        TestKit.shutdownActorSystem(system);
         system = null;
     }
 
@@ -276,13 +276,13 @@ public class AuctionEntityTest {
         assertThat(outcome.state().getBiddingHistory(), hasSize(0));
         assertThat(outcome.getReplies(), hasItem(reply(PlaceBidStatus.FINISHED, 0, null)));
     }
-    
+
     @Test
     public void testFinishAuction() {
         driver.run(new StartAuction(auction), new PlaceBid(3000, bidder1), new PlaceBid(3500, bidder2));
 
         Outcome<AuctionEvent, AuctionState> outcome = driver.run(FinishBidding.INSTANCE);
-        
+
         assertThat(outcome.events(), allOf(
                 hasSize(1),
                 hasItem(new BiddingFinished(itemId))
@@ -552,7 +552,7 @@ public class AuctionEntityTest {
     private Matcher<BidPlaced> bidPlaced(UUID bidder, int bidPrice, int maximumBid) {
         return featureMatcher(BidPlaced::getBid, bid(bidder, bidPrice, maximumBid), "BidPlaced with bid", "bid");
     }
-    
+
     private Matcher<PlaceBidResult> reply(PlaceBidStatus status, int currentPrice, UUID bidder) {
         return allOf(
                 featureMatcher(PlaceBidResult::getStatus, equalTo(status), "PlaceBidResult with status", "status"),
