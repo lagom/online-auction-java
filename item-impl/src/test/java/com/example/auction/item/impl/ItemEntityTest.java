@@ -1,7 +1,7 @@
 package com.example.auction.item.impl;
 
 import akka.actor.ActorSystem;
-import akka.testkit.JavaTestKit;
+import akka.testkit.javadsl.TestKit;
 import com.example.auction.item.impl.PItemCommand.*;
 import com.example.auction.item.impl.PItemEvent.AuctionFinished;
 import com.example.auction.item.impl.PItemEvent.AuctionStarted;
@@ -35,7 +35,7 @@ public class ItemEntityTest {
 
     @AfterClass
     public static void teardown() {
-        JavaTestKit.shutdownActorSystem(system);
+        TestKit.shutdownActorSystem(system);
         system = null;
     }
 
