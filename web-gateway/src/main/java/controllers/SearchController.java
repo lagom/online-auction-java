@@ -54,41 +54,43 @@ public class SearchController extends AbstractController {
         Form<SearchItemForm> form = formFactory.form(SearchItemForm.class).bindFromRequest(ctx.request());
 
         return loadNav(Optional.empty()).thenApplyAsync(nav ->
-                        ok(views.html.searchItem.render(showInlineInstruction, form, Optional.empty(), nav)),
-                ec.current());
+                ok(views.html.searchItem.render(showInlineInstruction, form, Optional.empty(), nav)),
+            ec.current());
     }
 
     public CompletionStage<Result> search() {
         Http.Context ctx = ctx();
         Form<SearchItemForm> form = formFactory.form(SearchItemForm.class).bindFromRequest(ctx.request());
         return withUser(ctx, maybeUser ->
-                loadNav(maybeUser).thenComposeAsync(nav -> {
-                            if (form.hasErrors()) {
-                                return CompletableFuture.completedFuture(ok(views.html.searchItem.render(showInlineInstruction, form, Optional.empty(), nav)));
-                            } else {
+            loadNav(maybeUser).thenComposeAsync(nav -> {
+                    if (form.hasErrors()) {
+                        return CompletableFuture.completedFuture(ok(views.html.searchItem.render(showInlineInstruction, form, Optional.empty(), nav)));
+                    } else {
 
-                                SearchItemForm searchItemForm = form.get();
+                        SearchItemForm searchItemForm = form.get();
 
-                                int pageNumber = searchItemForm.getPageNumber();
+                        int pageNumber = searchItemForm.getPageNumber();
 
-                                return searchService
-                                        .search(pageNumber, DEFAULT_PAGE_SIZE)
-                                        .invoke(buildSearchRequest(searchItemForm))
-                                        .thenApplyAsync(searchResult -> {
-                                                    PaginatedSequence<SearchItem> page =
-                                                            new PaginatedSequence<>(searchResult.getItems(),
-                                                                    searchResult.getPage(),
-                                                                    searchResult.getPageSize(),
-                                                                    searchResult.getCount());
-                                                    return ok(searchItem.render(showInlineInstruction, form, Optional.of(page), nav));
-                                                },
-                                                ec.current()
-                                        ).exceptionally(exception ->
-                                                ok(views.html.searchItem.render(showInlineInstruction, form, Optional.empty(), nav))
-                                        );
-                            }
-                        },
-                        ec.current())
+                        return searchService
+                            .search(pageNumber, DEFAULT_PAGE_SIZE)
+                            .invoke(buildSearchRequest(searchItemForm))
+                            .thenApply(searchResult -> {
+                                    PaginatedSequence<SearchItem> page =
+                                        new PaginatedSequence<>(searchResult.getItems(),
+                                            searchResult.getPage(),
+                                            searchResult.getPageSize(),
+                                            searchResult.getCount());
+                                    return Optional.of(page);
+                                }
+                            ).exceptionally(exception ->
+                                Optional.empty()
+                            ).thenApplyAsync(
+                                itemList -> ok(views.html.searchItem.render(showInlineInstruction, form, itemList, nav))
+                                ,
+                                ec.current());
+                    }
+                },
+                ec.current())
         );
     }
 
