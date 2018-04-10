@@ -52,8 +52,7 @@ lazy val itemApi = (project in file("item-api"))
 
 lazy val itemImpl = (project in file("item-impl"))
   .settings(commonSettings: _*)
-  .settings(kafkaSettings: _*)
-  .enablePlugins(LagomJava)
+  .enablePlugins(LagomJava, SbtReactiveAppPlugin)
   .settings(
     version := "1.0-SNAPSHOT",
     libraryDependencies ++= Seq(
@@ -84,8 +83,7 @@ lazy val biddingApi = (project in file("bidding-api"))
 
 lazy val biddingImpl = (project in file("bidding-impl"))
   .settings(commonSettings: _*)
-  .settings(kafkaSettings: _*)
-  .enablePlugins(LagomJava)
+  .enablePlugins(LagomJava, SbtReactiveAppPlugin)
   .dependsOn(biddingApi, itemApi)
   .settings(
     version := "1.0-SNAPSHOT",
@@ -111,8 +109,7 @@ lazy val searchApi = (project in file("search-api"))
 
 lazy val searchImpl = (project in file("search-impl"))
   .settings(commonSettings: _*)
-  .settings(kafkaSettings: _*)
-  .enablePlugins(LagomJava)
+  .enablePlugins(LagomJava, SbtReactiveAppPlugin)
   .settings(
     version := "1.0-SNAPSHOT",
     libraryDependencies ++= Seq(
@@ -148,8 +145,7 @@ lazy val transactionApi = (project in file("transaction-api"))
 
 lazy val transactionImpl = (project in file("transaction-impl"))
   .settings(commonSettings: _*)
-  .settings(kafkaSettings: _*)
-  .enablePlugins(LagomJava)
+  .enablePlugins(LagomJava, SbtReactiveAppPlugin)
   .dependsOn(
     transactionApi,
     itemApi,
@@ -178,8 +174,7 @@ lazy val userApi = (project in file("user-api"))
 
 lazy val userImpl = (project in file("user-impl"))
   .settings(commonSettings: _*)
-  .settings(kafkaSettings: _*)
-  .enablePlugins(LagomJava)
+  .enablePlugins(LagomJava, SbtReactiveAppPlugin)
   .dependsOn(userApi, tools,
     testkit % "test"
   )
@@ -197,7 +192,7 @@ lazy val userImpl = (project in file("user-impl"))
 
 lazy val webGateway = (project in file("web-gateway"))
   .settings(commonSettings: _*)
-  .enablePlugins(PlayJava && LagomPlay)
+  .enablePlugins(PlayJava && LagomPlay, SbtReactiveAppPlugin)
   .disablePlugins(PlayLayoutPlugin) // use the standard sbt layout... src/main/java, etc.
   .dependsOn(tools, transactionApi, biddingApi, itemApi, searchApi, userApi, searchApi)
   .settings(
@@ -233,19 +228,6 @@ def elasticsearch: String = {
 def commonSettings: Seq[Setting[_]] = eclipseSettings ++ Seq(
   javacOptions in Compile ++= Seq("-encoding", "UTF-8", "-source", "1.8"),
   javacOptions in(Compile, compile) ++= Seq("-Xlint:unchecked", "-Xlint:deprecation", "-parameters")
-)
-
-// Include this into impl projects that use the message broker API
-// It overrides the production configuration to use a hardcoded Kafka broker
-// host and port rather than looking it up from the service locator.
-// See docs/running-in-conductr.md for details.
-def kafkaSettings: Seq[Setting[_]] = Seq(
-  BundleKeys.startCommand ++= Seq(
-    "-Dlagom.broker.kafka.service-name=''",
-    // You may have to edit this list if your Kafka
-    // server is not listening on 127.0.0.1:9092
-    "-Dlagom.broker.kafka.brokers='127.0.0.1:9092'"
-  )
 )
 
 lagomCassandraCleanOnStart in ThisBuild := false
