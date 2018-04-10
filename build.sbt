@@ -192,7 +192,7 @@ lazy val userImpl = (project in file("user-impl"))
 
 lazy val webGateway = (project in file("web-gateway"))
   .settings(commonSettings: _*)
-  .enablePlugins(PlayJava && LagomPlay, SbtReactiveAppPlugin)
+  .enablePlugins(PlayJava, LagomPlay, SbtReactiveAppPlugin)
   .disablePlugins(PlayLayoutPlugin) // use the standard sbt layout... src/main/java, etc.
   .dependsOn(tools, transactionApi, biddingApi, itemApi, searchApi, userApi, searchApi)
   .settings(
