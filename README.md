@@ -10,16 +10,16 @@ Lagom focuses on ensuring that your application realises the full potential of t
 
 This is a **sample Java auction system** using the Lagom Framework. A [Scala version](https://github.com/lagom/online-auction-scala) of the auction system is also available.
 
-When you run the online auction, you access the interface with a browser. You can create user accounts and items for auction. Once the items are available, you can bid. 
+When you run the online auction, you access the interface with a browser. You can create user accounts and items for auction. Once the items are available, you can bid.
 
 
 ## Prerequisites
-To download and run the online auction example you will need: 
-* An active internet connection 
-* sbt 
-* Git 
+To download and run the online auction example you will need:
+* An active internet connection
+* sbt
+* Git
 
-To use the online auction's search facility, you will also need Elasticsearch, which acts as the search database. You can run the example without Elasticsearch, but the search will not work. 
+To use the online auction's search facility, you will also need Elasticsearch, which acts as the search database. You can run the example without Elasticsearch, but the search will not work.
 
 1. To install sbt, refer to the content for your operating system (OS):
 
@@ -35,14 +35,14 @@ To use the online auction's search facility, you will also need Elasticsearch, w
 ## Running in development mode
 To run the online auction example on your local machine:
 
-1. Clone the online auction github repository to your local machine. 
+1. Clone the online auction github repository to your local machine.
 1. Open a terminal, change into the Elasticsearch `bin` directory and start Elastic search. For example:
         1. `cd elasticsearch-5.0.2/bin`
         1. `elasticsearch`
-   
-1. Open another terminal and change to the top-level directory of the cloned online auction repository. For example: 
+
+1. Open another terminal and change to the top-level directory of the cloned online auction repository. For example:
    `cd online-auction-java`
-   
+
 1. Run the sample app using the command `sbt runAll`.
 1. Open a browser and enter:
    `localhost:9000`
@@ -51,9 +51,14 @@ To run the online auction example on your local machine:
 
 To simulate an auction, you'll need to create at least two users and one item. Once created, you can bid on the item. By using different browsers, you can log in as different users and bid on the same item.
 
-## Running in production mode
 
-Lightbend ConductR is part of the Enterprise Suite. It allows you to easily deploy Lagom microservices in a distributed environment. You can freely run ConductR on one node, or by registering with Lightbend, on up to three nodes. See [Running Online Auction in ConductR Sandbox](docs/running-in-conductr.md) for instructions.
+## Running: Kubernetes
+
+This project uses [Lightbend's Platform Tooling](https://developer.lightbend.com/docs/reactive-platform-tooling/latest/) to
+simplify deployment to [Kubernetes](https://kubernetes.io/).
+
+Refer to [KUBERNETES.md](KUBERNETES.md) for more information on this process.
+
 
 ## Importing into IDEs (optional)
 
