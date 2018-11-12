@@ -169,7 +169,8 @@ rp generate-kubernetes-resources biddingimpl:1.0.0-SNAPSHOT \
   --env JAVA_OPTS="-Dplay.http.secret.key=$secret_bidding -Dplay.filters.hosts.allowed.0=$allowed_host" \
   --pod-controller-replicas 2 \
   --external-service "cas_native=$service_cassandra" \
-  --external-service "kafka_native=$service_kafka" | kubectl apply -f -
+  --external-service "kafka_native=$service_kafka" \
+  --registry-use-local | kubectl apply -f -
 
 # Deploy item-impl
 
@@ -178,7 +179,8 @@ rp generate-kubernetes-resources itemimpl:1.0.0-SNAPSHOT \
   --env JAVA_OPTS="-Dplay.http.secret.key=$secret_item -Dplay.filters.hosts.allowed.0=$allowed_host" \
   --pod-controller-replicas 2 \
   --external-service "cas_native=$service_cassandra" \
-  --external-service "kafka_native=$service_kafka" | kubectl apply -f -
+  --external-service "kafka_native=$service_kafka" \
+  --registry-use-local | kubectl apply -f -
 
 # Deploy user-impl
 
@@ -187,7 +189,8 @@ rp generate-kubernetes-resources userimpl:1.0.0-SNAPSHOT \
   --env JAVA_OPTS="-Dplay.http.secret.key=$secret_user -Dplay.filters.hosts.allowed.0=$allowed_host" \
   --pod-controller-replicas 2 \
   --external-service "cas_native=$service_cassandra" \
-  --external-service "kafka_native=$service_kafka" | kubectl apply -f -
+  --external-service "kafka_native=$service_kafka" \
+  --registry-use-local | kubectl apply -f -
 
 # Deploy search-impl
 
@@ -197,13 +200,15 @@ rp generate-kubernetes-resources searchimpl:1.0.0-SNAPSHOT \
   --pod-controller-replicas 2 \
   --external-service "cas_native=$service_cassandra" \
   --external-service "kafka_native=$service_kafka" \
-  --external-service "elastic-search=$service_elasticsearch" | kubectl apply -f -
+  --external-service "elastic-search=$service_elasticsearch" \
+  --registry-use-local | kubectl apply -f -
 
 # Deploy webgateway
 
 rp generate-kubernetes-resources webgateway:1.0.0-SNAPSHOT \
   --generate-pod-controllers --generate-services \
-  --env JAVA_OPTS="-Dplay.http.secret.key=$secret_web -Dplay.filters.hosts.allowed.0=$allowed_host" | kubectl apply -f -
+  --env JAVA_OPTS="-Dplay.http.secret.key=$secret_web -Dplay.filters.hosts.allowed.0=$allowed_host" \
+  --registry-use-local | kubectl apply -f -
 
 # Deploy ingress for everything
 
@@ -217,7 +222,8 @@ rp generate-kubernetes-resources \
   searchimpl:1.0.0-SNAPSHOT \
   userimpl:1.0.0-SNAPSHOT \
   itemimpl:1.0.0-SNAPSHOT \
-  biddingimpl:1.0.0-SNAPSHOT | kubectl apply -f -
+  biddingimpl:1.0.0-SNAPSHOT \
+  --registry-use-local | kubectl apply -f -
 
 ```
 
