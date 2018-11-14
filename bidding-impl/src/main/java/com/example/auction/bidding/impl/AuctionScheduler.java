@@ -30,6 +30,12 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * Maintains a read side view of all auctions that gets used to schedule FinishBidding events.
+ *
+ * WARNING: This ReadSide processor contains an instance of an Akka Scheduler. This design is not
+ * scalable and is only meant for demo purposes. Developing a durable, scalable scheduler is beyond
+ * the scope of the Online Auction sample application. The main problem with this approach is that
+ * every instance of `AuctionScheduler` will poll the database every `finishBiddingDelay` potentially
+ * flooding the DB. Note there's an isntance of `AuctionScheduler` per cluster node.
  */
 @Singleton
 public class AuctionScheduler {
