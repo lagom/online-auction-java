@@ -9,7 +9,7 @@
 
   <logger name="org.apache.cassandra" level="ERROR"/>
   <logger name="com.datastax.driver" level="WARN"/>
-  <logger name="akka.persistence.cassandra.query" level="DEBUG"/>
+  <logger name="akka.persistence.cassandra.query" level="WARN"/>
 
   <logger name="akka" level="WARN"/>
 
