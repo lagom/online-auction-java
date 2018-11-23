@@ -12,8 +12,8 @@ before_install:
   - sudo dpkg -i --force-confnew elasticsearch-5.0.2.deb
   - sudo service elasticsearch restart
 before_script:
+  # As documented here: https://docs.travis-ci.com/user/database-setup/#elasticsearch
   - sleep 20
-  - sudo chmod +x /usr/local/bin/sbt # see https://github.com/travis-ci/travis-ci/issues/7703
 script:
   - sbt -DenableElasticsearch=true test
 cache:
