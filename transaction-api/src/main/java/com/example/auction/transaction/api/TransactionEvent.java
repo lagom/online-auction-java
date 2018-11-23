@@ -2,11 +2,9 @@ package com.example.auction.transaction.api;
 
 import java.util.UUID;
 
-public abstract class TransactionEvent {
+public interface TransactionEvent {
 
-    private TransactionEvent() {}
-
-    public static final class DeliveryByNegotiation extends TransactionEvent {
+    final class DeliveryByNegotiation implements TransactionEvent {
 
         private final UUID itemId;
 
@@ -15,7 +13,7 @@ public abstract class TransactionEvent {
         }
     }
 
-    public static final class DeliveryPriceUpdated extends TransactionEvent {
+    final class DeliveryPriceUpdated implements TransactionEvent {
 
         private final UUID itemId;
 
@@ -24,7 +22,7 @@ public abstract class TransactionEvent {
         }
     }
 
-    public static final class PaymentConfirmed extends TransactionEvent {
+    final class PaymentConfirmed implements TransactionEvent {
 
         private final UUID itemId;
 
@@ -33,7 +31,7 @@ public abstract class TransactionEvent {
         }
     }
 
-    public static final class PaymentFailed extends TransactionEvent {
+    final class PaymentFailed implements TransactionEvent {
 
         private final UUID itemId;
 
@@ -42,7 +40,7 @@ public abstract class TransactionEvent {
         }
     }
 
-    public static final class ItemDispatched extends TransactionEvent {
+    final class ItemDispatched implements TransactionEvent {
 
         private final UUID itemId;
 
@@ -51,7 +49,7 @@ public abstract class TransactionEvent {
         }
     }
 
-    public static final class ItemReceived extends TransactionEvent {
+    final class ItemReceived implements TransactionEvent {
 
         private final UUID itemId;
 
@@ -60,7 +58,7 @@ public abstract class TransactionEvent {
         }
     }
 
-    public static final class MessageSent extends TransactionEvent {
+    final class MessageSent implements TransactionEvent {
 
         private final UUID itemId;
         private final TransactionMessage message;
@@ -71,7 +69,7 @@ public abstract class TransactionEvent {
         }
     }
 
-    public static final class RefundConfirmed extends TransactionEvent {
+    final class RefundConfirmed implements TransactionEvent {
 
         private final UUID itemId;
 

@@ -14,24 +14,21 @@ import java.util.UUID;
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type", defaultImpl = Void.class)
 @JsonSubTypes({
-        @JsonSubTypes.Type(ItemEvent.ItemUpdated.class),
-        @JsonSubTypes.Type(ItemEvent.AuctionStarted.class),
-        @JsonSubTypes.Type(ItemEvent.AuctionFinished.class),
-        @JsonSubTypes.Type(ItemEvent.AuctionCancelled.class)
+    @JsonSubTypes.Type(ItemEvent.ItemUpdated.class),
+    @JsonSubTypes.Type(ItemEvent.AuctionStarted.class),
+    @JsonSubTypes.Type(ItemEvent.AuctionFinished.class),
+    @JsonSubTypes.Type(ItemEvent.AuctionCancelled.class)
 })
-public abstract class ItemEvent {
+public interface ItemEvent {
 
-    private ItemEvent() {
-    }
-
-    public abstract UUID getItemId();
+    UUID getItemId();
 
     /**
      * Indicates an item has been created or updated.
      */
     @JsonTypeName(value = "item-updated")
     @Value
-    public static final class ItemUpdated extends ItemEvent {
+    final class ItemUpdated implements ItemEvent {
         UUID itemId;
         UUID creator;
         String title;
@@ -56,7 +53,7 @@ public abstract class ItemEvent {
      */
     @JsonTypeName(value = "auction-started")
     @Value
-    public static final class AuctionStarted extends ItemEvent {
+    final class AuctionStarted implements ItemEvent {
         UUID itemId;
         UUID creator;
         int reservePrice;
@@ -79,7 +76,7 @@ public abstract class ItemEvent {
      */
     @JsonTypeName(value = "auction-finished")
     @Value
-    public static final class AuctionFinished extends ItemEvent {
+    final class AuctionFinished implements ItemEvent {
         UUID itemId;
         /**
          * Once the auction has finished, the item effectively becomes locked, no further edits, so we can publish it
@@ -98,7 +95,7 @@ public abstract class ItemEvent {
      */
     @JsonTypeName(value = "auction-cancelled")
     @Value
-    public static final class AuctionCancelled extends ItemEvent {
+    final class AuctionCancelled implements ItemEvent {
         UUID itemId;
 
         public AuctionCancelled(UUID itemId) {

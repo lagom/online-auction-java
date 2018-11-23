@@ -5,14 +5,12 @@ import lombok.Value;
 import java.util.Optional;
 import java.util.UUID;
 
-public abstract class DeliveryOption {
+public interface DeliveryOption {
 
-    public final class PickUp extends DeliveryOption {
-    }
+    final class PickUp implements DeliveryOption {}
 
     @Value
-    @EqualsAndHashCode(callSuper=false)
-    public final class Deliver extends DeliveryOption {
+    final class Deliver implements DeliveryOption {
         private final String name;
         private final int price;
         private final Location location;
@@ -26,7 +24,7 @@ public abstract class DeliveryOption {
 
     @Value
     @EqualsAndHashCode(callSuper=false)
-    public final class ByNegotiation extends DeliveryOption {
+    final class ByNegotiation implements DeliveryOption {
         private final Location location;
 
         public ByNegotiation(Location location) {
