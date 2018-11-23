@@ -225,9 +225,20 @@ def elasticsearch: String = {
   }
 }
 
-def commonSettings: Seq[Setting[_]] = eclipseSettings ++ Seq(
+def evictionSettings: Seq[Setting[_]] = Seq(
+  // This avoids a lot of dependency resolution warnings to be showed.
+  // They are not required in Lagom since we have a more strict whitelist
+  // of which dependencies are allowed. So it should be safe to not have
+  // the build logs polluted with evictions warnings.
+  evictionWarningOptions in update := EvictionWarningOptions.default
+    .withWarnTransitiveEvictions(false)
+    .withWarnDirectEvictions(false)
+)
+
+def commonSettings: Seq[Setting[_]] = eclipseSettings ++ evictionSettings ++ Seq(
   javacOptions in Compile ++= Seq("-encoding", "UTF-8", "-source", "1.8"),
-  javacOptions in(Compile, compile) ++= Seq("-Xlint:unchecked", "-Xlint:deprecation", "-parameters")
+  javacOptions in(Compile, compile) ++= Seq("-Xlint:unchecked", "-Xlint:deprecation", "-parameters", "-Werror"),
+  scalacOptions += "-feature"
 )
 
 lagomCassandraCleanOnStart in ThisBuild := false
