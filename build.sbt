@@ -1,6 +1,6 @@
 organization in ThisBuild := "com.example"
 
-scalaVersion in ThisBuild := "2.12.4"
+scalaVersion in ThisBuild := "2.12.7"
 
 EclipseKeys.projectFlavor in Global := EclipseProjectFlavor.Java
 
@@ -183,7 +183,7 @@ lazy val userImpl = (project in file("user-impl"))
     libraryDependencies ++= Seq(
       lagomJavadslPersistenceCassandra,
       lagomJavadslTestKit,
-      "de.svenkubiak" % "jBCrypt" % "0.4",
+      "de.svenkubiak" % "jBCrypt" % "0.4.1",
       lagomJavadslKafkaBroker,
       cassandraExtras,
       lombok
@@ -199,7 +199,7 @@ lazy val webGateway = (project in file("web-gateway"))
     version := "1.0-SNAPSHOT",
     libraryDependencies ++= Seq(
       lagomJavadslClient,
-      "org.ocpsoft.prettytime" % "prettytime" % "3.2.7.Final",
+      "org.ocpsoft.prettytime" % "prettytime" % "4.0.2.Final",
       "org.webjars" % "foundation" % "6.2.3",
       "org.webjars" % "foundation-icon-fonts" % "d596a3cfb3"
     ),
@@ -213,8 +213,8 @@ lazy val webGateway = (project in file("web-gateway"))
     EclipseKeys.preTasks := Seq(compile in Compile)
   )
 
-val lombok = "org.projectlombok" % "lombok" % "1.16.10"
-val cassandraExtras = "com.datastax.cassandra" % "cassandra-driver-extras" % "3.0.0"
+val lombok = "org.projectlombok" % "lombok" % "1.18.4"
+val cassandraExtras = "com.datastax.cassandra" % "cassandra-driver-extras" % "3.6.0"
 
 def elasticsearch: String = {
   val enableElasticsearch = sys.props.getOrElse("enableElasticsearch", default = "false")
