@@ -1,7 +1,6 @@
 package com.example.auction.transaction.api;
 
 import com.fasterxml.jackson.annotation.*;
-import lombok.EqualsAndHashCode;
 import lombok.Value;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type", defaultImpl = Void.class)
@@ -11,7 +10,6 @@ import lombok.Value;
 public interface PaymentInfo {
 
     @Value
-    @EqualsAndHashCode(callSuper = false)
     @JsonTypeName("payment-offline")
     final class Offline implements PaymentInfo {
         private final String comment;
