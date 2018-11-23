@@ -13,7 +13,6 @@ import play.i18n.MessagesApi;
 import play.libs.concurrent.HttpExecutionContext;
 import play.mvc.Http;
 import play.mvc.Result;
-import views.html.searchItem;
 
 import javax.inject.Inject;
 import java.util.Optional;
@@ -25,7 +24,7 @@ import java.util.concurrent.CompletionStage;
  */
 public class SearchController extends AbstractController {
 
-    public static final int DEFAULT_PAGE_SIZE = 15;
+    private static final int DEFAULT_PAGE_SIZE = 15;
 
     private final FormFactory formFactory;
     private final SearchService searchService;
@@ -52,7 +51,7 @@ public class SearchController extends AbstractController {
     public CompletionStage<Result> searchForm(final Http.Request request) {
         Form<SearchItemForm> form = formFactory.form(SearchItemForm.class).bindFromRequest(request);
 
-        return loadNav(Optional.empty()).thenApplyAsync(nav ->
+        return loadNav(Optional.empty(), request).thenApplyAsync(nav ->
                 ok(views.html.searchItem.render(showInlineInstruction, form, Optional.empty(), nav, messagesApi.preferred(request))),
             ec.current());
     }
@@ -60,7 +59,7 @@ public class SearchController extends AbstractController {
     public CompletionStage<Result> search(final Http.Request request) {
         Form<SearchItemForm> form = formFactory.form(SearchItemForm.class).bindFromRequest(request);
         return withUser(request.session(), maybeUser ->
-            loadNav(maybeUser).thenComposeAsync(nav -> {
+            loadNav(maybeUser, request).thenComposeAsync(nav -> {
                     Messages messages = messagesApi.preferred(request);
                     if (form.hasErrors()) {
                         return CompletableFuture.completedFuture(ok(views.html.searchItem.render(showInlineInstruction, form, Optional.empty(), nav, messages)));

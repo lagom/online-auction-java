@@ -8,7 +8,6 @@ import play.mvc.Controller;
 import play.mvc.Http;
 import play.mvc.Result;
 
-import java.util.Collections;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -40,12 +39,12 @@ public abstract class AbstractController extends Controller {
         });
     }
 
-    private Nav getNav(PaginatedSequence<User> users, Optional<User> currentUser) {
-        return new Nav(messagesApi.preferred(Collections.emptyList()), users.getItems(), currentUser);
+    private Nav getNav(PaginatedSequence<User> users, Optional<User> currentUser, final Http.Request request) {
+        return new Nav(messagesApi.preferred(request), users.getItems(), currentUser);
     }
 
-    protected CompletionStage<Nav> loadNav(UUID userId) {
-        return loadNav(Optional.of(userId));
+    protected CompletionStage<Nav> loadNav(UUID userId, final Http.Request request) {
+        return loadNav(Optional.of(userId), request);
     }
 
     protected CompletionStage<Optional<User>> getUser(Optional<UUID> userId) {
@@ -65,9 +64,9 @@ public abstract class AbstractController extends Controller {
             .invoke();
     }
 
-    protected CompletionStage<Nav> loadNav(Optional<UUID> userId) {
+    protected CompletionStage<Nav> loadNav(Optional<UUID> userId, final Http.Request request) {
         CompletionStage<Optional<User>> createdUser = getUser(userId);
         CompletionStage<PaginatedSequence<User>> users = userService.getUsers(Optional.of(0), Optional.of(10)).invoke();
-        return users.thenCombineAsync(createdUser, this::getNav);
+        return users.thenCombineAsync(createdUser, (users1, currentUser) -> getNav(users1, currentUser, request));
     }
 }

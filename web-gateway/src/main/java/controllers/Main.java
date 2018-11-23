@@ -21,7 +21,7 @@ public class Main extends AbstractController {
 
     public CompletionStage<Result> index(final Http.Request request) {
         return withUser(request.session(), userId ->
-                loadNav(userId).thenApplyAsync(nav ->
+                loadNav(userId, request).thenApplyAsync(nav ->
                                 ok(views.html.index.render(nav, messagesApi.preferred(request))),
                         ec.current())
         );

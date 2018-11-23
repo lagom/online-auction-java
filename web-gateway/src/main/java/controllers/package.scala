@@ -3,6 +3,8 @@ import play.i18n.Messages
 import views.html.foundationFieldConstructor
 import views.html.helper.FieldConstructor
 
+import scala.language.implicitConversions
+
 /**
   * Created by jroper on 27/09/16.
   */

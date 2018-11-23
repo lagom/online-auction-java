@@ -44,7 +44,7 @@ public class ProfileController extends AbstractController {
     public CompletionStage<Result> myItems(final Http.Request request, String statusParam, int page, int pageSize) {
         ItemStatus status = ItemStatus.valueOf(statusParam.toUpperCase(Locale.ENGLISH));
         return requireUser(request.session(),
-                userId -> loadNav(userId).thenCombineAsync(
+                userId -> loadNav(userId, request).thenCombineAsync(
                         getItemsForUser(userId, status, page, pageSize), (nav, items) ->
                                 ok(views.html.myItems.render(showInlineInstruction, status, items, nav, messagesApi.preferred(request))),
                         ec.current())

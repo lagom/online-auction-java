@@ -56,7 +56,7 @@ public class ItemController extends AbstractController {
 
     public CompletionStage<Result> createItemForm(final Http.Request request) {
         return requireUser(request.session(), user ->
-                loadNav(user)
+                loadNav(user, request)
                     .thenApplyAsync(nav -> {
                             Messages messages = messagesApi.preferred(request);
                             Form<ItemForm> itemForm = formFactory.form(ItemForm.class).fill(new ItemForm());
@@ -72,7 +72,7 @@ public class ItemController extends AbstractController {
             Form<ItemForm> form = formFactory.form(ItemForm.class).bindFromRequest(request);
 
             if (form.hasErrors()) {
-                return loadNav(user).thenApplyAsync(nav ->
+                return loadNav(user, request).thenApplyAsync(nav ->
                                 ok(views.html.createItem.render(showInlineInstruction, form, nav, messagesApi.preferred(request))),
                         ec.current());
             } else {
@@ -102,7 +102,7 @@ public class ItemController extends AbstractController {
 
     public CompletionStage<Result> editItemForm(final Http.Request request, String itemId) {
         return requireUser(request.session(), user ->
-                loadNav(user).thenCompose(nav -> {
+                loadNav(user, request).thenCompose(nav -> {
                             Messages messages = messagesApi.preferred(request);
                             UUID itemUuid = UUID.fromString(itemId);
                             CompletionStage<Item> itemFuture = itemService.getItem(itemUuid).handleRequestHeader(authenticate(user)).invoke();
@@ -149,7 +149,7 @@ public class ItemController extends AbstractController {
 
             ItemStatus itemStatus = ItemStatus.valueOf(itemStatusStr);
             if (form.hasErrors()) {
-                return loadNav(user).thenApply(nav ->
+                return loadNav(user, request).thenApply(nav ->
                         ok(views.html.editItem.render(
                             showInlineInstruction,
                             itemId,
@@ -172,7 +172,7 @@ public class ItemController extends AbstractController {
                                 return CompletableFuture.completedFuture(redirect(controllers.routes.ItemController.getItem(itemId.toString())));
                             } else {
                                 String msg = ((TransportException) exception.getCause()).exceptionMessage().detail();
-                                return loadNav(user).thenApply(nav -> ok(
+                                return loadNav(user, request).thenApply(nav -> ok(
                                         editItem.render(showInlineInstruction, itemId, form, itemStatus, Optional.of(msg), nav, messagesApi.preferred(request))));
                             }
                         }).thenComposeAsync((x) -> x, ec.current());
@@ -184,7 +184,7 @@ public class ItemController extends AbstractController {
     }
 
     private CompletionStage<Result> doGetItem(final Http.Request request, String itemId, Form<BidForm> bidForm) {
-        return requireUser(request.session(), user -> loadNav(user)
+        return requireUser(request.session(), user -> loadNav(user, request)
             .thenComposeAsync(nav -> {
 
                 UUID itemUuid = UUID.fromString(itemId);
@@ -228,7 +228,7 @@ public class ItemController extends AbstractController {
                                     Optional<BidResult> bidResult = loadBidResult(request.flash());
 
                                     return ok(views.html.item.render(showInlineInstruction, item, bidForm,
-                                        anonymizeBids(user, currency, bidHistory), user, currency, seller, winner, currentBidMaximum, bidResult, nav, messagesApi.preferred(request)));
+                                        anonymizeBids(user, bidHistory), user, currency, seller, winner, currentBidMaximum, bidResult, nav, messagesApi.preferred(request)));
                                 }, ec.current());
                         }, ec.current())
                     , ec.current());
@@ -236,7 +236,7 @@ public class ItemController extends AbstractController {
 
     }
 
-    private List<AnonymousBid> anonymizeBids(UUID userId, Currency currency, List<Bid> bids) {
+    private List<AnonymousBid> anonymizeBids(UUID userId, List<Bid> bids) {
         List<AnonymousBid> results = new ArrayList<>();
         Map<UUID, Integer> bidders = new HashMap<>();
         bids.forEach(bid -> {

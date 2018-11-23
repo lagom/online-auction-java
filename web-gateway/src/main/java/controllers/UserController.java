@@ -35,7 +35,7 @@ public class UserController extends AbstractController {
 
     public CompletionStage<Result> createUserForm(final Http.Request request) {
         return withUser(request.session(), userId ->
-            loadNav(userId).thenApplyAsync(nav -> {
+            loadNav(userId, request).thenApplyAsync(nav -> {
                     Messages messages = messagesApi.preferred(request);
                     Form<CreateUserForm> userForm = formFactory.form(CreateUserForm.class);
                     return ok(views.html.createUser.render(showInlineInstruction, userForm, nav, messages));
@@ -46,7 +46,7 @@ public class UserController extends AbstractController {
 
     public CompletionStage<Result> createUser(final Http.Request request) {
         return withUser(request.session(), userId ->
-            loadNav(userId)
+            loadNav(userId, request)
                 .thenComposeAsync(nav -> {
                     Messages messages = messagesApi.preferred(request);
                     Form<CreateUserForm> form = formFactory.form(CreateUserForm.class).bindFromRequest(request);
@@ -65,7 +65,7 @@ public class UserController extends AbstractController {
     }
 
     public CompletionStage<Result> logoutUser(final Http.Request request) {
-        return loadNav(Optional.empty())
+        return loadNav(Optional.empty(), request)
             .thenApplyAsync(nav -> ok(views.html.index.render(nav, messagesApi.preferred(request))).withNewSession(), httpExecutionContext.current());
     }
 
@@ -75,7 +75,7 @@ public class UserController extends AbstractController {
 
     public CompletionStage<Result> loginUser(final Http.Request request) {
         return withUser(request.session(), userId ->
-            loadNav(userId).thenComposeAsync(
+            loadNav(userId, request).thenComposeAsync(
                 nav -> {
                     Messages messages = messagesApi.preferred(request);
                     Form<LoginForm> form = formFactory.form(LoginForm.class).bindFromRequest(request);
@@ -96,7 +96,7 @@ public class UserController extends AbstractController {
     }
     public CompletionStage<Result> loginUserForm(final Http.Request request) {
         return withUser(request.session(), userId ->
-            loadNav(userId)
+            loadNav(userId, request)
                 .thenApplyAsync(
                     nav -> {
                         Messages messages = messagesApi.preferred(request);

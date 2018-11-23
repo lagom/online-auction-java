@@ -51,7 +51,7 @@ public class TransactionController extends AbstractController {
     public CompletionStage<Result> myTransactions(final Http.Request request, String statusParam, int page, int pageSize) {
         TransactionInfoStatus status = TransactionInfoStatus.valueOf(statusParam.toUpperCase(Locale.ENGLISH));
         return requireUser(request.session(),
-                userId -> loadNav(userId).thenCombineAsync(
+                userId -> loadNav(userId, request).thenCombineAsync(
                         getTransactionsForUser(userId, status, page, pageSize), (nav, items) ->
                                 ok(views.html.myTransactions.render(showInlineInstruction, status, items, nav, messagesApi.preferred(request))),
                         ec.current())
@@ -76,7 +76,7 @@ public class TransactionController extends AbstractController {
 
     public CompletionStage<Result> getTransaction(final Http.Request request, String id) {
         return requireUser(request.session(), user ->
-                loadNav(user).thenComposeAsync( nav -> {
+                loadNav(user, request).thenComposeAsync( nav -> {
                             UUID itemId = UUID.fromString(id);
                             CompletionStage<TransactionInfo> transactionFuture = transactionService.getTransaction(itemId).handleRequestHeader(authenticate(user)).invoke();
 
@@ -104,7 +104,7 @@ public class TransactionController extends AbstractController {
 
     public CompletionStage<Result> submitDeliveryDetailsForm(final Http.Request request, String id) {
         return requireUser(request.session(), user ->
-                loadNav(user).thenComposeAsync(nav -> {
+                loadNav(user, request).thenComposeAsync(nav -> {
                             Messages messages = messagesApi.preferred(request);
                             UUID itemId = UUID.fromString(id);
                             CompletionStage<TransactionInfo> transactionFuture = transactionService.getTransaction(itemId).handleRequestHeader(authenticate(user)).invoke();
@@ -162,7 +162,7 @@ public class TransactionController extends AbstractController {
             Messages messages = messagesApi.preferred(request);
 
             if (form.hasErrors()) {
-                return loadNav(user).thenApplyAsync(nav ->
+                return loadNav(user, request).thenApplyAsync(nav ->
                                 ok(views.html.deliveryDetails.render(showInlineInstruction, isBuyer, itemId, form, status, Optional.empty(), nav, messages)),
                         ec.current()
                 );
@@ -175,7 +175,7 @@ public class TransactionController extends AbstractController {
                                 return CompletableFuture.completedFuture(redirect(routes.TransactionController.getTransaction(id)));
                             } else {
                                 String msg = exception.getCause().getMessage();
-                                return loadNav(user).thenApplyAsync(nav ->
+                                return loadNav(user, request).thenApplyAsync(nav ->
                                                 ok(views.html.deliveryDetails.render(showInlineInstruction, isBuyer, itemId, form, status, Optional.of(msg), nav, messages)),
                                         ec.current());
                             }
@@ -197,7 +197,7 @@ public class TransactionController extends AbstractController {
 
     public CompletionStage<Result> setDeliveryPriceForm(final Http.Request request, String id) {
         return requireUser(request.session(), user ->
-                loadNav(user).thenComposeAsync(nav -> {
+                loadNav(user, request).thenComposeAsync(nav -> {
                             Messages messages = messagesApi.preferred(request);
                             UUID itemId = UUID.fromString(id);
                             CompletionStage<TransactionInfo> transactionFuture = transactionService.getTransaction(itemId).handleRequestHeader(authenticate(user)).invoke();
@@ -249,7 +249,7 @@ public class TransactionController extends AbstractController {
             Messages messages = messagesApi.preferred(request);
 
             if (form.hasErrors()) {
-                return loadNav(user).thenApplyAsync(nav ->
+                return loadNav(user, request).thenApplyAsync(nav ->
                                 ok(views.html.deliveryPrice.render(showInlineInstruction, isSeller, itemId, form, status, Optional.empty(), nav, messages)),
                         ec.current()
                 );
@@ -262,7 +262,7 @@ public class TransactionController extends AbstractController {
                                 return CompletableFuture.completedFuture(redirect(routes.TransactionController.getTransaction(id)));
                             } else {
                                 String msg = exception.getCause().getMessage();
-                                return loadNav(user).thenApplyAsync(nav ->
+                                return loadNav(user, request).thenApplyAsync(nav ->
                                                 ok(views.html.deliveryPrice.render(showInlineInstruction, isSeller, itemId, form, status, Optional.of(msg), nav, messages)),
                                         ec.current());
                             }
@@ -285,7 +285,7 @@ public class TransactionController extends AbstractController {
 
     public CompletionStage<Result> submitPaymentDetailsForm(final Http.Request request, String id) {
         return requireUser(request.session(), user ->
-                loadNav(user).thenComposeAsync(nav -> {
+                loadNav(user, request).thenComposeAsync(nav -> {
                             UUID itemId = UUID.fromString(id);
                             CompletionStage<TransactionInfo> transactionFuture = transactionService.getTransaction(itemId).handleRequestHeader(authenticate(user)).invoke();
                             return transactionFuture.handle((transaction, exception) -> {
@@ -335,7 +335,7 @@ public class TransactionController extends AbstractController {
             TransactionInfoStatus status = TransactionInfoStatus.valueOf(transactionStatus);
 
             if (form.hasErrors()) {
-                return loadNav(user).thenApplyAsync(nav ->
+                return loadNav(user, request).thenApplyAsync(nav ->
                                 ok(views.html.paymentDetails.render(showInlineInstruction, isBuyer, itemId, form, status, Optional.empty(), nav, messagesApi.preferred(request))),
                         ec.current()
                 );
@@ -348,7 +348,7 @@ public class TransactionController extends AbstractController {
                                 return CompletableFuture.completedFuture(redirect(routes.TransactionController.getTransaction(id)));
                             } else {
                                 String msg = exception.getCause().getMessage();
-                                return loadNav(user).thenApplyAsync(nav ->
+                                return loadNav(user, request).thenApplyAsync(nav ->
                                                 ok(views.html.paymentDetails.render(showInlineInstruction, isBuyer, itemId, form, status, Optional.of(msg), nav, messagesApi.preferred(request))),
                                         ec.current());
                             }
