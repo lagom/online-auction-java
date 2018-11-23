@@ -1,5 +1,6 @@
 package com.example.auction.user.impl;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.lightbend.lagom.javadsl.persistence.AggregateEvent;
 import com.lightbend.lagom.javadsl.persistence.AggregateEventShards;
 import com.lightbend.lagom.javadsl.persistence.AggregateEventTag;
@@ -15,6 +16,11 @@ public interface PUserEvent extends Jsonable, AggregateEvent<PUserEvent> {
     @Value
     final class PUserCreated implements PUserEvent {
         private final PUser user;
+
+        @JsonCreator
+        public PUserCreated(PUser user) {
+            this.user = user;
+        }
     }
 
     @Override

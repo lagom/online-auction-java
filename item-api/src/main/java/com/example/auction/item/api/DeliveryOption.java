@@ -1,5 +1,6 @@
 package com.example.auction.item.api;
 
+import lombok.EqualsAndHashCode;
 import lombok.Value;
 import java.util.Optional;
 import java.util.UUID;
@@ -8,8 +9,9 @@ public abstract class DeliveryOption {
 
     public final class PickUp extends DeliveryOption {
     }
-    
+
     @Value
+    @EqualsAndHashCode(callSuper=false)
     public final class Deliver extends DeliveryOption {
         private final String name;
         private final int price;
@@ -21,8 +23,9 @@ public abstract class DeliveryOption {
             this.location = location;
         }
     }
-    
+
     @Value
+    @EqualsAndHashCode(callSuper=false)
     public final class ByNegotiation extends DeliveryOption {
         private final Location location;
 
