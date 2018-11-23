@@ -5,7 +5,7 @@
 @import com.example.auction.transaction.api.TransactionSummary
 @import routes.TransactionController.getTransaction
 
-@(showInlineInstruction: Boolean, status: TransactionInfoStatus, paginatedTransactions: PaginatedSequence[TransactionSummary])(implicit nav: Nav)
+@(showInlineInstruction: Boolean, status: TransactionInfoStatus, paginatedTransactions: PaginatedSequence[TransactionSummary])(implicit nav: Nav, messages: play.i18n.Messages)
 
 @defining(nav.getUser.get) { user =>
     @main(user.getName) {
@@ -24,7 +24,7 @@
             @if(paginatedTransactions.isEmpty) {
                 <em>@message("noTransactions." + status)</em>
             } else {
-                @if(showInlineInstruction == true) {
+                @if(showInlineInstruction) {
                     <p>@message("instruction.transactionsMessage")</p>
                 }
                 <table>

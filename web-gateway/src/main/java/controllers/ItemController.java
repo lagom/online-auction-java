@@ -12,6 +12,7 @@ import com.typesafe.config.Config;
 import org.pcollections.PSequence;
 import play.data.Form;
 import play.data.FormFactory;
+import play.i18n.Messages;
 import play.i18n.MessagesApi;
 import play.libs.concurrent.HttpExecutionContext;
 import play.mvc.Http;
@@ -53,23 +54,26 @@ public class ItemController extends AbstractController {
         this.ec = ec;
     }
 
-    public CompletionStage<Result> createItemForm() {
-        return requireUser(ctx(), user ->
-                loadNav(user).thenApplyAsync(nav ->
-                                ok(views.html.createItem.render(showInlineInstruction, formFactory.form(ItemForm.class).fill(new ItemForm()), nav)),
+    public CompletionStage<Result> createItemForm(final Http.Request request) {
+        return requireUser(request.session(), user ->
+                loadNav(user)
+                    .thenApplyAsync(nav -> {
+                            Messages messages = messagesApi.preferred(request);
+                            Form<ItemForm> itemForm = formFactory.form(ItemForm.class).fill(new ItemForm());
+                            return ok(views.html.createItem.render(showInlineInstruction, itemForm, nav, messages));
+                        },
                         ec.current())
         );
     }
 
-    public CompletionStage<Result> createItem() {
-        Http.Context ctx = ctx();
-        return requireUser(ctx, user -> {
+    public CompletionStage<Result> createItem(final Http.Request request) {
+        return requireUser(request.session(), user -> {
 
-            Form<ItemForm> form = formFactory.form(ItemForm.class).bindFromRequest(ctx.request());
+            Form<ItemForm> form = formFactory.form(ItemForm.class).bindFromRequest(request);
 
             if (form.hasErrors()) {
                 return loadNav(user).thenApplyAsync(nav ->
-                                ok(views.html.createItem.render(showInlineInstruction, form, nav)),
+                                ok(views.html.createItem.render(showInlineInstruction, form, nav, messagesApi.preferred(request))),
                         ec.current());
             } else {
                 ItemData payload = fromForm(form.get());
@@ -96,9 +100,10 @@ public class ItemController extends AbstractController {
                 Optional.empty()); // TODO: use categories on UI
     }
 
-    public CompletionStage<Result> editItemForm(String itemId) {
-        return requireUser(ctx(), user ->
+    public CompletionStage<Result> editItemForm(final Http.Request request, String itemId) {
+        return requireUser(request.session(), user ->
                 loadNav(user).thenCompose(nav -> {
+                            Messages messages = messagesApi.preferred(request);
                             UUID itemUuid = UUID.fromString(itemId);
                             CompletionStage<Item> itemFuture = itemService.getItem(itemUuid).handleRequestHeader(authenticate(user)).invoke();
                             return itemFuture.thenApplyAsync(item -> {
@@ -120,12 +125,14 @@ public class ItemController extends AbstractController {
 
                                         return ok(
                                                 views.html.editItem.render(
-                                                        showInlineInstruction,
-                                                        item.getId(),
-                                                        formFactory.form(ItemForm.class).fill(itemForm),
-                                                        item.getStatus(),
-                                                        Optional.empty(),
-                                                        nav)
+                                                    showInlineInstruction,
+                                                    item.getId(),
+                                                    formFactory.form(ItemForm.class).fill(itemForm),
+                                                    item.getStatus(),
+                                                    Optional.empty(),
+                                                    nav,
+                                                    messages
+                                                )
                                         );
                                     },
                                     ec.current());
@@ -134,17 +141,24 @@ public class ItemController extends AbstractController {
         );
     }
 
-    public CompletionStage<Result> editItem(String id, String itemStatusStr) {
-        Http.Context ctx = ctx();
-        return requireUser(ctx, user -> {
+    public CompletionStage<Result> editItem(final Http.Request request, String id, String itemStatusStr) {
+        return requireUser(request.session(), user -> {
 
-            Form<ItemForm> form = formFactory.form(ItemForm.class).bindFromRequest(ctx.request());
+            Form<ItemForm> form = formFactory.form(ItemForm.class).bindFromRequest(request);
             UUID itemId = UUID.fromString(id);
 
             ItemStatus itemStatus = ItemStatus.valueOf(itemStatusStr);
             if (form.hasErrors()) {
                 return loadNav(user).thenApply(nav ->
-                        ok(views.html.editItem.render(showInlineInstruction, itemId, form, itemStatus, Optional.empty(), nav))
+                        ok(views.html.editItem.render(
+                            showInlineInstruction,
+                            itemId,
+                            form,
+                            itemStatus,
+                            Optional.empty(),
+                            nav,
+                            messagesApi.preferred(request)
+                        ))
                 );
             } else {
                 ItemData payload = fromForm(form.get());
@@ -159,18 +173,18 @@ public class ItemController extends AbstractController {
                             } else {
                                 String msg = ((TransportException) exception.getCause()).exceptionMessage().detail();
                                 return loadNav(user).thenApply(nav -> ok(
-                                        editItem.render(showInlineInstruction, itemId, form, itemStatus, Optional.of(msg), nav)));
+                                        editItem.render(showInlineInstruction, itemId, form, itemStatus, Optional.of(msg), nav, messagesApi.preferred(request))));
                             }
                         }).thenComposeAsync((x) -> x, ec.current());
             }
         });
     }
-    public CompletionStage<Result> getItem(String itemId) {
-        return doGetItem(ctx(), itemId, formFactory.form(BidForm.class));
+    public CompletionStage<Result> getItem(final Http.Request request, String itemId) {
+        return doGetItem(request, itemId, formFactory.form(BidForm.class));
     }
 
-    private CompletionStage<Result> doGetItem(Http.Context ctx, String itemId, Form<BidForm> bidForm) {
-        return requireUser(ctx, user -> loadNav(user)
+    private CompletionStage<Result> doGetItem(final Http.Request request, String itemId, Form<BidForm> bidForm) {
+        return requireUser(request.session(), user -> loadNav(user)
             .thenComposeAsync(nav -> {
 
                 UUID itemUuid = UUID.fromString(itemId);
@@ -211,10 +225,10 @@ public class ItemController extends AbstractController {
 
                                     Currency currency = Currency.valueOf(item.getItemData().getCurrencyId());
 
-                                    Optional<BidResult> bidResult = loadBidResult(ctx.flash());
+                                    Optional<BidResult> bidResult = loadBidResult(request.flash());
 
                                     return ok(views.html.item.render(showInlineInstruction, item, bidForm,
-                                        anonymizeBids(user, currency, bidHistory), user, currency, seller, winner, currentBidMaximum, bidResult, (Nav) nav));
+                                        anonymizeBids(user, currency, bidHistory), user, currency, seller, winner, currentBidMaximum, bidResult, nav, messagesApi.preferred(request)));
                                 }, ec.current());
                         }, ec.current())
                     , ec.current());
@@ -242,8 +256,7 @@ public class ItemController extends AbstractController {
     }
 
     private Optional<BidResult> loadBidResult(Http.Flash flash) {
-        String bidResultStatusString = flash.get("bidResultStatus");
-        if (bidResultStatusString != null) {
+        return flash.getOptional("bidResultStatus").flatMap(bidResultStatusString -> {
             BidResultStatus status;
             try {
                 status = BidResultStatus.valueOf(bidResultStatusString);
@@ -251,21 +264,22 @@ public class ItemController extends AbstractController {
                 return Optional.empty();
             }
 
-            String bidResultPriceString = flash.get("bidResultPrice");
-            int price = 0;
-            try {
-                price = Integer.parseInt(bidResultPriceString);
-            } catch (NumberFormatException e) {
-                // Ignore
-            }
+            final Integer price = flash.getOptional("bidResultPrice").map(bidResultPriceString -> {
+                try {
+                    return Integer.parseInt(bidResultPriceString);
+                } catch (NumberFormatException e) {
+                    // Ignore
+                }
+                return 0;
+            }).orElse(0);
+
             return Optional.of(new BidResult(price, status, null));
-        }
-        return Optional.empty();
+        });
     }
 
 
-    public CompletionStage<Result> startAuction(String itemId) {
-        return requireUser(ctx(), user ->
+    public CompletionStage<Result> startAuction(final Http.Request request, String itemId) {
+        return requireUser(request.session(), user ->
                 itemService.startAuction(UUID.fromString(itemId))
                         .handleRequestHeader(authenticate(user)).invoke().thenApplyAsync(done ->
                                 redirect(routes.ItemController.getItem(itemId)),
@@ -273,14 +287,13 @@ public class ItemController extends AbstractController {
         );
     }
 
-    public CompletionStage<Result> placeBid(String itemId) {
-        Http.Context ctx = ctx();
+    public CompletionStage<Result> placeBid(final Http.Request request, String itemId) {
         UUID itemUuid = UUID.fromString(itemId);
-        return requireUser(ctx, user -> {
-            Form<BidForm> form = formFactory.form(BidForm.class).bindFromRequest(ctx.request());
+        return requireUser(request.session(), user -> {
+            Form<BidForm> form = formFactory.form(BidForm.class).bindFromRequest(request);
 
             if (form.hasErrors()) {
-                return doGetItem(ctx, itemId, form);
+                return doGetItem(request, itemId, form);
             } else {
                 BidForm bidForm = form.get();
 
@@ -291,11 +304,12 @@ public class ItemController extends AbstractController {
                 return bidService.placeBid(itemUuid)
                         .handleRequestHeader(authenticate(user))
                         .invoke(new PlaceBid(bidPrice)).thenApplyAsync(bidResult -> {
-                                    ctx.flash().put("bidResultStatus", bidResult.getStatus().name());
-                                    ctx.flash().put("bidResultPrice", Integer.toString(bidResult.getCurrentPrice()));
-                                    return redirect(routes.ItemController.getItem(itemId));
-                                },
-                                ec.current());
+                            Http.Flash flash = request.flash()
+                                .adding("bidResultStatus", bidResult.getStatus().name())
+                                .adding("bidResultPrice", Integer.toString(bidResult.getCurrentPrice()));
+                            return redirect(routes.ItemController.getItem(itemId)).withFlash(flash);
+                        },
+                        ec.current());
             }
         });
     }

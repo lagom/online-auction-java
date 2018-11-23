@@ -1,6 +1,6 @@
 @import com.example.auction.pagination.PaginatedSequence
 
-@(pagination: PaginatedSequence[_])(route: (Int, String) => Html )
+@(pagination: PaginatedSequence[_])(route: (Int, String) => Html )(implicit messages: play.i18n.Messages)
 
 @paginationItem(pageNumber: Int, label: String, isLinked: Boolean, disabledClass: String, otherClasses: String = "") = {
 @defining(otherClasses + (if(!isLinked) " " + disabledClass else "")) { liClasses =>
@@ -26,7 +26,7 @@
         <ul class="pagination" aria-label="Pagination">
             @paginationItem(
                 prevPage(),
-                Messages("pagination.prev"),
+                message("pagination.prev"),
                 isLinked = !pagination.isFirst,
                 disabledClass = "disabled",
                 otherClasses = "pagination-previous"
@@ -41,7 +41,7 @@
             }
             @paginationItem(
                 nextPage(),
-                Messages("pagination.next"),
+                message("pagination.next"),
                 isLinked = !pagination.isLast,
                 disabledClass = "disabled",
                 otherClasses = "pagination-next"

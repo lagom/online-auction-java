@@ -8,12 +8,12 @@ import com.example.auction.user.api.UserService;
 import com.typesafe.config.Config;
 import play.data.Form;
 import play.data.FormFactory;
+import play.i18n.Messages;
 import play.i18n.MessagesApi;
 import play.libs.concurrent.HttpExecutionContext;
 import play.mvc.Http;
 import play.mvc.Result;
 import views.html.searchItem;
-import play.Configuration;
 
 import javax.inject.Inject;
 import java.util.Optional;
@@ -49,22 +49,21 @@ public class SearchController extends AbstractController {
         this.ec = ec;
     }
 
-    public CompletionStage<Result> searchForm() {
-        Http.Context ctx = ctx();
-        Form<SearchItemForm> form = formFactory.form(SearchItemForm.class).bindFromRequest(ctx.request());
+    public CompletionStage<Result> searchForm(final Http.Request request) {
+        Form<SearchItemForm> form = formFactory.form(SearchItemForm.class).bindFromRequest(request);
 
         return loadNav(Optional.empty()).thenApplyAsync(nav ->
-                ok(views.html.searchItem.render(showInlineInstruction, form, Optional.empty(), nav)),
+                ok(views.html.searchItem.render(showInlineInstruction, form, Optional.empty(), nav, messagesApi.preferred(request))),
             ec.current());
     }
 
-    public CompletionStage<Result> search() {
-        Http.Context ctx = ctx();
-        Form<SearchItemForm> form = formFactory.form(SearchItemForm.class).bindFromRequest(ctx.request());
-        return withUser(ctx, maybeUser ->
+    public CompletionStage<Result> search(final Http.Request request) {
+        Form<SearchItemForm> form = formFactory.form(SearchItemForm.class).bindFromRequest(request);
+        return withUser(request.session(), maybeUser ->
             loadNav(maybeUser).thenComposeAsync(nav -> {
+                    Messages messages = messagesApi.preferred(request);
                     if (form.hasErrors()) {
-                        return CompletableFuture.completedFuture(ok(views.html.searchItem.render(showInlineInstruction, form, Optional.empty(), nav)));
+                        return CompletableFuture.completedFuture(ok(views.html.searchItem.render(showInlineInstruction, form, Optional.empty(), nav, messages)));
                     } else {
 
                         SearchItemForm searchItemForm = form.get();
@@ -85,7 +84,7 @@ public class SearchController extends AbstractController {
                             ).exceptionally(exception ->
                                 Optional.empty()
                             ).thenApplyAsync(
-                                itemList -> ok(views.html.searchItem.render(showInlineInstruction, form, itemList, nav))
+                                itemList -> ok(views.html.searchItem.render(showInlineInstruction, form, itemList, nav, messages))
                                 ,
                                 ec.current());
                     }

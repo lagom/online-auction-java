@@ -2,15 +2,15 @@
 @import java.time.temporal.ChronoUnit
 @import controllers.{Currency => Currencies}
 
-@(showInlineInstruction: Boolean, itemForm: Form[ItemForm])(implicit nav: Nav)
+@(showInlineInstruction: Boolean, itemForm: Form[ItemForm])(implicit nav: Nav, messages: play.i18n.Messages)
 
-@main(message("createItem")) {
+@main(messages("createItem")) {
 
     <h2>@message("createItem")</h2>
 
     @foundationForm(itemForm, routes.ItemController.createItem()) {
         <div class="column row">
-            @if(showInlineInstruction == true){
+            @if(showInlineInstruction){
                 <p>@message("instruction.createItem")</p>
             }
             @inputText(itemForm("title"))
