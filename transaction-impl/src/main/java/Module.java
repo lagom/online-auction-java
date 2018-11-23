@@ -19,14 +19,5 @@ public class Module extends AbstractModule implements ServiceGuiceSupport {
     protected void configure() {
         bindService(TransactionService.class, TransactionServiceImpl.class);
         bindClient(ItemService.class);
-
-        bind(TransactionServiceLifecycle.class).asEagerSingleton();
-    }
-
-    private static class TransactionServiceLifecycle {
-        @Inject
-        public TransactionServiceLifecycle(ApplicationLifecycle applicationLifecycle, PersistentEntityRegistry persistentEntityRegistry) {
-            applicationLifecycle.addStopHook(() -> persistentEntityRegistry.gracefulShutdown(FiniteDuration.create(5, TimeUnit.SECONDS)));
-        }
     }
 }
