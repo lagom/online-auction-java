@@ -1,14 +1,14 @@
 @import helper._
 @import java.util.Optional
 
-@(showInlineInstruction: Boolean, createUser: Form[CreateUserForm])(implicit nav: Nav)
+@(showInlineInstruction: Boolean, createUser: Form[CreateUserForm])(implicit nav: Nav, messages: play.i18n.Messages)
 
 @main(message("createUser")) {
 
     <h2>@message("createUser")</h2>
 
     @foundationForm(createUser, routes.UserController.createUser()) {
-        @if(showInlineInstruction == true) {
+        @if(showInlineInstruction) {
             <p>@message("instruction.createUser")</p>
         }
         @if(createUser.hasGlobalErrors) {

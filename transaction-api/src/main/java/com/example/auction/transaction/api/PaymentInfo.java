@@ -1,18 +1,23 @@
 package com.example.auction.transaction.api;
 
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.*;
 import lombok.Value;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type", defaultImpl = Void.class)
 @JsonSubTypes({
-        @JsonSubTypes.Type(PaymentInfo.Offline.class)
+    @JsonSubTypes.Type(PaymentInfo.Offline.class)
 })
-public abstract class PaymentInfo {
+public interface PaymentInfo {
 
     @Value
-    public static final class Offline extends PaymentInfo {
+    @JsonTypeName("payment-offline")
+    final class Offline implements PaymentInfo {
         private final String comment;
+
+        @JsonCreator
+        public Offline(@JsonProperty("comment") String comment) {
+            this.comment = comment;
+        }
     }
 
 }

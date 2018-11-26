@@ -2,11 +2,11 @@ package controllers;
 
 import com.example.auction.pagination.PaginatedSequence;
 import com.example.auction.transaction.api.*;
-import com.example.auction.user.api.User;
 import com.example.auction.user.api.UserService;
 import com.typesafe.config.Config;
 import play.data.Form;
 import play.data.FormFactory;
+import play.i18n.Messages;
 import play.i18n.MessagesApi;
 import play.libs.concurrent.HttpExecutionContext;
 import play.mvc.Call;
@@ -19,7 +19,6 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
-import java.util.concurrent.ExecutionException;
 
 import static com.example.auction.security.ClientSecurity.authenticate;
 
@@ -49,12 +48,12 @@ public class TransactionController extends AbstractController {
         this.ec = ec;
     }
 
-    public CompletionStage<Result> myTransactions(String statusParam, int page, int pageSize) {
+    public CompletionStage<Result> myTransactions(final Http.Request request, String statusParam, int page, int pageSize) {
         TransactionInfoStatus status = TransactionInfoStatus.valueOf(statusParam.toUpperCase(Locale.ENGLISH));
-        return requireUser(ctx(),
-                userId -> loadNav(userId).thenCombineAsync(
+        return requireUser(request.session(),
+                userId -> loadNav(userId, request).thenCombineAsync(
                         getTransactionsForUser(userId, status, page, pageSize), (nav, items) ->
-                                ok(views.html.myTransactions.render(showInlineInstruction, status, items, nav)),
+                                ok(views.html.myTransactions.render(showInlineInstruction, status, items, nav, messagesApi.preferred(request))),
                         ec.current())
         );
     }
@@ -75,9 +74,9 @@ public class TransactionController extends AbstractController {
         return routes.TransactionController.myTransactions(status.name().toLowerCase(Locale.ENGLISH), page, pageSize);
     }
 
-    public CompletionStage<Result> getTransaction(String id) {
-        return requireUser(ctx(), user ->
-                loadNav(user).thenComposeAsync( nav -> {
+    public CompletionStage<Result> getTransaction(final Http.Request request, String id) {
+        return requireUser(request.session(), user ->
+                loadNav(user, request).thenComposeAsync( nav -> {
                             UUID itemId = UUID.fromString(id);
                             CompletionStage<TransactionInfo> transactionFuture = transactionService.getTransaction(itemId).handleRequestHeader(authenticate(user)).invoke();
 
@@ -89,11 +88,11 @@ public class TransactionController extends AbstractController {
                                        (seller, winner) -> {
 
                                            Currency currency = Currency.valueOf(transaction.getItemData().getCurrencyId());
-                                           return ok(views.html.transaction.render(showInlineInstruction, Optional.of(transaction), user, Optional.of(seller), Optional.of(winner), Optional.of(currency), Optional.empty(), (Nav) nav));
+                                           return ok(views.html.transaction.render(showInlineInstruction, Optional.of(transaction), user, Optional.of(seller), Optional.of(winner), Optional.of(currency), Optional.empty(), nav, messagesApi.preferred(request)));
                                        });
                            }).exceptionally(exception -> {
                                     String msg = exception.getCause().getMessage();
-                                    return ok(views.html.transaction.render(showInlineInstruction, Optional.empty(), user, Optional.empty(), Optional.empty(), Optional.empty(), Optional.of(msg),(Nav) nav));
+                                    return ok(views.html.transaction.render(showInlineInstruction, Optional.empty(), user, Optional.empty(), Optional.empty(), Optional.empty(), Optional.of(msg), nav, messagesApi.preferred(request)));
                                 });
 
 
@@ -103,9 +102,10 @@ public class TransactionController extends AbstractController {
         );
     }
 
-    public CompletionStage<Result> submitDeliveryDetailsForm(String id) {
-        return requireUser(ctx(), user ->
-                loadNav(user).thenComposeAsync(nav -> {
+    public CompletionStage<Result> submitDeliveryDetailsForm(final Http.Request request, String id) {
+        return requireUser(request.session(), user ->
+                loadNav(user, request).thenComposeAsync(nav -> {
+                            Messages messages = messagesApi.preferred(request);
                             UUID itemId = UUID.fromString(id);
                             CompletionStage<TransactionInfo> transactionFuture = transactionService.getTransaction(itemId).handleRequestHeader(authenticate(user)).invoke();
                             return transactionFuture.handle((transaction, exception) -> {
@@ -122,17 +122,30 @@ public class TransactionController extends AbstractController {
                                     }
                                     return ok(
                                             views.html.deliveryDetails.render(
-                                                    showInlineInstruction,
-                                                    !transaction.getCreator().equals(user),
-                                                    itemId,
-                                                    formFactory.form(DeliveryDetailsForm.class).fill(form),
-                                                    transaction.getStatus(),
-                                                    Optional.empty(),
-                                                    (Nav)nav)
+                                                showInlineInstruction,
+                                                !transaction.getCreator().equals(user),
+                                                itemId,
+                                                formFactory.form(DeliveryDetailsForm.class).fill(form),
+                                                transaction.getStatus(),
+                                                Optional.empty(),
+                                                nav,
+                                                messages
+                                            )
                                     );
                                 } else {
                                     String msg = exception.getCause().getMessage();
-                                    return ok(views.html.deliveryDetails.render(showInlineInstruction, false, itemId, formFactory.form(DeliveryDetailsForm.class), TransactionInfoStatus.NEGOTIATING_DELIVERY, Optional.of(msg), (Nav)nav));
+                                    return ok(
+                                        views.html.deliveryDetails.render(
+                                            showInlineInstruction,
+                                            false,
+                                            itemId,
+                                            formFactory.form(DeliveryDetailsForm.class),
+                                            TransactionInfoStatus.NEGOTIATING_DELIVERY,
+                                            Optional.of(msg),
+                                            nav,
+                                            messages
+                                        )
+                                    );
                                 }
                             });
                         },
@@ -140,17 +153,17 @@ public class TransactionController extends AbstractController {
         );
     }
 
-    public CompletionStage<Result> submitDeliveryDetails(String id, String transactionStatus, boolean isBuyer) {
-        Http.Context ctx = ctx();
-        return requireUser(ctx(), user -> {
+    public CompletionStage<Result> submitDeliveryDetails(final Http.Request request, String id, String transactionStatus, boolean isBuyer) {
+        return requireUser(request.session(), user -> {
 
-            Form<DeliveryDetailsForm> form = formFactory.form(DeliveryDetailsForm.class).bindFromRequest(ctx.request());
+            Form<DeliveryDetailsForm> form = formFactory.form(DeliveryDetailsForm.class).bindFromRequest(request);
             UUID itemId = UUID.fromString(id);
             TransactionInfoStatus status = TransactionInfoStatus.valueOf(transactionStatus);
+            Messages messages = messagesApi.preferred(request);
 
             if (form.hasErrors()) {
-                return loadNav(user).thenApplyAsync(nav ->
-                                ok(views.html.deliveryDetails.render(showInlineInstruction, isBuyer, itemId, form, status, Optional.empty(), nav)),
+                return loadNav(user, request).thenApplyAsync(nav ->
+                                ok(views.html.deliveryDetails.render(showInlineInstruction, isBuyer, itemId, form, status, Optional.empty(), nav, messages)),
                         ec.current()
                 );
             } else {
@@ -162,8 +175,8 @@ public class TransactionController extends AbstractController {
                                 return CompletableFuture.completedFuture(redirect(routes.TransactionController.getTransaction(id)));
                             } else {
                                 String msg = exception.getCause().getMessage();
-                                return loadNav(user).thenApplyAsync(nav ->
-                                                ok(views.html.deliveryDetails.render(showInlineInstruction, isBuyer, itemId, form, status, Optional.of(msg), nav)),
+                                return loadNav(user, request).thenApplyAsync(nav ->
+                                                ok(views.html.deliveryDetails.render(showInlineInstruction, isBuyer, itemId, form, status, Optional.of(msg), nav, messages)),
                                         ec.current());
                             }
                         }).thenComposeAsync(x -> x, ec.current());
@@ -182,17 +195,17 @@ public class TransactionController extends AbstractController {
         );
     }
 
-    public CompletionStage<Result> setDeliveryPriceForm(String id) {
-        return requireUser(ctx(), user ->
-                loadNav(user).thenComposeAsync(nav -> {
+    public CompletionStage<Result> setDeliveryPriceForm(final Http.Request request, String id) {
+        return requireUser(request.session(), user ->
+                loadNav(user, request).thenComposeAsync(nav -> {
+                            Messages messages = messagesApi.preferred(request);
                             UUID itemId = UUID.fromString(id);
                             CompletionStage<TransactionInfo> transactionFuture = transactionService.getTransaction(itemId).handleRequestHeader(authenticate(user)).invoke();
                             return transactionFuture.handle((transaction, exception) -> {
                                 if (exception == null) {
                                     DeliveryPriceForm form = new DeliveryPriceForm();
                                     Optional<Integer> maybeDeliveryPrice = transaction.getDeliveryPrice();
-                                    if (maybeDeliveryPrice.isPresent())
-                                        form.setDeliveryPrice(maybeDeliveryPrice.get());
+                                    maybeDeliveryPrice.ifPresent(form::setDeliveryPrice);
                                     return ok(
                                             views.html.deliveryPrice.render(
                                                     showInlineInstruction,
@@ -201,11 +214,24 @@ public class TransactionController extends AbstractController {
                                                     formFactory.form(DeliveryPriceForm.class).fill(form),
                                                     transaction.getStatus(),
                                                     Optional.empty(),
-                                                    (Nav)nav)
+                                                    nav,
+                                                    messages
+                                            )
                                     );
                                 } else {
                                     String msg = exception.getCause().getMessage();
-                                    return ok(views.html.deliveryPrice.render(showInlineInstruction, false, itemId, formFactory.form(DeliveryPriceForm.class), TransactionInfoStatus.NEGOTIATING_DELIVERY, Optional.of(msg),(Nav) nav));
+                                    return ok(
+                                        views.html.deliveryPrice.render(
+                                            showInlineInstruction,
+                                            false,
+                                            itemId,
+                                            formFactory.form(DeliveryPriceForm.class),
+                                            TransactionInfoStatus.NEGOTIATING_DELIVERY,
+                                            Optional.of(msg),
+                                            nav,
+                                            messages
+                                        )
+                                    );
                                 }
                             });
                         },
@@ -213,17 +239,18 @@ public class TransactionController extends AbstractController {
         );
     }
 
-    public CompletionStage<Result> setDeliveryPrice(String id, String transactionStatus, boolean isSeller) {
-        Http.Context ctx = ctx();
-        return requireUser(ctx(), user -> {
+    public CompletionStage<Result> setDeliveryPrice(final Http.Request request, String id, String transactionStatus, boolean isSeller) {
+        return requireUser(request.session(), user -> {
 
-            Form<DeliveryPriceForm> form = formFactory.form(DeliveryPriceForm.class).bindFromRequest(ctx.request());
+            Form<DeliveryPriceForm> form = formFactory.form(DeliveryPriceForm.class).bindFromRequest(request);
             UUID itemId = UUID.fromString(id);
             TransactionInfoStatus status = TransactionInfoStatus.valueOf(transactionStatus);
 
+            Messages messages = messagesApi.preferred(request);
+
             if (form.hasErrors()) {
-                return loadNav(user).thenApplyAsync(nav ->
-                                ok(views.html.deliveryPrice.render(showInlineInstruction, isSeller, itemId, form, status, Optional.empty(), nav)),
+                return loadNav(user, request).thenApplyAsync(nav ->
+                                ok(views.html.deliveryPrice.render(showInlineInstruction, isSeller, itemId, form, status, Optional.empty(), nav, messages)),
                         ec.current()
                 );
             } else {
@@ -235,8 +262,8 @@ public class TransactionController extends AbstractController {
                                 return CompletableFuture.completedFuture(redirect(routes.TransactionController.getTransaction(id)));
                             } else {
                                 String msg = exception.getCause().getMessage();
-                                return loadNav(user).thenApplyAsync(nav ->
-                                                ok(views.html.deliveryPrice.render(showInlineInstruction, isSeller, itemId, form, status, Optional.of(msg),(Nav) nav)),
+                                return loadNav(user, request).thenApplyAsync(nav ->
+                                                ok(views.html.deliveryPrice.render(showInlineInstruction, isSeller, itemId, form, status, Optional.of(msg), nav, messages)),
                                         ec.current());
                             }
                         }).thenComposeAsync(x -> x, ec.current());
@@ -244,8 +271,8 @@ public class TransactionController extends AbstractController {
         });
     }
 
-    public CompletionStage<Result> approveDelivery(String id) {
-        return requireUser(ctx(), user ->
+    public CompletionStage<Result> approveDelivery(final Http.Request request, String id) {
+        return requireUser(request.session(), user ->
                 transactionService.approveDeliveryDetails(UUID.fromString(id))
                         .handleRequestHeader(authenticate(user))
                         .invoke()
@@ -256,9 +283,9 @@ public class TransactionController extends AbstractController {
         );
     }
 
-    public CompletionStage<Result> submitPaymentDetailsForm(String id) {
-        return requireUser(ctx(), user ->
-                loadNav(user).thenComposeAsync(nav -> {
+    public CompletionStage<Result> submitPaymentDetailsForm(final Http.Request request, String id) {
+        return requireUser(request.session(), user ->
+                loadNav(user, request).thenComposeAsync(nav -> {
                             UUID itemId = UUID.fromString(id);
                             CompletionStage<TransactionInfo> transactionFuture = transactionService.getTransaction(itemId).handleRequestHeader(authenticate(user)).invoke();
                             return transactionFuture.handle((transaction, exception) -> {
@@ -266,9 +293,7 @@ public class TransactionController extends AbstractController {
                                     // For now there is only one payment method supported: Offline payment
                                     OfflinePaymentForm form = new OfflinePaymentForm();
                                     Optional<PaymentInfo> maybePaymentInfo = transaction.getPaymentInfo();
-                                    if (maybePaymentInfo.isPresent()) {
-                                        form.setComment(((PaymentInfo.Offline) maybePaymentInfo.get()).getComment());
-                                    }
+                                    maybePaymentInfo.ifPresent(paymentInfo -> form.setComment(((PaymentInfo.Offline) paymentInfo).getComment()));
                                     return ok(
                                             views.html.paymentDetails.render(
                                                     showInlineInstruction,
@@ -277,11 +302,24 @@ public class TransactionController extends AbstractController {
                                                     formFactory.form(OfflinePaymentForm.class).fill(form),
                                                     transaction.getStatus(),
                                                     Optional.empty(),
-                                                    nav)
+                                                    nav,
+                                                    messagesApi.preferred(request)
+                                                )
                                     );
                                 } else {
                                     String msg = exception.getCause().getMessage();
-                                    return ok(views.html.paymentDetails.render(showInlineInstruction, false, itemId, formFactory.form(OfflinePaymentForm.class), TransactionInfoStatus.NEGOTIATING_DELIVERY, Optional.of(msg), nav));
+                                    return ok(
+                                        views.html.paymentDetails.render(
+                                            showInlineInstruction,
+                                            false,
+                                            itemId,
+                                            formFactory.form(OfflinePaymentForm.class),
+                                            TransactionInfoStatus.NEGOTIATING_DELIVERY,
+                                            Optional.of(msg),
+                                            nav,
+                                            messagesApi.preferred(request)
+                                        )
+                                    );
                                 }
                             });
                         },
@@ -289,17 +327,16 @@ public class TransactionController extends AbstractController {
         );
     }
 
-    public CompletionStage<Result> submitPaymentDetails(String id, String transactionStatus, boolean isBuyer) {
-        Http.Context ctx = ctx();
-        return requireUser(ctx(), user -> {
+    public CompletionStage<Result> submitPaymentDetails(final Http.Request request, String id, String transactionStatus, boolean isBuyer) {
+        return requireUser(request.session(), user -> {
 
-            Form<OfflinePaymentForm> form = formFactory.form(OfflinePaymentForm.class).bindFromRequest(ctx.request());
+            Form<OfflinePaymentForm> form = formFactory.form(OfflinePaymentForm.class).bindFromRequest(request);
             UUID itemId = UUID.fromString(id);
             TransactionInfoStatus status = TransactionInfoStatus.valueOf(transactionStatus);
 
             if (form.hasErrors()) {
-                return loadNav(user).thenApplyAsync(nav ->
-                                ok(views.html.paymentDetails.render(showInlineInstruction, isBuyer, itemId, form, status, Optional.empty(), nav)),
+                return loadNav(user, request).thenApplyAsync(nav ->
+                                ok(views.html.paymentDetails.render(showInlineInstruction, isBuyer, itemId, form, status, Optional.empty(), nav, messagesApi.preferred(request))),
                         ec.current()
                 );
             } else {
@@ -311,8 +348,8 @@ public class TransactionController extends AbstractController {
                                 return CompletableFuture.completedFuture(redirect(routes.TransactionController.getTransaction(id)));
                             } else {
                                 String msg = exception.getCause().getMessage();
-                                return loadNav(user).thenApplyAsync(nav ->
-                                                ok(views.html.paymentDetails.render(showInlineInstruction, isBuyer, itemId, form, status, Optional.of(msg), nav)),
+                                return loadNav(user, request).thenApplyAsync(nav ->
+                                                ok(views.html.paymentDetails.render(showInlineInstruction, isBuyer, itemId, form, status, Optional.of(msg), nav, messagesApi.preferred(request))),
                                         ec.current());
                             }
                         }).thenComposeAsync(x -> x, ec.current());
@@ -320,16 +357,16 @@ public class TransactionController extends AbstractController {
         });
     }
 
-    public CompletionStage<Result> approvePayment(String id) {
-        return submitPaymentStatus(PaymentInfoStatus.APPROVED, id);
+    public CompletionStage<Result> approvePayment(final Http.Request request, String id) {
+        return submitPaymentStatus(request, PaymentInfoStatus.APPROVED, id);
     }
 
-    public CompletionStage<Result> rejectPayment(String id) {
-        return submitPaymentStatus(PaymentInfoStatus.REJECTED, id);
+    public CompletionStage<Result> rejectPayment(final Http.Request request, String id) {
+        return submitPaymentStatus(request, PaymentInfoStatus.REJECTED, id);
     }
 
-    private CompletionStage<Result> submitPaymentStatus(PaymentInfoStatus paymentInfoStatus, String id) {
-        return requireUser(ctx(), user ->
+    private CompletionStage<Result> submitPaymentStatus(final Http.Request request, PaymentInfoStatus paymentInfoStatus, String id) {
+        return requireUser(request.session(), user ->
             transactionService.submitPaymentStatus(UUID.fromString(id))
                 .handleRequestHeader(authenticate(user))
                 .invoke(paymentInfoStatus)

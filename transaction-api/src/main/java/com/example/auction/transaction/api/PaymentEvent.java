@@ -1,15 +1,11 @@
 package com.example.auction.transaction.api;
 
-public abstract class PaymentEvent {
+public interface PaymentEvent {
 
-    private PaymentEvent() {}
-
-    public static final class PaymentDetailsSubmitted extends PaymentEvent {
-
+    final class PaymentDetailsSubmitted implements PaymentEvent {
     }
 
-    public static final class RefundInitiated extends PaymentEvent {
-
+    final class RefundInitiated implements PaymentEvent {
     }
 
 }

@@ -9,6 +9,7 @@ import com.typesafe.config.Config;
 import play.i18n.MessagesApi;
 import play.libs.concurrent.HttpExecutionContext;
 import play.mvc.Call;
+import play.mvc.Http;
 import play.mvc.Result;
 
 import javax.inject.Inject;
@@ -40,12 +41,12 @@ public class ProfileController extends AbstractController {
         this.ec = ec;
     }
 
-    public CompletionStage<Result> myItems(String statusParam, int page, int pageSize) {
+    public CompletionStage<Result> myItems(final Http.Request request, String statusParam, int page, int pageSize) {
         ItemStatus status = ItemStatus.valueOf(statusParam.toUpperCase(Locale.ENGLISH));
-        return requireUser(ctx(),
-                userId -> loadNav(userId).thenCombineAsync(
+        return requireUser(request.session(),
+                userId -> loadNav(userId, request).thenCombineAsync(
                         getItemsForUser(userId, status, page, pageSize), (nav, items) ->
-                                ok(views.html.myItems.render(showInlineInstruction, status, items, nav)),
+                                ok(views.html.myItems.render(showInlineInstruction, status, items, nav, messagesApi.preferred(request))),
                         ec.current())
         );
     }

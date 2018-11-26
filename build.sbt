@@ -1,6 +1,6 @@
 organization in ThisBuild := "com.example"
 
-scalaVersion in ThisBuild := "2.12.4"
+scalaVersion in ThisBuild := "2.12.7"
 
 EclipseKeys.projectFlavor in Global := EclipseProjectFlavor.Java
 
@@ -183,7 +183,7 @@ lazy val userImpl = (project in file("user-impl"))
     libraryDependencies ++= Seq(
       lagomJavadslPersistenceCassandra,
       lagomJavadslTestKit,
-      "de.svenkubiak" % "jBCrypt" % "0.4",
+      "de.svenkubiak" % "jBCrypt" % "0.4.1",
       lagomJavadslKafkaBroker,
       cassandraExtras,
       lombok
@@ -199,7 +199,7 @@ lazy val webGateway = (project in file("web-gateway"))
     version := "1.0-SNAPSHOT",
     libraryDependencies ++= Seq(
       lagomJavadslClient,
-      "org.ocpsoft.prettytime" % "prettytime" % "3.2.7.Final",
+      "org.ocpsoft.prettytime" % "prettytime" % "4.0.2.Final",
       "org.webjars" % "foundation" % "6.2.3",
       "org.webjars" % "foundation-icon-fonts" % "d596a3cfb3"
     ),
@@ -213,8 +213,8 @@ lazy val webGateway = (project in file("web-gateway"))
     EclipseKeys.preTasks := Seq(compile in Compile)
   )
 
-val lombok = "org.projectlombok" % "lombok" % "1.16.10"
-val cassandraExtras = "com.datastax.cassandra" % "cassandra-driver-extras" % "3.0.0"
+val lombok = "org.projectlombok" % "lombok" % "1.18.4"
+val cassandraExtras = "com.datastax.cassandra" % "cassandra-driver-extras" % "3.6.0"
 
 def elasticsearch: String = {
   val enableElasticsearch = sys.props.getOrElse("enableElasticsearch", default = "false")
@@ -225,9 +225,20 @@ def elasticsearch: String = {
   }
 }
 
-def commonSettings: Seq[Setting[_]] = eclipseSettings ++ Seq(
+def evictionSettings: Seq[Setting[_]] = Seq(
+  // This avoids a lot of dependency resolution warnings to be showed.
+  // They are not required in Lagom since we have a more strict whitelist
+  // of which dependencies are allowed. So it should be safe to not have
+  // the build logs polluted with evictions warnings.
+  evictionWarningOptions in update := EvictionWarningOptions.default
+    .withWarnTransitiveEvictions(false)
+    .withWarnDirectEvictions(false)
+)
+
+def commonSettings: Seq[Setting[_]] = eclipseSettings ++ evictionSettings ++ Seq(
   javacOptions in Compile ++= Seq("-encoding", "UTF-8", "-source", "1.8"),
-  javacOptions in(Compile, compile) ++= Seq("-Xlint:unchecked", "-Xlint:deprecation", "-parameters")
+  javacOptions in(Compile, compile) ++= Seq("-Xlint:unchecked", "-Xlint:deprecation", "-parameters", "-Werror"),
+  scalacOptions += "-feature"
 )
 
 lagomCassandraCleanOnStart in ThisBuild := false

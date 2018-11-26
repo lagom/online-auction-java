@@ -7,7 +7,7 @@
 
 @import controllers.{Currency => Currencies}
 
-@(showInlineInstruction: Boolean, item: Item, bidForm: Form[BidForm], biddingHistory: List[AnonymousBid], currentUser: UUID, currency: Currencies, seller: User, winner: Optional[User], currentMaximumBid: Optional[Integer], bidResult: Optional[BidResult])(implicit nav: Nav)
+@(showInlineInstruction: Boolean, item: Item, bidForm: Form[BidForm], biddingHistory: List[AnonymousBid], currentUser: UUID, currency: Currencies, seller: User, winner: Optional[User], currentMaximumBid: Optional[Integer], bidResult: Optional[BidResult])(implicit nav: Nav, messages: play.i18n.Messages)
 
 @renderBidResult(icon: String, callout: String, bidMessage: String) = {
     <div class="@callout callout">
@@ -19,7 +19,7 @@
 
     <div >
         <h1>@item.getItemData.getTitle</h1>
-        @if(showInlineInstruction == true) {
+        @if(showInlineInstruction) {
             @if(currentUser == item.getCreator ){
                 @if(item.getStatus == ItemStatus.AUCTION){
                     <p>@message("instruction.auctionStarted.seller")</p>
