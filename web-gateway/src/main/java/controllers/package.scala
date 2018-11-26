@@ -1,6 +1,9 @@
+import play.api.i18n.MessagesProvider
 import play.i18n.Messages
 import views.html.foundationFieldConstructor
 import views.html.helper.FieldConstructor
+
+import scala.language.implicitConversions
 
 /**
   * Created by jroper on 27/09/16.
@@ -13,5 +16,7 @@ package object controllers {
     nav.messages()
   }
 
-  implicit def message(key: String, args: Any*)(implicit messages: play.api.i18n.Messages) = messages(key, args: _*)
+  implicit def message(key: String, args: Any*)(implicit messagesProvider: MessagesProvider): String = {
+    messagesProvider.messages.apply(key, args: _*)
+  }
 }

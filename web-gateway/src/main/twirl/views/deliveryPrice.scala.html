@@ -3,13 +3,13 @@
 @import java.util.UUID
 
 @import com.example.auction.transaction.api.TransactionInfoStatus
-@(showInlineInstruction: Boolean, isSeller: Boolean, itemId: UUID, deliveryPriceForm: Form[DeliveryPriceForm], transactionStatus: TransactionInfoStatus, errorMessage: Optional[String])(implicit nav: Nav)
+@(showInlineInstruction: Boolean, isSeller: Boolean, itemId: UUID, deliveryPriceForm: Form[DeliveryPriceForm], transactionStatus: TransactionInfoStatus, errorMessage: Optional[String])(implicit nav: Nav, messages: play.i18n.Messages)
 
 @main(message("deliveryPrice")) {
 
     <h2>@message("deliveryPrice")</h2>
 
-    @if(showInlineInstruction == true) {
+    @if(showInlineInstruction) {
         <p>@message("instruction.deliveryPrice")</p>
     }
 

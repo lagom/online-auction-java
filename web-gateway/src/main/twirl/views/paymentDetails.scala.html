@@ -3,13 +3,13 @@
 @import java.util.UUID
 
 @import com.example.auction.transaction.api.TransactionInfoStatus
-@(showInlineInstruction: Boolean, isBuyer: Boolean, itemId: UUID, offlinePaymentForm: Form[OfflinePaymentForm], transactionStatus: TransactionInfoStatus, errorMessage: Optional[String])(implicit nav: Nav)
+@(showInlineInstruction: Boolean, isBuyer: Boolean, itemId: UUID, offlinePaymentForm: Form[OfflinePaymentForm], transactionStatus: TransactionInfoStatus, errorMessage: Optional[String])(implicit nav: Nav, messages: play.i18n.Messages)
 
 @main(message("offlinePayment")) {
 
     <h2>@message("offlinePayment")</h2>
 
-    @if(showInlineInstruction == true) {
+    @if(showInlineInstruction) {
         <p>@message("instruction.paymentDetails")</p>
     }
 

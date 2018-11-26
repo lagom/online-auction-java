@@ -1,39 +1,39 @@
 
-GET         /                                       controllers.Main.index
+GET         /                                       controllers.Main.index(req: Request)
 
 # User management
-GET         /createuser                             controllers.UserController.createUserForm
-POST        /user                                   controllers.UserController.createUser
-POST        /currentuser/:userId                    controllers.UserController.currentUser(userId)
-GET         /login                                  controllers.UserController.loginUserForm
-POST        /login                                  controllers.UserController.loginUser
-GET         /logout                                 controllers.UserController.logoutUser
+GET         /createuser                             controllers.UserController.createUserForm(req: Request)
+POST        /user                                   controllers.UserController.createUser(req: Request)
+POST        /currentuser/:userId                    controllers.UserController.currentUser(req: Request, userId)
+GET         /login                                  controllers.UserController.loginUserForm(req: Request)
+POST        /login                                  controllers.UserController.loginUser(req: Request)
+GET         /logout                                 controllers.UserController.logoutUser(req: Request)
 # User profile
-GET         /my/items/:status                       controllers.ProfileController.myItems(status, page: Int ?= controllers.ProfileController.DEFAULT_PAGE, pageSize: Int ?= controllers.ProfileController.DEFAULT_PAGE_SIZE)
+GET         /my/items/:status                       controllers.ProfileController.myItems(req: Request, status, page: Int ?= controllers.ProfileController.DEFAULT_PAGE, pageSize: Int ?= controllers.ProfileController.DEFAULT_PAGE_SIZE)
 
 # Items
-GET         /createitem                             controllers.ItemController.createItemForm
-POST        /item                                   controllers.ItemController.createItem
-GET         /item/:id                               controllers.ItemController.getItem(id)
-POST        /item/:id                               controllers.ItemController.editItem(id, itemStatus)
-GET         /item/:id/edit                          controllers.ItemController.editItemForm(id)
-POST        /item/:id/auction                       controllers.ItemController.startAuction(id)
-POST        /item/:id/bid                           controllers.ItemController.placeBid(id)
+GET         /createitem                             controllers.ItemController.createItemForm(req: Request)
+POST        /item                                   controllers.ItemController.createItem(req: Request)
+GET         /item/:id                               controllers.ItemController.getItem(req: Request, id)
+POST        /item/:id                               controllers.ItemController.editItem(req: Request, id, itemStatus)
+GET         /item/:id/edit                          controllers.ItemController.editItemForm(req: Request, id)
+POST        /item/:id/auction                       controllers.ItemController.startAuction(req: Request, id)
+POST        /item/:id/bid                           controllers.ItemController.placeBid(req: Request, id)
 
-GET         /search                                 controllers.SearchController.searchForm()
-POST        /search                                 controllers.SearchController.search()
+GET         /search                                 controllers.SearchController.searchForm(req: Request)
+POST        /search                                 controllers.SearchController.search(req: Request)
 
 GET         /assets/*file                           controllers.Assets.at(path = "/public", file)
 
 # Transaction
-GET         /my/transactions/:status                controllers.TransactionController.myTransactions(status, page: Int ?= controllers.TransactionController.DEFAULT_PAGE, pageSize: Int ?= controllers.TransactionController.DEFAULT_PAGE_SIZE)
-GET         /transaction/:id                        controllers.TransactionController.getTransaction(id)
-GET         /transaction/:id/delivery               controllers.TransactionController.submitDeliveryDetailsForm(id)
-POST        /transaction/:id/delivery               controllers.TransactionController.submitDeliveryDetails(id, transactionStatus, isBuyer: Boolean)
-GET         /transaction/:id/deliveryprice          controllers.TransactionController.setDeliveryPriceForm(id)
-POST        /transaction/:id/deliveryprice          controllers.TransactionController.setDeliveryPrice(id, transactionStatus, isSeller: Boolean)
-POST        /transaction/:id/approvedelivery        controllers.TransactionController.approveDelivery(id)
-GET         /transaction/:id/payment                controllers.TransactionController.submitPaymentDetailsForm(id)
-POST        /transaction/:id/payment                controllers.TransactionController.submitPaymentDetails(id, transactionStatus, isBuyer: Boolean)
-POST        /transaction/:id/approvepayment         controllers.TransactionController.approvePayment(id)
-POST        /transaction/:id/rejectpayment          controllers.TransactionController.rejectPayment(id)
+GET         /my/transactions/:status                controllers.TransactionController.myTransactions(req: Request, status, page: Int ?= controllers.TransactionController.DEFAULT_PAGE, pageSize: Int ?= controllers.TransactionController.DEFAULT_PAGE_SIZE)
+GET         /transaction/:id                        controllers.TransactionController.getTransaction(req: Request, id)
+GET         /transaction/:id/delivery               controllers.TransactionController.submitDeliveryDetailsForm(req: Request, id)
+POST        /transaction/:id/delivery               controllers.TransactionController.submitDeliveryDetails(req: Request, id, transactionStatus, isBuyer: Boolean)
+GET         /transaction/:id/deliveryprice          controllers.TransactionController.setDeliveryPriceForm(req: Request, id)
+POST        /transaction/:id/deliveryprice          controllers.TransactionController.setDeliveryPrice(req: Request, id, transactionStatus, isSeller: Boolean)
+POST        /transaction/:id/approvedelivery        controllers.TransactionController.approveDelivery(req: Request, id)
+GET         /transaction/:id/payment                controllers.TransactionController.submitPaymentDetailsForm(req: Request, id)
+POST        /transaction/:id/payment                controllers.TransactionController.submitPaymentDetails(req: Request, id, transactionStatus, isBuyer: Boolean)
+POST        /transaction/:id/approvepayment         controllers.TransactionController.approvePayment(req: Request, id)
+POST        /transaction/:id/rejectpayment          controllers.TransactionController.rejectPayment(req: Request, id)

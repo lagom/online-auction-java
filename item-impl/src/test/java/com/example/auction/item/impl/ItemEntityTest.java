@@ -265,12 +265,12 @@ public class ItemEntityTest {
         assertEquals(winningPrice, maybePItem.get().getPrice());
     }
 
+    @SuppressWarnings("unchecked")
     private Optional<PItem> getItem() {
         GetItem getItem = GetItem.INSTANCE;
         Outcome<PItemEvent, PItemState> outcome = driver.run(getItem);
         return (Optional<PItem>) ((PersistentEntityTestDriver.Reply) outcome.sideEffects().get(0)).msg();
     }
-
 
     //  ---------------------------------------------------------------------------------------------------------
 
@@ -280,17 +280,10 @@ public class ItemEntityTest {
         }
     }
 
-
     // This method rethrows the side effected exception
     private void expectRethrows(Outcome<PItemEvent, PItemState> outcome) throws Throwable {
         PersistentEntityTestDriver.Reply sideEffect = (PersistentEntityTestDriver.Reply) outcome.sideEffects().get(0);
         throw (Throwable) sideEffect.msg();
-    }
-
-    // This method returns the side effected exception
-    private <E extends Throwable> E expectException(Outcome<PItemEvent, PItemState> outcome) {
-        PersistentEntityTestDriver.Reply sideEffect = (PersistentEntityTestDriver.Reply) outcome.sideEffects().get(0);
-        return (E) sideEffect.msg();
     }
 
     /**

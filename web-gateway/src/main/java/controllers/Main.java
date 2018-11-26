@@ -3,6 +3,7 @@ package controllers;
 import com.example.auction.user.api.UserService;
 import play.i18n.MessagesApi;
 import play.libs.concurrent.HttpExecutionContext;
+import play.mvc.Http;
 import play.mvc.Result;
 
 import javax.inject.Inject;
@@ -18,10 +19,10 @@ public class Main extends AbstractController {
         this.ec = ec;
     }
 
-    public CompletionStage<Result> index() {
-        return withUser(ctx(), userId ->
-                loadNav(userId).thenApplyAsync(nav ->
-                                ok(views.html.index.render(nav)),
+    public CompletionStage<Result> index(final Http.Request request) {
+        return withUser(request.session(), userId ->
+                loadNav(userId, request).thenApplyAsync(nav ->
+                                ok(views.html.index.render(nav, messagesApi.preferred(request))),
                         ec.current())
         );
     }

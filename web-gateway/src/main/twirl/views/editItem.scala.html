@@ -5,14 +5,14 @@
 
 @import com.example.auction.item.api.ItemStatus
 
-@(showInlineInstruction: Boolean, itemId: UUID, itemForm: Form[ItemForm], itemStatus: ItemStatus, errorMessage: Optional[String])(implicit nav: Nav)
+@(showInlineInstruction: Boolean, itemId: UUID, itemForm: Form[ItemForm], itemStatus: ItemStatus, errorMessage: Optional[String])(implicit nav: Nav, messages: play.i18n.Messages)
 
 
 @main(message("editItem")) {
 
     <h2>@message("editItem")</h2>
 
-    @if(showInlineInstruction == true) {
+    @if(showInlineInstruction) {
         <p>@message("instruction.editItem")</p>
     }
 

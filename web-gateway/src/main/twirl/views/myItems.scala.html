@@ -4,7 +4,7 @@
 @import com.example.auction.pagination.PaginatedSequence
 @import routes.ItemController.{getItem, startAuction}
 
-@(showInlineInstruction: Boolean, status: ItemStatus, paginatedItems: PaginatedSequence[ItemSummary])(implicit nav: Nav)
+@(showInlineInstruction: Boolean, status: ItemStatus, paginatedItems: PaginatedSequence[ItemSummary])(implicit nav: Nav, messages: play.i18n.Messages)
 
 @defining(nav.getUser.get) { user =>
     @main(user.getName) {
@@ -14,7 +14,7 @@
             <ul class="menu vertical large-3 columns">
             @for(menuStatus <- ItemStatus.values) {
                 <li class="@if(menuStatus == status) {active}">
-                    <a href="@profilePage(menuStatus)">@message("items." + menuStatus)</a>
+                    <a href="@profilePage(menuStatus)">@messages("items." + menuStatus)</a>
                 </li>
             }
             </ul>
@@ -52,7 +52,7 @@
                                 <td>
                                 @if(item.getStatus == ItemStatus.CREATED) {
                                     <form action="@startAuction(item.getId.toString)" method="POST">
-                                        <input class="button success" type="submit" value="@message("startAuction")"/>
+                                        <input class="button success" type="submit" value="@messages("startAuction")"/>
                                     </form>
                                 }
                                 </td>

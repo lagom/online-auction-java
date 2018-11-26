@@ -1,6 +1,6 @@
 organization in ThisBuild := "com.example"
 
-scalaVersion in ThisBuild := "2.12.4"
+scalaVersion in ThisBuild := "2.12.7"
 
 EclipseKeys.projectFlavor in Global := EclipseProjectFlavor.Java
 
@@ -15,10 +15,10 @@ lazy val root = (project in file("."))
     transactionApi, transactionImpl,
     searchApi, searchImpl,
     webGateway)
-  .settings(commonSettings: _*)
+  .settings(commonSettings)
 
 lazy val security = (project in file("security"))
-  .settings(commonSettings: _*)
+  .settings(commonSettings)
   .settings(
     version := "1.0-SNAPSHOT",
     libraryDependencies ++= Seq(
@@ -29,7 +29,7 @@ lazy val security = (project in file("security"))
 
 
 lazy val testkit = (project in file("testkit"))
-  .settings(commonSettings: _*)
+  .settings(commonSettings)
   .settings(
     version := "1.0-SNAPSHOT",
     libraryDependencies ++= Seq(
@@ -40,7 +40,7 @@ lazy val testkit = (project in file("testkit"))
   .dependsOn(tools)
 
 lazy val itemApi = (project in file("item-api"))
-  .settings(commonSettings: _*)
+  .settings(commonSettings)
   .settings(
     version := "1.0-SNAPSHOT",
     libraryDependencies ++= Seq(
@@ -51,7 +51,7 @@ lazy val itemApi = (project in file("item-api"))
   .dependsOn(security, tools)
 
 lazy val itemImpl = (project in file("item-impl"))
-  .settings(commonSettings: _*)
+  .settings(commonSettings)
   .enablePlugins(LagomJava, SbtReactiveAppPlugin)
   .settings(
     version := "1.0-SNAPSHOT",
@@ -71,7 +71,7 @@ lazy val itemImpl = (project in file("item-impl"))
   )
 
 lazy val biddingApi = (project in file("bidding-api"))
-  .settings(commonSettings: _*)
+  .settings(commonSettings)
   .settings(
     version := "1.0-SNAPSHOT",
     libraryDependencies ++= Seq(
@@ -82,7 +82,7 @@ lazy val biddingApi = (project in file("bidding-api"))
   .dependsOn(security)
 
 lazy val biddingImpl = (project in file("bidding-impl"))
-  .settings(commonSettings: _*)
+  .settings(commonSettings)
   .enablePlugins(LagomJava, SbtReactiveAppPlugin)
   .dependsOn(biddingApi, itemApi)
   .settings(
@@ -97,7 +97,7 @@ lazy val biddingImpl = (project in file("bidding-impl"))
   )
 
 lazy val searchApi = (project in file("search-api"))
-  .settings(commonSettings: _*)
+  .settings(commonSettings)
   .settings(
     version := "1.0-SNAPSHOT",
     libraryDependencies ++= Seq(
@@ -108,7 +108,7 @@ lazy val searchApi = (project in file("search-api"))
   .dependsOn(security, tools)
 
 lazy val searchImpl = (project in file("search-impl"))
-  .settings(commonSettings: _*)
+  .settings(commonSettings)
   .enablePlugins(LagomJava, SbtReactiveAppPlugin)
   .settings(
     version := "1.0-SNAPSHOT",
@@ -122,7 +122,7 @@ lazy val searchImpl = (project in file("search-impl"))
   .dependsOn(tools, searchApi, itemApi, biddingApi)
 
 lazy val tools = (project in file("tools"))
-  .settings(commonSettings: _*)
+  .settings(commonSettings)
   .settings(
     version := "1.0-SNAPSHOT",
     libraryDependencies ++= Seq(
@@ -133,7 +133,7 @@ lazy val tools = (project in file("tools"))
 
 
 lazy val transactionApi = (project in file("transaction-api"))
-  .settings(commonSettings: _*)
+  .settings(commonSettings)
   .settings(
     version := "1.0-SNAPSHOT",
     libraryDependencies ++= Seq(
@@ -144,7 +144,7 @@ lazy val transactionApi = (project in file("transaction-api"))
   .dependsOn(security, itemApi)
 
 lazy val transactionImpl = (project in file("transaction-impl"))
-  .settings(commonSettings: _*)
+  .settings(commonSettings)
   .enablePlugins(LagomJava, SbtReactiveAppPlugin)
   .dependsOn(
     transactionApi,
@@ -162,7 +162,7 @@ lazy val transactionImpl = (project in file("transaction-impl"))
 )
 
 lazy val userApi = (project in file("user-api"))
-  .settings(commonSettings: _*)
+  .settings(commonSettings)
   .settings(
     version := "1.0-SNAPSHOT",
     libraryDependencies ++= Seq(
@@ -173,7 +173,7 @@ lazy val userApi = (project in file("user-api"))
   .dependsOn(security, tools)
 
 lazy val userImpl = (project in file("user-impl"))
-  .settings(commonSettings: _*)
+  .settings(commonSettings)
   .enablePlugins(LagomJava, SbtReactiveAppPlugin)
   .dependsOn(userApi, tools,
     testkit % "test"
@@ -183,7 +183,7 @@ lazy val userImpl = (project in file("user-impl"))
     libraryDependencies ++= Seq(
       lagomJavadslPersistenceCassandra,
       lagomJavadslTestKit,
-      "de.svenkubiak" % "jBCrypt" % "0.4",
+      "de.svenkubiak" % "jBCrypt" % "0.4.1",
       lagomJavadslKafkaBroker,
       cassandraExtras,
       lombok
@@ -191,7 +191,7 @@ lazy val userImpl = (project in file("user-impl"))
   )
 
 lazy val webGateway = (project in file("web-gateway"))
-  .settings(commonSettings: _*)
+  .settings(commonSettings)
   .enablePlugins(PlayJava, LagomPlay, SbtReactiveAppPlugin)
   .disablePlugins(PlayLayoutPlugin) // use the standard sbt layout... src/main/java, etc.
   .dependsOn(tools, transactionApi, biddingApi, itemApi, searchApi, userApi, searchApi)
@@ -199,7 +199,7 @@ lazy val webGateway = (project in file("web-gateway"))
     version := "1.0-SNAPSHOT",
     libraryDependencies ++= Seq(
       lagomJavadslClient,
-      "org.ocpsoft.prettytime" % "prettytime" % "3.2.7.Final",
+      "org.ocpsoft.prettytime" % "prettytime" % "4.0.2.Final",
       "org.webjars" % "foundation" % "6.2.3",
       "org.webjars" % "foundation-icon-fonts" % "d596a3cfb3"
     ),
@@ -213,8 +213,8 @@ lazy val webGateway = (project in file("web-gateway"))
     EclipseKeys.preTasks := Seq(compile in Compile)
   )
 
-val lombok = "org.projectlombok" % "lombok" % "1.16.10"
-val cassandraExtras = "com.datastax.cassandra" % "cassandra-driver-extras" % "3.0.0"
+val lombok = "org.projectlombok" % "lombok" % "1.18.4"
+val cassandraExtras = "com.datastax.cassandra" % "cassandra-driver-extras" % "3.6.0"
 
 def elasticsearch: String = {
   val enableElasticsearch = sys.props.getOrElse("enableElasticsearch", default = "false")
@@ -225,9 +225,20 @@ def elasticsearch: String = {
   }
 }
 
-def commonSettings: Seq[Setting[_]] = eclipseSettings ++ Seq(
+def evictionSettings: Seq[Setting[_]] = Seq(
+  // This avoids a lot of dependency resolution warnings to be showed.
+  // They are not required in Lagom since we have a more strict whitelist
+  // of which dependencies are allowed. So it should be safe to not have
+  // the build logs polluted with evictions warnings.
+  evictionWarningOptions in update := EvictionWarningOptions.default
+    .withWarnTransitiveEvictions(false)
+    .withWarnDirectEvictions(false)
+)
+
+def commonSettings: Seq[Setting[_]] = eclipseSettings ++ evictionSettings ++ Seq(
   javacOptions in Compile ++= Seq("-encoding", "UTF-8", "-source", "1.8"),
-  javacOptions in(Compile, compile) ++= Seq("-Xlint:unchecked", "-Xlint:deprecation", "-parameters")
+  javacOptions in(Compile, compile) ++= Seq("-Xlint:unchecked", "-Xlint:deprecation", "-parameters", "-Werror"),
+  scalacOptions += "-feature"
 )
 
 lagomCassandraCleanOnStart in ThisBuild := false

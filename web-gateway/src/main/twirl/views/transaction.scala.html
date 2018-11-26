@@ -5,13 +5,13 @@
 @import java.util.UUID
 @import controllers.{Currency => Currencies}
 
-@(showInlineInstruction: Boolean, transaction: Optional[TransactionInfo], userId: UUID, seller: Optional[User], winner: Optional[User], currency: Optional[Currencies], errorMessage: Optional[String])(implicit nav: Nav)
+@(showInlineInstruction: Boolean, transaction: Optional[TransactionInfo], userId: UUID, seller: Optional[User], winner: Optional[User], currency: Optional[Currencies], errorMessage: Optional[String])(implicit nav: Nav, messages: play.i18n.Messages)
 @main(message("transactionInfo")) {
     <h2>@message("transactionInfo")</h2>
 
     <div class="row">
       <div class="medium-6 columns">
-        @if(showInlineInstruction == true) {
+        @if(showInlineInstruction) {
             <p>@message("instruction.transactionInfo")</p>
         }
 

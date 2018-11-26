@@ -54,6 +54,7 @@ public class PItemEntity extends PersistentEntity<PItemCommand, PItemEvent, PIte
         return builder.build();
     }
 
+    @SuppressWarnings("unchecked")
     private Behavior created(PItemState state) {
         BehaviorBuilder builder = newBehaviorBuilder(state);
 
@@ -84,7 +85,7 @@ public class PItemEntity extends PersistentEntity<PItemCommand, PItemEvent, PIte
         return builder.build();
     }
 
-
+    @SuppressWarnings("unchecked")
     private Behavior auction(PItemState state) {
         BehaviorBuilder builder = newBehaviorBuilder(state);
 

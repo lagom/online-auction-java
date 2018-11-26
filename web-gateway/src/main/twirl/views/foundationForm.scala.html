@@ -1,6 +1,6 @@
 @import views.html.helper.form
 
-@(theForm: Form[_], action: play.api.mvc.Call, args: (Symbol,String)*)(body: => Html)(implicit messages: Messages)
+@(theForm: Form[_], action: play.api.mvc.Call, args: (Symbol,String)*)(body: => Html)(implicit messages: play.i18n.Messages)
 
 @form(action, args: _*) {
 
@@ -9,10 +9,10 @@
             @if(theForm.hasErrors) {
                 <div class="alert callout">
                     <i class="fi-alert"></i>
-                    @messages("formErrors")
+                    @message("formErrors")
                     @if(theForm.hasGlobalErrors) {
                         <ul>@for(error <- theForm.globalErrors) {
-                            <li>@messages(error.message, error.arguments: _*)</li>
+                            <li>@message(error.message, error.arguments: _*)</li>
                         }</ul>
                     }
                 </div>
