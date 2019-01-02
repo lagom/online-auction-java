@@ -24,7 +24,7 @@ public interface Elasticsearch extends  Service {
     ServiceCall<QueryRoot, SearchResult> search(String index);
 
     @Override
-    default public Descriptor descriptor() {
+    default Descriptor descriptor() {
         return named("elastic-search")
                 .withCalls(
                         Service.restCall(Method.GET, "/:index/items/_search", this::search),
