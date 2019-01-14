@@ -1,29 +1,45 @@
 language: scala
-dist: trusty
-sudo: required
-jdk:
-  - oraclejdk8
+
+env:
+  - TRAVIS_JDK=adopt@1.8.192-12
+  - TRAVIS_JDK=adopt@1.11.0-1
+
+matrix:
+  fast_finish: true
+  allow_failures:
+    - env: TRAVIS_JDK=adopt@1.11.0-1 # not fully supported but allows problem discovery
+
 addons:
   apt:
     packages:
       - oracle-java8-set-default # Installing Elasticsearch from .deb causes default JDK in the system to fallback. This is required to ensure that 'java' (and other JDK commands) is linked to those of oraclejdk8
+
 before_install:
   - curl -O https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-5.0.2.deb
   - sudo dpkg -i --force-confnew elasticsearch-5.0.2.deb
   - sudo service elasticsearch restart
+  - curl -sL https://github.com/shyiko/jabba/raw/master/install.sh | bash && . ~/.jabba/jabba.sh
+
+install:
+  - $JABBA_HOME/bin/jabba install $TRAVIS_JDK
+  - export JAVA_HOME="$JABBA_HOME/jdk/$TRAVIS_JDK" && export PATH="$JAVA_HOME/bin:$PATH" && java -Xmx32m -version
+
 before_script:
   # As documented here: https://docs.travis-ci.com/user/database-setup/#elasticsearch
   - sleep 20
-script:
-  - sbt -DenableElasticsearch=true test
+
+script: sbt -DenableElasticsearch=true test
+
 cache:
   directories:
     - $HOME/.ivy2/cache
+    - $HOME/.jabba/jdk
+    - $HOME/.sbt
+
 before_cache:
-  # Ensure changes to the cache aren't persisted
-  - rm -rf $HOME/.ivy2/cache/com.example
-  # Delete all ivydata files since ivy touches them on each build
-  - find $HOME/.ivy2/cache -name "ivydata-*.properties" | xargs rm
+  - find $HOME/.ivy2 -name "ivydata-*.properties" -delete
+  - find $HOME/.sbt -name "*.lock" -delete
+
 notifications:
   webhooks:
     urls:
