@@ -115,6 +115,7 @@ lazy val searchImpl = (project in file("search-impl"))
     libraryDependencies ++= Seq(
       lagomJavadslTestKit,
       lagomJavadslKafkaClient,
+      "org.taymyr.lagom" %% "lagom-elasticsearch-client-java" % "1.0.0-M2",
       lombok
     ),
     testOptions in Test += Tests.Argument(TestFrameworks.JUnit, elasticsearch)
@@ -248,3 +249,4 @@ lagomCassandraCleanOnStart in ThisBuild := false
 // register 'elastic-search' as an unmanaged service on the service locator so that at 'runAll' our code
 // will resolve 'elastic-search' and use it. See also com.example.com.ElasticSearch
 lagomUnmanagedServices in ThisBuild += ("elastic-search" -> "http://127.0.0.1:9200")
+lagomUnmanagedServices in ThisBuild += ("elastic-document" -> "http://127.0.0.1:9200")

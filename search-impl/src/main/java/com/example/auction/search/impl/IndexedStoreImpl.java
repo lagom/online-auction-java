@@ -2,35 +2,52 @@ package com.example.auction.search.impl;
 
 import akka.Done;
 import com.example.auction.search.IndexedStore;
-import com.example.elasticsearch.*;
+import com.example.elasticsearch.IndexedItem;
+import com.example.elasticsearch.ItemSearchResult;
+import org.taymyr.lagom.elasticsearch.document.ElasticDocument;
+import org.taymyr.lagom.elasticsearch.document.dsl.update.DocUpdateRequest;
+import org.taymyr.lagom.elasticsearch.search.ElasticSearch;
+import org.taymyr.lagom.elasticsearch.search.dsl.SearchRequest;
 
-import javax.inject.Inject;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
+import javax.inject.Inject;
+
+import static akka.Done.done;
+import static org.taymyr.lagom.elasticsearch.ServiceCall.invoke;
+
+import static java.util.concurrent.CompletableFuture.completedFuture;
 
 /**
  *
  */
-public class IndexedStoreImpl implements IndexedStore{
+public class IndexedStoreImpl implements IndexedStore {
 
-    public static final String INDEX_NAME = "auction-items";
+    public static final String INDEX_NAME = "auction";
+    public static final String TYPE_NAME = "item";
 
-    private final Elasticsearch elasticsearch;
+    private final ElasticSearch elasticSearch;
+    private final ElasticDocument elasticDocument;
 
     @Inject
-    public IndexedStoreImpl(Elasticsearch elasticsearch) {
-        this.elasticsearch = elasticsearch;
+    public IndexedStoreImpl(ElasticSearch elasticSearch, ElasticDocument elasticDocument) {
+        this.elasticSearch = elasticSearch;
+        this.elasticDocument = elasticDocument;
     }
 
 
     public CompletionStage<Done> store(Optional<IndexedItem> document) {
         return document
-                .map(doc -> elasticsearch.updateIndex(INDEX_NAME, doc.getItemId()).invoke(new UpdateIndexItem(doc)))
-                .orElse(CompletableFuture.completedFuture(Done.getInstance()));
+            .map(
+                doc -> invoke(
+                    elasticDocument.update(INDEX_NAME, TYPE_NAME, doc.getItemId().toString()),
+                    DocUpdateRequest.builder().docAsUpsert(true).doc(doc).build()
+                ).thenApply(updateResult -> done())
+            )
+            .orElse(completedFuture(done()));
     }
 
-    public CompletionStage<SearchResult> search(QueryRoot query) {
-        return elasticsearch.search(INDEX_NAME).invoke(query);
+    public CompletionStage<ItemSearchResult> search(SearchRequest query) {
+        return invoke(elasticSearch.search(INDEX_NAME), query, ItemSearchResult.class);
     }
 }

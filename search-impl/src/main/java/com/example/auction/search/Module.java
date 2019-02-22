@@ -6,9 +6,10 @@ import com.example.auction.search.api.SearchService;
 import com.example.auction.search.impl.BrokerEventConsumer;
 import com.example.auction.search.impl.IndexedStoreImpl;
 import com.example.auction.search.impl.SearchServiceImpl;
-import com.example.elasticsearch.Elasticsearch;
 import com.google.inject.AbstractModule;
 import com.lightbend.lagom.javadsl.server.ServiceGuiceSupport;
+import org.taymyr.lagom.elasticsearch.document.ElasticDocument;
+import org.taymyr.lagom.elasticsearch.search.ElasticSearch;
 
 /**
  *
@@ -20,7 +21,9 @@ public class Module extends AbstractModule implements ServiceGuiceSupport {
 
         bindClient(BiddingService.class);
         bindClient(ItemService.class);
-        bindClient(Elasticsearch.class);
+
+        bindClient(ElasticSearch.class);
+        bindClient(ElasticDocument.class);
 
         bind(IndexedStore.class).to(IndexedStoreImpl.class);
 

@@ -32,7 +32,7 @@
         </div>
         <input type="submit" class="button" value="@message("search")"/>
 
-        <input type="hidden" id="pageNumber" value="@searchItemForm("pageNumber").value" name="@searchItemForm("pageNumber").name"/>
+        <input type="hidden" id="pageNumber" name="pageNumber" value="@searchItemForm("pageNumber").value.getOrElse(0)"/>
 
         @if(results.isPresent) {
             <script>

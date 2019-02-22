@@ -3,7 +3,6 @@ package com.example.elasticsearch;
 import akka.Done;
 import akka.NotUsed;
 import com.example.auction.search.impl.IndexedStoreImpl;
-import com.example.auction.search.impl.SearchServiceImpl;
 import com.lightbend.lagom.javadsl.api.Descriptor;
 import com.lightbend.lagom.javadsl.api.Service;
 import com.lightbend.lagom.javadsl.api.ServiceCall;
@@ -19,7 +18,6 @@ public interface ElasticsearchTestUtils extends Service {
 
     ServiceCall<NotUsed, Done> deleteIndex();
     ServiceCall<NotUsed, Done> deleteOne(UUID id);
-    ServiceCall<QueryRoot, Done> delete();
     ServiceCall<NotUsed, Done> refresh();
     ServiceCall<NotUsed, Done> flush();
     ServiceCall<NotUsed, Done> merge();
@@ -31,7 +29,6 @@ public interface ElasticsearchTestUtils extends Service {
                 .withCalls(
                         Service.restCall(Method.DELETE, "/" + IndexedStoreImpl.INDEX_NAME , this::deleteIndex),
                         Service.restCall(Method.DELETE, "/" + IndexedStoreImpl.INDEX_NAME + "/items/:id", this::deleteOne),
-                        Service.restCall(Method.POST, "/" + IndexedStoreImpl.INDEX_NAME + "/items/_delete_by_query", this::delete),
                         Service.restCall(Method.POST, "/" + IndexedStoreImpl.INDEX_NAME + "/_refresh", this::refresh),
                         Service.restCall(Method.POST, "/" + IndexedStoreImpl.INDEX_NAME + "/_flush", this::flush),
                         Service.restCall(Method.POST, "/" + IndexedStoreImpl.INDEX_NAME + "/_cache/clear", this::clearCache),
