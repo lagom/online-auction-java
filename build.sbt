@@ -2,9 +2,6 @@ organization in ThisBuild := "com.example"
 
 scalaVersion in ThisBuild := "2.12.8"
 
-EclipseKeys.projectFlavor in Global := EclipseProjectFlavor.Java
-
-
 lazy val root = (project in file("."))
   .settings(name := "online-auction-java")
   .aggregate(
@@ -52,13 +49,14 @@ lazy val itemApi = (project in file("item-api"))
 
 lazy val itemImpl = (project in file("item-impl"))
   .settings(commonSettings)
-  .enablePlugins(LagomJava, SbtReactiveAppPlugin)
+  .enablePlugins(LagomJava)
   .settings(
     version := "1.0-SNAPSHOT",
     libraryDependencies ++= Seq(
       lagomJavadslPersistenceCassandra,
       lagomJavadslTestKit,
       lagomJavadslKafkaBroker,
+      akkaDiscoveryServiceLocator,
       cassandraExtras
     )
   )
@@ -83,11 +81,12 @@ lazy val biddingApi = (project in file("bidding-api"))
 
 lazy val biddingImpl = (project in file("bidding-impl"))
   .settings(commonSettings)
-  .enablePlugins(LagomJava, SbtReactiveAppPlugin)
+  .enablePlugins(LagomJava)
   .dependsOn(biddingApi, itemApi)
   .settings(
     version := "1.0-SNAPSHOT",
     libraryDependencies ++= Seq(
+      akkaDiscoveryServiceLocator,
       lagomJavadslPersistenceCassandra,
       lagomJavadslTestKit,
       lagomJavadslKafkaBroker
@@ -109,10 +108,11 @@ lazy val searchApi = (project in file("search-api"))
 
 lazy val searchImpl = (project in file("search-impl"))
   .settings(commonSettings)
-  .enablePlugins(LagomJava, SbtReactiveAppPlugin)
+  .enablePlugins(LagomJava)
   .settings(
     version := "1.0-SNAPSHOT",
     libraryDependencies ++= Seq(
+      akkaDiscoveryServiceLocator,
       lagomJavadslTestKit,
       lagomJavadslKafkaClient,
       lombok
@@ -145,7 +145,7 @@ lazy val transactionApi = (project in file("transaction-api"))
 
 lazy val transactionImpl = (project in file("transaction-impl"))
   .settings(commonSettings)
-  .enablePlugins(LagomJava, SbtReactiveAppPlugin)
+  .enablePlugins(LagomJava)
   .dependsOn(
     transactionApi,
     itemApi,
@@ -154,6 +154,7 @@ lazy val transactionImpl = (project in file("transaction-impl"))
   ).settings(
   version := "1.0-SNAPSHOT",
   libraryDependencies ++= Seq(
+    akkaDiscoveryServiceLocator,
     lagomJavadslPersistenceCassandra,
     lagomJavadslTestKit,
     lagomJavadslKafkaBroker,
@@ -174,13 +175,14 @@ lazy val userApi = (project in file("user-api"))
 
 lazy val userImpl = (project in file("user-impl"))
   .settings(commonSettings)
-  .enablePlugins(LagomJava, SbtReactiveAppPlugin)
+  .enablePlugins(LagomJava)
   .dependsOn(userApi, tools,
     testkit % "test"
   )
   .settings(
     version := "1.0-SNAPSHOT",
     libraryDependencies ++= Seq(
+      akkaDiscoveryServiceLocator,
       lagomJavadslPersistenceCassandra,
       lagomJavadslTestKit,
       "de.svenkubiak" % "jBCrypt" % "0.4.1",
@@ -192,29 +194,26 @@ lazy val userImpl = (project in file("user-impl"))
 
 lazy val webGateway = (project in file("web-gateway"))
   .settings(commonSettings)
-  .enablePlugins(PlayJava, LagomPlay, SbtReactiveAppPlugin)
+  .enablePlugins(PlayJava, LagomPlay)
   .disablePlugins(PlayLayoutPlugin) // use the standard sbt layout... src/main/java, etc.
   .dependsOn(tools, transactionApi, biddingApi, itemApi, searchApi, userApi, searchApi)
   .settings(
     version := "1.0-SNAPSHOT",
     libraryDependencies ++= Seq(
+      akkaDiscoveryServiceLocator,
       lagomJavadslClient,
       "org.ocpsoft.prettytime" % "prettytime" % "4.0.2.Final",
       "org.webjars" % "foundation" % "6.2.3",
       "org.webjars" % "foundation-icon-fonts" % "d596a3cfb3"
     ),
 
-    PlayKeys.playMonitoredFiles ++= (sourceDirectories in (Compile, TwirlKeys.compileTemplates)).value,
-
-    // Workaround for https://github.com/lagom/online-auction-java/issues/22
-    // Uncomment the commented out line and remove the Scala line when issue #22 is fixed
-    EclipseKeys.projectFlavor in Global := EclipseProjectFlavor.ScalaIDE,
-    // EclipseKeys.createSrc := EclipseCreateSrc.ValueSet(EclipseCreateSrc.ManagedClasses, EclipseCreateSrc.ManagedResources)
-    EclipseKeys.preTasks := Seq(compile in Compile)
+    PlayKeys.playMonitoredFiles ++= (sourceDirectories in (Compile, TwirlKeys.compileTemplates)).value
   )
 
 val lombok = "org.projectlombok" % "lombok" % "1.18.4"
 val cassandraExtras = "com.datastax.cassandra" % "cassandra-driver-extras" % "3.6.0"
+val akkaDiscoveryServiceLocator = "com.lightbend.lagom" %% "lagom-scaladsl-akka-discovery-service-locator" % "1.0.0"
+
 
 def elasticsearch: String = {
   val enableElasticsearch = sys.props.getOrElse("enableElasticsearch", default = "false")
@@ -235,7 +234,7 @@ def evictionSettings: Seq[Setting[_]] = Seq(
     .withWarnDirectEvictions(false)
 )
 
-def commonSettings: Seq[Setting[_]] = eclipseSettings ++ evictionSettings ++ Seq(
+def commonSettings: Seq[Setting[_]] = evictionSettings ++ Seq(
   javacOptions in Compile ++= Seq("-encoding", "UTF-8", "-source", "1.8"),
   javacOptions in(Compile, compile) ++= Seq("-Xlint:unchecked", "-Xlint:deprecation", "-parameters", "-Werror"),
   scalacOptions += "-feature"
