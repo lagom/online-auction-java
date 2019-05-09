@@ -1,3 +1,5 @@
+This sample application is archived. See https://github.com/lagom/lagom-samples for more example projects showcasing Lagom usage.
+
 [<img src="docs/logo.png" alt="Lagom" width="50%">](https://github.com/lagom/lagom)
 
 [![Gitter](https://img.shields.io/gitter/room/gitterHQ/gitter.svg)](https://gitter.im/lagom/lagom?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) [<img src="https://travis-ci.org/lagom/online-auction-java.svg?branch=master"/>](https://travis-ci.org/lagom/online-auction-java)
